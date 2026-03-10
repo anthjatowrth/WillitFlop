@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WillItFlop — Présentation Projet</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Space+Mono:wght@400;700&family=Exo+2:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+/* ── PRINT ── */
+@media print {
+  .no-print { display: none !important; }
+  body { background: #F4F2EE !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .section { page-break-inside: avoid; }
+  .hero { min-height: auto; padding: 48px; }
+  .hero-grid, body::after { display: none; }
+}
+
+:root {
+  --bg:        #F4F2EE;
+  --bg2:       #EDEAE4;
+  --bg3:       #E3E0D8;
+  --border:    #D4D0C8;
+  --pink:      #E8005A;
+  --cyan:      #007A8C;
+  --cyan-b:    #00C8B4;
+  --ink:       #0D0D1A;
+  --ink2:      #2A2A3A;
+  --gray:      #7A7A8C;
+  --success:   #007A4C;
+  --danger:    #CC1A1A;
+  --warn:      #8C6A00;
+  --white:     #FFFFFF;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Exo 2', sans-serif;
+  line-height: 1.65;
+}
+
+/* Grain */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 9999; opacity: 0.5;
+}
+
+/* ── NAV ── */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(244,242,238,0.94);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 48px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+}
+.nav-brand { font-family: 'Orbitron', sans-serif; font-size: 0.95rem; font-weight: 900; color: var(--ink); letter-spacing: 0.08em; }
+.nav-brand .hl { color: var(--pink); }
+.nav-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.nav-tag {
+  font-family: 'Space Mono', monospace; font-size: 0.6rem;
+  color: var(--cyan); background: rgba(0,122,140,0.1);
+  border: 1px solid rgba(0,122,140,0.3);
+  padding: 4px 14px; border-radius: 20px; letter-spacing: 0.15em;
+}
+.btn-print {
+  font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.15em;
+  background: var(--pink); color: #fff; border: none; border-radius: 4px;
+  padding: 6px 16px; cursor: pointer; transition: background 0.2s;
+}
+.btn-print:hover { background: #c50051; }
+
+/* ── HERO ── */
+.hero {
+  min-height: 52vh;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 20px; text-align: center;
+  padding: 72px 48px; position: relative; overflow: hidden;
+}
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(232,0,90,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(232,0,90,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 0%, transparent 100%);
+}
+.hero::before {
+  content: '';
+  position: absolute; width: 500px; height: 500px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(232,0,90,0.06) 0%, rgba(0,122,140,0.04) 50%, transparent 70%);
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+  animation: pulse 7s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-50%) scale(1.12)} }
+
+.hero-eyebrow {
+  font-family: 'Space Mono', monospace; font-size: 0.65rem;
+  letter-spacing: 0.4em; color: var(--cyan);
+  opacity: 0; animation: fadeUp 0.6s 0.1s forwards;
+}
+.hero-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(3rem, 10vw, 6.5rem);
+  font-weight: 900; letter-spacing: 0.04em; line-height: 1;
+  color: var(--ink); position: relative;
+  opacity: 0; animation: fadeUp 0.6s 0.3s forwards;
+}
+.hero-title .hl { color: var(--pink); }
+.hero-title::before, .hero-title::after {
+  content: 'WILLITFLOP'; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+}
+.hero-title::before {
+  color: var(--cyan-b); clip-path: polygon(0 20%,100% 20%,100% 32%,0 32%);
+  transform: translateX(-2px); animation: g1 6s infinite; opacity: 0.35;
+}
+.hero-title::after {
+  color: var(--pink); clip-path: polygon(0 68%,100% 68%,100% 78%,0 78%);
+  transform: translateX(2px); animation: g2 6s infinite; opacity: 0.35;
+}
+@keyframes g1 { 0%,88%,100%{opacity:0} 89%{opacity:0.35;transform:translateX(-3px)} 91%{transform:translateX(3px)} 93%{opacity:0} }
+@keyframes g2 { 0%,91%,100%{opacity:0} 92%{opacity:0.35;transform:translateX(3px)} 94%{transform:translateX(-3px)} 96%{opacity:0} }
+
+.hero-sub {
+  font-family: 'Space Mono', monospace; font-size: 0.8rem;
+  color: var(--gray); letter-spacing: 0.2em; text-transform: uppercase;
+  opacity: 0; animation: fadeUp 0.6s 0.5s forwards;
+}
+.hero-sub span { color: var(--pink); }
+
+.hero-badges {
+  display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+  opacity: 0; animation: fadeUp 0.6s 0.7s forwards;
+}
+.badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 16px; border-radius: 30px;
+  font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em;
+}
+.badge-pink { color: var(--pink); background: rgba(232,0,90,0.08); border: 1px solid rgba(232,0,90,0.25); }
+.badge-cyan { color: var(--cyan); background: rgba(0,122,140,0.08); border: 1px solid rgba(0,122,140,0.25); }
+.badge-ink  { color: var(--ink2); background: rgba(13,13,26,0.06); border: 1px solid rgba(13,13,26,0.15); }
+.dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; animation: blink 1.2s step-end infinite; }
+@keyframes blink { 50%{opacity:0} }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── LAYOUT ── */
+.container { max-width: 1060px; margin: 0 auto; padding: 72px 48px; }
+.divider { height: 1px; margin: 0 48px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
+
+.section-label {
+  font-family: 'Space Mono', monospace; font-size: 0.6rem;
+  letter-spacing: 0.4em; color: var(--pink); text-transform: uppercase;
+  margin-bottom: 6px; display: flex; align-items: center; gap: 12px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(232,0,90,0.3), transparent); }
+.section-h2 {
+  font-family: 'Orbitron', sans-serif; font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+  font-weight: 700; color: var(--ink); letter-spacing: 0.04em; margin-bottom: 36px;
+}
+
+/* ── CONCEPT ── */
+.concept-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+}
+@media(max-width:680px){ .concept-grid { grid-template-columns: 1fr; } }
+
+.concept-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: 12px;
+  padding: 28px; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.concept-card:hover { border-color: var(--pink); box-shadow: 0 4px 24px rgba(232,0,90,0.1); }
+.concept-card.full { grid-column: 1 / -1; }
+
+.card-icon {
+  width: 40px; height: 40px; border-radius: 8px; margin-bottom: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+}
+.icon-pink { background: rgba(232,0,90,0.1); border: 1px solid rgba(232,0,90,0.2); }
+.icon-cyan { background: rgba(0,122,140,0.1); border: 1px solid rgba(0,122,140,0.2); }
+.icon-ink  { background: rgba(13,13,26,0.06); border: 1px solid rgba(13,13,26,0.12); }
+.icon-green{ background: rgba(0,122,76,0.1);  border: 1px solid rgba(0,122,76,0.2); }
+
+.card-title {
+  font-family: 'Orbitron', sans-serif; font-size: 0.85rem; font-weight: 700;
+  color: var(--ink); margin-bottom: 10px; letter-spacing: 0.04em;
+}
+.card-text { font-size: 0.88rem; color: var(--gray); line-height: 1.65; }
+.card-text strong { color: var(--ink2); font-weight: 600; }
+
+/* ── STACK ── */
+.stack-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;
+}
+.stack-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+  padding: 20px; display: flex; flex-direction: column; gap: 10px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.stack-card:hover { border-color: var(--cyan); transform: translateY(-3px); }
+.stack-layer {
+  font-family: 'Space Mono', monospace; font-size: 0.55rem;
+  letter-spacing: 0.25em; text-transform: uppercase; color: var(--cyan);
+}
+.stack-name {
+  font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: 700;
+  color: var(--ink); letter-spacing: 0.04em;
+}
+.stack-role { font-size: 0.78rem; color: var(--gray); }
+.stack-tag {
+  display: inline-block; padding: 2px 8px; border-radius: 3px;
+  font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 0.1em;
+  margin-top: 4px; width: fit-content;
+}
+.tag-pink  { background: rgba(232,0,90,0.08);  color: var(--pink); border: 1px solid rgba(232,0,90,0.2); }
+.tag-cyan  { background: rgba(0,122,140,0.08); color: var(--cyan); border: 1px solid rgba(0,122,140,0.2); }
+.tag-green { background: rgba(0,122,76,0.08);  color: var(--success); border: 1px solid rgba(0,122,76,0.2); }
+.tag-gray  { background: rgba(13,13,26,0.06);  color: var(--ink2); border: 1px solid rgba(13,13,26,0.12); }
+
+/* ── FLUX / PIPELINE ── */
+.pipeline {
+  display: flex; align-items: stretch; gap: 0;
+  flex-wrap: wrap; margin-top: 8px;
+}
+.pipe-step {
+  flex: 1; min-width: 130px;
+  background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+  padding: 20px 16px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  position: relative; transition: border-color 0.2s;
+}
+.pipe-step:hover { border-color: var(--pink); }
+.pipe-step + .pipe-step::before {
+  content: '→';
+  position: absolute; left: -18px; top: 50%; transform: translateY(-50%);
+  color: var(--pink); font-size: 1rem; font-weight: 700;
+}
+@media(max-width:600px){ .pipe-step + .pipe-step::before { display: none; } }
+
+.pipe-num {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--pink);
+  color: #fff; font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.pipe-name { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; font-weight: 700; color: var(--ink); }
+.pipe-desc { font-size: 0.72rem; color: var(--gray); line-height: 1.4; }
+
+/* ── FONCTIONNALITÉS IA ── */
+.ia-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 16px;
+}
+.ia-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+  padding: 24px; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.ia-card:hover { border-color: var(--pink); box-shadow: 0 4px 20px rgba(232,0,90,0.08); }
+.ia-emoji { font-size: 1.6rem; margin-bottom: 10px; }
+.ia-title { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+.ia-desc  { font-size: 0.8rem; color: var(--gray); line-height: 1.55; }
+
+/* ── ÉQUIPE ── */
+.team-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media(max-width:580px){ .team-grid { grid-template-columns: 1fr; } }
+
+.team-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: 12px;
+  padding: 28px; display: flex; flex-direction: column; gap: 14px;
+}
+.team-header { display: flex; align-items: center; gap: 14px; }
+.team-avatar {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--bg2); border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 900; color: var(--pink);
+  flex-shrink: 0;
+}
+.team-name  { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: 700; color: var(--ink); }
+.team-role  { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--cyan); letter-spacing: 0.15em; margin-top: 2px; }
+.team-tasks { display: flex; flex-direction: column; gap: 6px; }
+.task-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 0.82rem; color: var(--gray); line-height: 1.4;
+}
+.task-item::before { content: '▸'; color: var(--pink); flex-shrink: 0; margin-top: 1px; }
+
+/* ── DONNÉES ── */
+.data-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 16px; }
+.data-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+  padding: 20px; transition: border-color 0.2s;
+}
+.data-card:hover { border-color: var(--cyan); }
+.data-source { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+.data-type   { font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 0.2em; color: var(--cyan); text-transform: uppercase; margin-bottom: 8px; }
+.data-desc   { font-size: 0.78rem; color: var(--gray); line-height: 1.5; }
+
+/* ── OBJECTIFS ── */
+.obj-list { display: flex; flex-direction: column; gap: 12px; }
+.obj-item {
+  display: flex; align-items: flex-start; gap: 14px;
+  background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+  padding: 18px 22px;
+}
+.obj-num {
+  font-family: 'Orbitron', sans-serif; font-size: 0.8rem; font-weight: 700;
+  color: var(--pink); flex-shrink: 0; min-width: 28px;
+}
+.obj-text { font-size: 0.88rem; color: var(--ink2); line-height: 1.55; }
+.obj-text strong { color: var(--pink); }
+
+/* ── RÉSULTAT ATTENDU ── */
+.result-card {
+  background: var(--white); border: 2px solid var(--pink); border-radius: 14px;
+  padding: 36px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center;
+}
+@media(max-width:620px){ .result-card { grid-template-columns: 1fr; } }
+.result-score {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  text-align: center;
+}
+.result-big {
+  font-family: 'Orbitron', sans-serif; font-size: 5rem; font-weight: 900;
+  color: var(--pink); line-height: 1;
+}
+.result-label {
+  font-family: 'Space Mono', monospace; font-size: 0.65rem;
+  letter-spacing: 0.2em; color: var(--gray); text-transform: uppercase;
+}
+.result-verdict {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 7px 16px; border-radius: 30px;
+  font-family: 'Orbitron', sans-serif; font-size: 0.8rem; font-weight: 700;
+  background: rgba(0,122,76,0.1); color: var(--success); border: 1px solid rgba(0,122,76,0.3);
+}
+.result-text { font-size: 0.88rem; color: var(--gray); line-height: 1.65; }
+.result-text strong { color: var(--ink2); font-weight: 600; }
+
+/* ── FOOTER ── */
+.footer {
+  border-top: 1px solid var(--border); padding: 36px 48px;
+  background: var(--bg2);
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+}
+.footer-brand { font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 900; color: var(--ink); letter-spacing: 0.08em; }
+.footer-brand .hl { color: var(--pink); }
+.footer-copy  { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--gray); letter-spacing: 0.15em; }
+.footer-tags  { display: flex; gap: 8px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav no-print">
+  <div class="nav-brand">WILL<span class="hl">IT</span>FLOP</div>
+  <div class="nav-right">
+    <div class="nav-tag">FICHE PROJET — 2026</div>
+    <button class="btn-print" onclick="window.print()">⎙ IMPRIMER</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-eyebrow">// FICHE DE PRÉSENTATION PROJET — BOOTCAMP DATA ANALYST //</div>
+  <h1 class="hero-title">WILL<span class="hl">IT</span>FLOP</h1>
+  <p class="hero-sub">Game Viability <span>Intelligence</span> Platform</p>
+  <div class="hero-badges">
+    <span class="badge badge-pink"><span class="dot"></span>Projet en cours</span>
+    <span class="badge badge-cyan">Data Analyst · Bootcamp 2026</span>
+    <span class="badge badge-ink">Anthony & Pierre</span>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CONCEPT -->
+<section class="container">
+  <div class="section-label">01 — Concept</div>
+  <h2 class="section-h2">Qu'est-ce que WillItFlop ?</h2>
+  <div class="concept-grid">
+
+    <div class="concept-card full">
+      <div class="card-icon icon-pink">🎮</div>
+      <div class="card-title">La problématique</div>
+      <div class="card-text">
+        Dans l'industrie du jeu vidéo, <strong>estimer la viabilité commerciale d'un titre avant sa sortie est un défi majeur</strong>. Des studios indépendants aux grands éditeurs, de nombreux jeux échouent malgré des budgets conséquents — faute d'une analyse de marché rigoureuse et de données exploitables en amont.<br><br>
+        <strong>WillItFlop</strong> répond à cette question : <em>« Si ce jeu vidéo existait, aurait-il des chances de réussir commercialement ? »</em>
+      </div>
+    </div>
+
+    <div class="concept-card">
+      <div class="card-icon icon-cyan">💡</div>
+      <div class="card-title">La solution</div>
+      <div class="card-text">
+        Une plateforme web où l'utilisateur <strong>décrit un jeu vidéo fictif</strong> (genre, plateformes, budget, univers…). Le système collecte des données réelles sur des jeux similaires, les analyse, et produit un <strong>score de viabilité commerciale</strong> accompagné d'un rapport détaillé.
+      </div>
+    </div>
+
+    <div class="concept-card">
+      <div class="card-icon icon-green">🎯</div>
+      <div class="card-title">La valeur ajoutée</div>
+      <div class="card-text">
+        Le projet combine <strong>collecte de données réelles</strong> (API gaming, web scraping), <strong>pipeline de traitement automatisé</strong> (Airflow + PostgreSQL) et <strong>IA générative</strong> pour produire une expérience à la fois analytique et immersive — jusqu'à générer une image et un synopsis du jeu fictif.
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- OBJECTIFS -->
+<section class="container">
+  <div class="section-label">02 — Objectifs</div>
+  <h2 class="section-h2">Ce que le projet démontre</h2>
+  <div class="obj-list">
+    <div class="obj-item">
+      <div class="obj-num">01</div>
+      <div class="obj-text"><strong>Maîtrise de la collecte de données</strong> — Interroger des APIs tierces (données gaming) et effectuer du web scraping pour enrichir une base de référence sur les jeux vidéo existants.</div>
+    </div>
+    <div class="obj-item">
+      <div class="obj-num">02</div>
+      <div class="obj-text"><strong>Pipeline de données automatisé</strong> — Orchestrer les flux de données avec Apache Airflow, stocker et interroger les données dans PostgreSQL, assurer la qualité et la cohérence des données.</div>
+    </div>
+    <div class="obj-item">
+      <div class="obj-num">03</div>
+      <div class="obj-text"><strong>Analyse & scoring</strong> — Croiser les caractéristiques du jeu fictif avec les données historiques du marché pour produire un <strong>score de viabilité commerciale argumenté</strong>.</div>
+    </div>
+    <div class="obj-item">
+      <div class="obj-num">04</div>
+      <div class="obj-text"><strong>Intégration de l'IA générative</strong> — Utiliser des APIs IA pour générer automatiquement une image de couverture et un synopsis du jeu fictif, rendant l'expérience utilisateur immersive.</div>
+    </div>
+    <div class="obj-item">
+      <div class="obj-num">05</div>
+      <div class="obj-text"><strong>Restitution claire et impactante</strong> — Présenter les résultats via un <strong>site web custom</strong> intégrant des visualisations PowerBI et une interface soignée à destination de l'utilisateur final.</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PIPELINE -->
+<section class="container">
+  <div class="section-label">03 — Fonctionnement</div>
+  <h2 class="section-h2">Les étapes · Comment ça marche ?</h2>
+  <div class="pipeline">
+    <div class="pipe-step">
+      <div class="pipe-num">1</div>
+      <div class="pipe-name">SAISIE</div>
+      <div class="pipe-desc">L'utilisateur décrit son jeu fictif via le site web</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">2</div>
+      <div class="pipe-name">COLLECTE</div>
+      <div class="pipe-desc">API gaming + Web scraping récupèrent des données de référence</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">3</div>
+      <div class="pipe-name">STOCKAGE</div>
+      <div class="pipe-desc">PostgreSQL stocke et structure toutes les données</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">4</div>
+      <div class="pipe-name">ANALYSE</div>
+      <div class="pipe-desc">Airflow orchestre le scoring et l'analyse comparative</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">5</div>
+      <div class="pipe-name">IA</div>
+      <div class="pipe-desc">Génération d'image et de synopsis via API IA</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">6</div>
+      <div class="pipe-name">RENDU</div>
+      <div class="pipe-desc">Score + rapport + visuels affichés sur le site web</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- STACK TECHNIQUE -->
+<section class="container">
+  <div class="section-label">04 — Stack technique</div>
+  <h2 class="section-h2">Outils & Technologies</h2>
+  <div class="stack-grid">
+
+    <div class="stack-card">
+      <div class="stack-layer">Stockage</div>
+      <div class="stack-name">PostgreSQL</div>
+      <div class="stack-role">Base de données relationnelle pour stocker les jeux de référence, les résultats d'analyse et les métadonnées.</div>
+      <span class="stack-tag tag-cyan">Base de données</span>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-layer">Orchestration</div>
+      <div class="stack-name">Apache Airflow</div>
+      <div class="stack-role">Automatisation et planification des pipelines de collecte, de traitement et de scoring des données.</div>
+      <span class="stack-tag tag-pink">Pipeline</span>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-layer">Collecte</div>
+      <div class="stack-name">API Gaming</div>
+      <div class="stack-role">Récupération de données structurées sur les jeux vidéo existants (genre, plateformes, ventes, notes…).</div>
+      <span class="stack-tag tag-green">Données réelles</span>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-layer">Collecte</div>
+      <div class="stack-name">Web Scraping</div>
+      <div class="stack-role">Extraction de données complémentaires sur les tendances du marché, avis et comparatifs de jeux.</div>
+      <span class="stack-tag tag-pink">Enrichissement</span>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-layer">Intelligence Artificielle</div>
+      <div class="stack-name">API IA</div>
+      <div class="stack-role">Génération d'image de couverture et de synopsis narratif pour le jeu fictif décrit par l'utilisateur.</div>
+      <span class="stack-tag tag-cyan">Génératif</span>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-layer">Visualisation</div>
+      <div class="stack-name">Matplotlib / Seaborn</div>
+      <div class="stack-role">Génération de graphiques Python intégrés au site pour visualiser les scores, tendances et comparaisons du marché.</div>
+      <span class="stack-tag tag-green">Dataviz Python</span>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-layer">Interface</div>
+      <div class="stack-name">Site Web</div>
+      <div class="stack-role">Application web custom développée en HTML/CSS/JS pour la saisie du jeu fictif et l'affichage des résultats.</div>
+      <span class="stack-tag tag-gray">Front-end</span>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-layer">Développement</div>
+      <div class="stack-name">VSCode</div>
+      <div class="stack-role">Environnement de développement principal pour l'ensemble du code du projet (scripts, web, pipelines).</div>
+      <span class="stack-tag tag-gray">IDE</span>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FONCTIONNALITÉS IA -->
+<section class="container">
+  <div class="section-label">05 — Intelligence Artificielle</div>
+  <h2 class="section-h2">Fonctionnalités IA / ML du projet</h2>
+  <div class="ia-grid">
+    <div class="ia-card">
+      <div class="ia-emoji">🖼️</div>
+      <div class="ia-title">Génération d'image</div>
+      <div class="ia-desc">À partir de la description du jeu fictif, une API de génération d'image produit automatiquement une <strong>illustration de couverture</strong> stylisée et cohérente avec l'univers décrit.</div>
+    </div>
+    <div class="ia-card">
+      <div class="ia-emoji">✍️</div>
+      <div class="ia-title">Génération de texte</div>
+      <div class="ia-desc">Un modèle de langage génère un <strong>synopsis narratif</strong> du jeu fictif ainsi qu'un résumé analytique de ses forces et faiblesses commerciales.</div>
+    </div>
+    <div class="ia-card">
+      <div class="ia-emoji">📊</div>
+      <div class="ia-title">Scoring IA</div>
+      <div class="ia-desc">Croisement des données historiques du marché avec les caractéristiques du jeu pour produire un <strong>score de viabilité commerciale</strong> argumenté et contextualisé.</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SOURCES DE DONNÉES -->
+<section class="container">
+  <div class="section-label">06 — Données</div>
+  <h2 class="section-h2">Sources de données envisagées</h2>
+  <div class="data-grid">
+    <div class="data-card">
+      <div class="data-type">API</div>
+      <div class="data-source">IGDB / Twitch API</div>
+      <div class="data-desc">Base de données de référence sur les jeux vidéo : genres, plateformes, dates de sortie, éditeurs, notes.</div>
+    </div>
+    <div class="data-card">
+      <div class="data-type">API + Scraping</div>
+      <div class="data-source">Steam / SteamSpy</div>
+      <div class="data-desc">Données de ventes estimées, nombre de joueurs, avis utilisateurs et tendances du marché PC.</div>
+    </div>
+    <div class="data-card">
+      <div class="data-type">Scraping</div>
+      <div class="data-source">Metacritic</div>
+      <div class="data-desc">Notes presse et joueurs, historique des scores par genre et plateforme pour l'analyse comparative.</div>
+    </div>
+    <div class="data-card">
+      <div class="data-type">Scraping</div>
+      <div class="data-source">Sources complémentaires</div>
+      <div class="data-desc">Articles spécialisés, rapports de marché (Newzoo, GSD) pour enrichir le contexte concurrentiel.</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ÉQUIPE -->
+<section class="container">
+  <div class="section-label">07 — Équipe</div>
+  <h2 class="section-h2">Répartition des rôles</h2>
+  <div class="team-grid">
+    <div class="team-card">
+      <div class="team-header">
+        <div class="team-avatar">A</div>
+        <div>
+          <div class="team-name">Anthony</div>
+          <div class="team-role">Data Analyst</div>
+        </div>
+      </div>
+      <div class="team-tasks">
+                   <div class="task-item">Conception et gestion de la base PostgreSQL</div>
+        <div class="task-item">Développement des pipelines Airflow</div>
+        <div class="task-item">Intégration des APIs de collecte (IGDB, Steam…)</div>
+        <div class="task-item">Scripts de web scraping</div>
+        <div class="task-item">Développement du site web (interface utilisateur)</div>
+        <div class="task-item">Intégration des APIs IA (image + texte)</div>
+        <div class="task-item">Conception des visualisations Matplotlib / Seaborn</div>
+        <div class="task-item">Analyse des données et modèle de scoring</div>
+      </div>
+    </div>
+    <div class="team-card">
+      <div class="team-header">
+        <div class="team-avatar" style="color:var(--cyan)">M</div>
+        <div>
+          <div class="team-name">Pierre</div>
+          <div class="team-role">Data Analyst</div>
+        </div>
+      </div>
+      <div class="team-tasks">
+                <div class="task-item">Conception et gestion de la base PostgreSQL</div>
+        <div class="task-item">Développement des pipelines Airflow</div>
+        <div class="task-item">Intégration des APIs de collecte (IGDB, Steam…)</div>
+        <div class="task-item">Scripts de web scraping</div>
+        <div class="task-item">Développement du site web (interface utilisateur)</div>
+        <div class="task-item">Intégration des APIs IA (image + texte)</div>
+        <div class="task-item">Conception des visualisations Matplotlib / Seaborn</div>
+        <div class="task-item">Analyse des données et modèle de scoring</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- RÉSULTAT ATTENDU -->
+<section class="container">
+  <div class="section-label">08 — Livrable</div>
+  <h2 class="section-h2">Résultat attendu</h2>
+  <div class="result-card">
+    <div class="result-score">
+      <div class="result-big">8.4</div>
+      <div class="result-label">Score commercial / 10</div>
+      <div class="result-verdict">✓ VIABLE</div>
+    </div>
+    <div class="result-text">
+      Le livrable final est un <strong>site web interactif</strong> permettant à n'importe quel utilisateur de décrire un jeu vidéo fictif et d'obtenir en retour :<br><br>
+      • Une <strong>image de couverture générée par IA</strong><br>
+      • Un <strong>synopsis narratif</strong> du jeu<br>
+      • Un <strong>score de viabilité commerciale</strong> sur 10<br>
+      • Un <strong>rapport analytique</strong> comparant le jeu fictif au marché réel<br>
+      • Des <strong>visualisations Python</strong> (Matplotlib / Seaborn) intégrées au site sur le positionnement marché<br><br>
+      L'ensemble est hébergé sur un site web custom développé en HTML/CSS/JS, dans la charte graphique <em>Cyberpunk Neon Light</em> du projet.
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-brand">WILL<span class="hl">IT</span>FLOP</div>
+  <div class="footer-copy">FICHE PROJET — Bootcamp Data Analyst 2026 — À soumettre pour validation</div>
+  <div class="footer-tags">
+    <span class="stack-tag tag-pink">PostgreSQL</span>
+    <span class="stack-tag tag-cyan">Airflow</span>
+    <span class="stack-tag tag-green">API IA</span>
+    <span class="stack-tag tag-green">Matplotlib</span>
+    <span class="stack-tag tag-gray">Web</span>
+  </div>
+</footer>
+
+</body>
+</html>
