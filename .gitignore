@@ -1,0 +1,16 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# Data
+*.json
+*.csv
+
+# IDE
+.vscode/
+.idea/
