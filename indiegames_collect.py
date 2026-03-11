@@ -64,7 +64,6 @@ def fetch_steamspy_data(app_id: int) -> dict | None:
         "spy_owners_min":      owners_min,
         "spy_owners_max":      owners_max,
         "spy_peak_ccu":        data.get("ccu"),
-        "spy_avg_playtime":    data.get("average_forever"),
         "spy_median_playtime": data.get("median_forever"),
         "tags":                tags,
     }
@@ -77,7 +76,6 @@ def save_steamspy_data(conn, app_id: int, data: dict):
                 spy_owners_min      = %s,
                 spy_owners_max      = %s,
                 spy_peak_ccu        = %s,
-                spy_avg_playtime    = %s,
                 spy_median_playtime = %s,
                 spy_fetched_at      = %s
             WHERE app_id = %s
@@ -85,7 +83,6 @@ def save_steamspy_data(conn, app_id: int, data: dict):
             data["spy_owners_min"],
             data["spy_owners_max"],
             data["spy_peak_ccu"],
-            data["spy_avg_playtime"],
             data["spy_median_playtime"],
             datetime.now(timezone.utc),
             app_id,
@@ -248,36 +245,36 @@ def fetch_app_details(app_id: int) -> dict | None:
 
 # ── Récupération des avis joueurs ───────────────────────────────────────────────
 
-def fetch_app_reviews(app_id: int, language: str, max_reviews: int = 100) -> tuple[list[dict], dict | None]:
+def fetch_app_reviews(app_id: int, top_n: int = 5) -> tuple[list[dict], dict | None]:
     """
-    Retourne (liste d'avis, query_summary).
-    query_summary contient review_score, review_score_desc, total_positive, total_negative.
+    Retourne (top N avis toutes langues triés par votes_up, query_summary).
+    Fetche 50 avis triés par helpful puis garde les top_n par votes_up.
     """
     url = f"https://store.steampowered.com/appreviews/{app_id}"
     params = {
         "json": 1,
-        "language": language,
+        "language": "all",
         "purchase_type": "all",
-        "num_per_page": max_reviews,
+        "num_per_page": 50,
         "filter": "helpful",
         "cursor": "*",
     }
     resp = requests.get(url, params=params, timeout=15)
     resp.raise_for_status()
     data = resp.json()
-    return data.get("reviews") or [], data.get("query_summary")
+    reviews = data.get("reviews") or []
+    reviews = sorted(reviews, key=lambda r: r.get("votes_up", 0), reverse=True)[:top_n]
+    return reviews, data.get("query_summary")
 
 
 def save_reviews(conn, app_id: int, reviews: list[dict]):
     with conn.cursor() as cur:
         for r in reviews:
-            author = r.get("author") or {}
             cur.execute("""
                 INSERT INTO game_reviews (
                     recommendation_id, app_id, language, review, voted_up,
-                    playtime_at_review, weighted_vote_score, votes_up,
-                    written_during_early_access, timestamp_created
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, to_timestamp(%s))
+                    weighted_vote_score, votes_up, timestamp_created
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, to_timestamp(%s))
                 ON CONFLICT (recommendation_id) DO NOTHING
             """, (
                 r.get("recommendationid"),
@@ -285,10 +282,8 @@ def save_reviews(conn, app_id: int, reviews: list[dict]):
                 r.get("language"),
                 r.get("review"),
                 r.get("voted_up"),
-                author.get("playtime_at_review"),
                 r.get("weighted_vote_score"),
                 r.get("votes_up"),
-                r.get("written_during_early_access"),
                 r.get("timestamp_created"),
             ))
     conn.commit()
@@ -299,12 +294,10 @@ def save_review_score(conn, app_id: int, summary: dict):
     with conn.cursor() as cur:
         cur.execute("""
             UPDATE games SET
-                review_score          = %s,
                 review_total_positive = %s,
                 review_total_negative = %s
             WHERE app_id = %s
         """, (
-            summary.get("review_score"),
             summary.get("total_positive"),
             summary.get("total_negative"),
             app_id,
@@ -319,8 +312,6 @@ def save_game_details(conn, app_id: int, d: dict):
 
     price = d.get("price_overview") or {}
     metacritic = d.get("metacritic") or {}
-    recommendations = d.get("recommendations") or {}
-    achievements = d.get("achievements") or {}
     release = d.get("release_date") or {}
     platforms = d.get("platforms") or {}
     has_dlc = bool(d.get("dlc"))
@@ -337,22 +328,16 @@ def save_game_details(conn, app_id: int, d: dict):
                 release_date, has_dlc, is_early_access,
                 short_description, detailed_description,
                 supported_languages,
-                website, header_image, capsule_imagev5, background,
-                price_currency, price_initial, price_final, discount_percent,
-                platform_windows, platform_mac, platform_linux,
-                recommendations_total,
+                price_currency, price_initial,
+                platform_windows,
                 metacritic_score,
-                achievements_total,
                 details_fetched, fetched_at
             ) VALUES (
                 %s,%s,%s,
                 %s,%s,%s,
                 %s,%s,
                 %s,
-                %s,%s,%s,%s,
-                %s,%s,%s,%s,
-                %s,%s,%s,
-                %s,
+                %s,%s,
                 %s,
                 %s,
                 TRUE, %s
@@ -366,20 +351,10 @@ def save_game_details(conn, app_id: int, d: dict):
                 short_description    = EXCLUDED.short_description,
                 detailed_description = EXCLUDED.detailed_description,
                 supported_languages  = EXCLUDED.supported_languages,
-                website              = EXCLUDED.website,
-                header_image         = EXCLUDED.header_image,
-                capsule_imagev5      = EXCLUDED.capsule_imagev5,
-                background           = EXCLUDED.background,
                 price_currency       = EXCLUDED.price_currency,
                 price_initial        = EXCLUDED.price_initial,
-                price_final          = EXCLUDED.price_final,
-                discount_percent     = EXCLUDED.discount_percent,
                 platform_windows     = EXCLUDED.platform_windows,
-                platform_mac         = EXCLUDED.platform_mac,
-                platform_linux       = EXCLUDED.platform_linux,
-                recommendations_total = EXCLUDED.recommendations_total,
                 metacritic_score     = EXCLUDED.metacritic_score,
-                achievements_total   = EXCLUDED.achievements_total,
                 details_fetched      = TRUE,
                 fetched_at           = EXCLUDED.fetched_at
         """, (
@@ -392,20 +367,10 @@ def save_game_details(conn, app_id: int, d: dict):
             d.get("short_description"),
             d.get("detailed_description"),
             d.get("supported_languages"),
-            d.get("website"),
-            d.get("header_image"),
-            d.get("capsule_imagev5"),
-            d.get("background"),
             price.get("currency"),
             price.get("initial"),
-            price.get("final"),
-            price.get("discount_percent"),
             platforms.get("windows"),
-            platforms.get("mac"),
-            platforms.get("linux"),
-            recommendations.get("total"),
             metacritic.get("score"),
-            achievements.get("total"),
             datetime.now(timezone.utc),
         ))
 
@@ -461,17 +426,17 @@ def run():
                 print(f"[{i}/{len(to_fetch)}] app_id={app_id} — ignoré (pas de données)")
                 continue
 
+            if details.get("type") != "game":
+                print(f"[{i}/{len(to_fetch)}] app_id={app_id} — ignoré (type={details.get('type')})")
+                continue
+
             save_game_details(conn, app_id, details)
 
-            # Avis EN → on récupère aussi le query_summary pour le review score global
-            reviews_en, summary = fetch_app_reviews(app_id, "english")
-            save_reviews(conn, app_id, reviews_en)
+            # Top 5 avis toutes langues confondues (triés par votes_up)
+            reviews, summary = fetch_app_reviews(app_id)
+            save_reviews(conn, app_id, reviews)
             if summary:
                 save_review_score(conn, app_id, summary)
-            time.sleep(0.8)
-
-            reviews_fr, _ = fetch_app_reviews(app_id, "french")
-            save_reviews(conn, app_id, reviews_fr)
             time.sleep(0.8)
 
             twitch_data = fetch_twitch_data(details.get("name", ""), twitch_token)

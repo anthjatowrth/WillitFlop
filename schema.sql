@@ -12,18 +12,12 @@ CREATE TABLE IF NOT EXISTS games (
     has_dlc                 BOOLEAN DEFAULT FALSE,
     is_early_access         BOOLEAN DEFAULT FALSE,
     platform_windows        BOOLEAN,
-    platform_mac            BOOLEAN,
-    platform_linux          BOOLEAN,
 
     -- ── Prix (en centimes) ────────────────────────────────────────────────────
     price_currency          TEXT,
     price_initial           INTEGER,
-    price_final             INTEGER,
-    discount_percent        INTEGER,
 
     -- ── Popularité & succès commercial ────────────────────────────────────────
-    recommendations_total   INTEGER,
-    review_score            INTEGER,        -- 0-9 (score interne Steam)
     review_total_positive   INTEGER,
     review_total_negative   INTEGER,
     spy_owners_min          INTEGER,        -- fourchette basse propriétaires (Steam Spy)
@@ -37,18 +31,12 @@ CREATE TABLE IF NOT EXISTS games (
 
     -- ── Qualité perçue ────────────────────────────────────────────────────────
     metacritic_score        INTEGER,
-    achievements_total      INTEGER,
-    spy_avg_playtime        INTEGER,        -- temps de jeu moyen en minutes (Steam Spy)
     spy_median_playtime     INTEGER,        -- temps de jeu médian en minutes (Steam Spy)
 
     -- ── Textes bruts (NLP) ────────────────────────────────────────────────────
     short_description       TEXT,
     detailed_description    TEXT,
     supported_languages     TEXT,
-    website                 TEXT,
-    header_image            TEXT,
-    capsule_imagev5         TEXT,
-    background              TEXT,
 
     -- ── Suivi de collecte ─────────────────────────────────────────────────────
     details_fetched         BOOLEAN DEFAULT FALSE,
@@ -86,10 +74,8 @@ CREATE TABLE IF NOT EXISTS game_reviews (
     language                    TEXT,
     review                      TEXT,
     voted_up                    BOOLEAN,
-    playtime_at_review          INTEGER,
     weighted_vote_score         FLOAT,
     votes_up                    INTEGER,
-    written_during_early_access BOOLEAN,
     timestamp_created           TIMESTAMP
 );
 
@@ -98,8 +84,6 @@ CREATE INDEX IF NOT EXISTS idx_games_fetched          ON games(details_fetched);
 CREATE INDEX IF NOT EXISTS idx_games_release_date     ON games(release_date);
 CREATE INDEX IF NOT EXISTS idx_games_is_free          ON games(is_free);
 CREATE INDEX IF NOT EXISTS idx_games_is_early_access  ON games(is_early_access);
-CREATE INDEX IF NOT EXISTS idx_games_review_score     ON games(review_score);
-CREATE INDEX IF NOT EXISTS idx_games_recommendations  ON games(recommendations_total);
 CREATE INDEX IF NOT EXISTS idx_games_spy_owners       ON games(spy_owners_max);
 CREATE INDEX IF NOT EXISTS idx_games_metacritic       ON games(metacritic_score);
 CREATE INDEX IF NOT EXISTS idx_genres_name            ON game_genres(genre_name);
