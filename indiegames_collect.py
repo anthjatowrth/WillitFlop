@@ -1,5 +1,6 @@
 import re
 import time
+import random
 import requests
 import psycopg2
 from datetime import datetime, timezone
@@ -411,7 +412,7 @@ def run():
     print("Token Twitch obtenu.")
 
     app_ids = fetch_indie_app_ids()
-    app_ids = app_ids[:500]
+    app_ids = random.sample(app_ids, min(500, len(app_ids)))
     already_done = get_already_fetched(conn)
 
     to_fetch = [aid for aid in app_ids if aid not in already_done]
