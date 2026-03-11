@@ -1,4 +1,3 @@
-import re
 import time
 import random
 import requests
@@ -185,46 +184,31 @@ def save_twitch_data(conn, app_id: int, data: dict):
 
 def fetch_indie_app_ids() -> list[int]:
     """
-    Récupère tous les app_id de jeux Indie via le store search Steam.
+    Récupère les app_id de jeux Indie via Steam Spy (genre=Indie).
+    Retourne plusieurs milliers d'IDs.
     """
-    url = "https://store.steampowered.com/search/results/"
+    url = "https://steamspy.com/api.php"
     app_ids = []
-    start = 0
-    count = 100
+    page = 0
 
-    print("Récupération des IDs jeux Indie...")
+    print("Récupération des IDs jeux Indie via Steam Spy...")
 
     while True:
-        params = {
-            "genre": "Indie",
-            "json": 1,
-            "start": start,
-            "count": count,
-            "sort_by": "_ASC",
-        }
-        resp = requests.get(url, params=params, timeout=10)
+        resp = requests.get(url, params={"request": "genre", "genre": "Indie", "page": page}, timeout=15)
         resp.raise_for_status()
         data = resp.json()
 
-        items = data.get("items", [])
-        total = data.get("total_count", 0)
-
-        if not items:
+        if not data:
             break
 
-        for item in items:
-            logo = item.get("logo", "")
-            match = re.search(r"/apps/(\d+)/", logo)
-            if match:
-                app_ids.append(int(match.group(1)))
+        app_ids.extend(int(k) for k in data.keys())
+        print(f"  {len(app_ids)} IDs récupérés (page {page})...")
 
-        print(f"  {len(app_ids)}/{total} IDs récupérés...")
-        start += count
-
-        if start >= total:
+        if len(data) < 1000:
             break
 
-        time.sleep(0.5)
+        page += 1
+        time.sleep(1.0)
 
     print(f"Total : {len(app_ids)} jeux Indie trouvés.")
     return app_ids
