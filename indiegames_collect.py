@@ -411,7 +411,7 @@ def run():
     print("Token Twitch obtenu.")
 
     app_ids = fetch_indie_app_ids()
-    app_ids = app_ids[:100]
+    app_ids = app_ids[:500]
     already_done = get_already_fetched(conn)
 
     to_fetch = [aid for aid in app_ids if aid not in already_done]
