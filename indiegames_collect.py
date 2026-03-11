@@ -188,29 +188,14 @@ def fetch_indie_app_ids() -> list[int]:
     Retourne plusieurs milliers d'IDs.
     """
     url = "https://steamspy.com/api.php"
-    app_ids = []
-    page = 0
 
     print("Récupération des IDs jeux Indie via Steam Spy...")
+    resp = requests.get(url, params={"request": "genre", "genre": "Indie", "page": 0}, timeout=15)
+    resp.raise_for_status()
+    data = resp.json()
+    app_ids = [int(k) for k in data.keys()]
 
-    while True:
-        resp = requests.get(url, params={"request": "genre", "genre": "Indie", "page": page}, timeout=15)
-        resp.raise_for_status()
-        data = resp.json()
-
-        if not data:
-            break
-
-        app_ids.extend(int(k) for k in data.keys())
-        print(f"  {len(app_ids)} IDs récupérés (page {page})...")
-
-        if len(data) < 1000:
-            break
-
-        page += 1
-        time.sleep(1.0)
-
-    print(f"Total : {len(app_ids)} jeux Indie trouvés.")
+    print(f"{len(app_ids)} IDs récupérés, sample aléatoire de 500 en cours.")
     return app_ids
 
 
