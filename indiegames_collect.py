@@ -380,16 +380,22 @@ def run():
     twitch_token = get_twitch_token()
     print("Token Twitch obtenu.")
 
+    TARGET     = 500
+    MIN_OWNERS = 20_000
+
     app_ids = fetch_indie_app_ids()
-    app_ids = random.sample(app_ids, min(500, len(app_ids)))
+    random.shuffle(app_ids)
     already_done = get_already_fetched(conn)
 
     to_fetch = [aid for aid in app_ids if aid not in already_done]
-    print(f"\n{len(to_fetch)} jeux à traiter ({len(already_done)} déjà en DB).\n")
+    saved_count = len(already_done)
+    print(f"\n{saved_count} jeux déjà en DB, objectif {TARGET}.\n")
 
-    MIN_OWNERS = 20_000
+    for app_id in to_fetch:
+        if saved_count >= TARGET:
+            print(f"Objectif de {TARGET} jeux atteint.")
+            break
 
-    for i, app_id in enumerate(to_fetch, 1):
         try:
             # Filtre popularité : on vérifie SteamSpy en premier pour éviter
             # des appels inutiles sur les jeux trop peu connus.
@@ -398,18 +404,23 @@ def run():
 
             if not spy_data or (spy_data["spy_owners_min"] or 0) < MIN_OWNERS:
                 owners_val = spy_data["spy_owners_min"] if spy_data else "N/A"
-                print(f"[{i}/{len(to_fetch)}] app_id={app_id} — ignoré (owners_min={owners_val} < {MIN_OWNERS})")
+                print(f"[{saved_count}/{TARGET}] app_id={app_id} — ignoré (owners_min={owners_val} < {MIN_OWNERS})")
                 continue
 
             details = fetch_app_details(app_id)
             time.sleep(0.5)
 
             if details is None:
-                print(f"[{i}/{len(to_fetch)}] app_id={app_id} — ignoré (pas de données)")
+                print(f"[{saved_count}/{TARGET}] app_id={app_id} — ignoré (pas de données)")
                 continue
 
             if details.get("type") != "game":
-                print(f"[{i}/{len(to_fetch)}] app_id={app_id} — ignoré (type={details.get('type')})")
+                print(f"[{saved_count}/{TARGET}] app_id={app_id} — ignoré (type={details.get('type')})")
+                continue
+
+            categories = details.get("categories") or []
+            if any("VR" in (c.get("description") or "") for c in categories):
+                print(f"[{saved_count}/{TARGET}] app_id={app_id} — ignoré (VR)")
                 continue
 
             save_game_details(conn, app_id, details)
@@ -429,12 +440,13 @@ def run():
             save_twitch_data(conn, app_id, twitch_data)
             time.sleep(0.3)
 
-            print(f"[{i}/{len(to_fetch)}] {details.get('name')} ({app_id}) — OK")
+            saved_count += 1
+            print(f"[{saved_count}/{TARGET}] {details.get('name')} ({app_id}) — OK")
 
         except requests.HTTPError as e:
-            print(f"[{i}/{len(to_fetch)}] app_id={app_id} — erreur HTTP: {e}")
+            print(f"[{saved_count}/{TARGET}] app_id={app_id} — erreur HTTP: {e}")
         except Exception as e:
-            print(f"[{i}/{len(to_fetch)}] app_id={app_id} — erreur: {e}")
+            print(f"[{saved_count}/{TARGET}] app_id={app_id} — erreur: {e}")
             conn.rollback()
 
     conn.close()
