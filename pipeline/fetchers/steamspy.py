@@ -1,0 +1,39 @@
+import requests
+
+
+def fetch_steamspy_data(app_id: int) -> dict | None:
+    """
+    Récupère les estimations commerciales et les tags depuis SteamSpy.
+    Retourne None si l'app_id est inconnu ou en cas d'erreur.
+    """
+    resp = requests.get(
+        "https://steamspy.com/api.php",
+        params={"request": "appdetails", "appid": app_id},
+        timeout=15,
+    )
+    resp.raise_for_status()
+    data = resp.json()
+
+    if not data or "appid" not in data:
+        return None
+
+    owners_min, owners_max = _parse_owners(data.get("owners", ""))
+
+    return {
+        "spy_owners_min":      owners_min,
+        "spy_owners_max":      owners_max,
+        "spy_peak_ccu":        data.get("ccu"),
+        "spy_median_playtime": data.get("median_forever"),
+        "tags":                data.get("tags") or {},
+    }
+
+
+def _parse_owners(owners_str: str) -> tuple[int | None, int | None]:
+    """Parse '200,000 .. 500,000' → (200000, 500000)"""
+    if not owners_str:
+        return None, None
+    parts = owners_str.replace(",", "").split("..")
+    try:
+        return int(parts[0].strip()), int(parts[1].strip())
+    except (IndexError, ValueError):
+        return None, None

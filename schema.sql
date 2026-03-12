@@ -11,17 +11,18 @@ CREATE TABLE IF NOT EXISTS games (
     release_date            TEXT,
     has_dlc                 BOOLEAN DEFAULT FALSE,
     is_early_access         BOOLEAN DEFAULT FALSE,
-    platform_windows        BOOLEAN,
 
-    -- ── Prix (en centimes) ────────────────────────────────────────────────────
-    price_currency          TEXT,
-    price_initial           INTEGER,
+    -- ── Prix (en euros) ──────────────────────────────────────────────────────
+    price_eur               NUMERIC(10,2),
 
     -- ── Popularité & succès commercial ────────────────────────────────────────
     review_total_positive   INTEGER,
     review_total_negative   INTEGER,
+    review_total            INTEGER,        -- total reviews (positif + négatif)
+    review_wilson_score     FLOAT,          -- borne basse Wilson 95% (taux positif pondéré par volume)
     spy_owners_min          INTEGER,        -- fourchette basse propriétaires (Steam Spy)
     spy_owners_max          INTEGER,        -- fourchette haute propriétaires (Steam Spy)
+    owners_midpoint         INTEGER,        -- estimation ponctuelle owners (min+max)/2
     spy_peak_ccu            INTEGER,        -- peak joueurs simultanés (Steam Spy)
     spy_fetched_at          TIMESTAMP,
     is_on_twitch            BOOLEAN DEFAULT FALSE,
@@ -30,13 +31,20 @@ CREATE TABLE IF NOT EXISTS games (
     twitch_fetched_at       TIMESTAMP,
 
     -- ── Qualité perçue ────────────────────────────────────────────────────────
-    metacritic_score        INTEGER,
-    spy_median_playtime     INTEGER,        -- temps de jeu médian en minutes (Steam Spy)
+    metacritic_score                INTEGER,
+    spy_median_playtime             INTEGER,        -- temps de jeu médian en minutes (Steam Spy)
+    achievement_count               INTEGER,        -- nombre total d'achievements
+    achievement_median_unlock_rate  FLOAT,          -- taux médian de déblocage (0-100)
 
-    -- ── Textes bruts (NLP) ────────────────────────────────────────────────────
-    short_description       TEXT,
-    detailed_description    TEXT,
-    supported_languages     TEXT,
+    -- ── Textes nettoyés (NLP) ─────────────────────────────────────────────────
+    short_description_clean     TEXT,           -- description courte, HTML retiré, URLs retirées
+    detailed_description_clean  TEXT,           -- description longue, HTML retiré, URLs et citations presse retirées
+    press_quotes                TEXT[],         -- citations presse extraites de la description longue
+    image_urls                  TEXT[],         -- URLs d'images trouvées dans les deux descriptions
+    supported_languages         TEXT[],         -- liste des langues supportées
+
+    -- ── Label ML ──────────────────────────────────────────────────────────────
+    is_successful           BOOLEAN,        -- label calculé (scoring multi-critères)
 
     -- ── Suivi de collecte ─────────────────────────────────────────────────────
     details_fetched         BOOLEAN DEFAULT FALSE,

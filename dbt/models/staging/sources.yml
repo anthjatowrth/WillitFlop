@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: public
+    schema: public
+    tables:
+      - name: games
+      - name: game_tags
+      - name: game_genres
+      - name: game_categories
+      - name: game_reviews
