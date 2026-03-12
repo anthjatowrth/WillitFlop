@@ -387,10 +387,22 @@ def run():
     to_fetch = [aid for aid in app_ids if aid not in already_done]
     print(f"\n{len(to_fetch)} jeux à traiter ({len(already_done)} déjà en DB).\n")
 
+    MIN_OWNERS = 20_000
+
     for i, app_id in enumerate(to_fetch, 1):
         try:
-            details = fetch_app_details(app_id)
+            # Filtre popularité : on vérifie SteamSpy en premier pour éviter
+            # des appels inutiles sur les jeux trop peu connus.
+            spy_data = fetch_steamspy_data(app_id)
             time.sleep(1.0)
+
+            if not spy_data or (spy_data["spy_owners_min"] or 0) < MIN_OWNERS:
+                owners_val = spy_data["spy_owners_min"] if spy_data else "N/A"
+                print(f"[{i}/{len(to_fetch)}] app_id={app_id} — ignoré (owners_min={owners_val} < {MIN_OWNERS})")
+                continue
+
+            details = fetch_app_details(app_id)
+            time.sleep(0.5)
 
             if details is None:
                 print(f"[{i}/{len(to_fetch)}] app_id={app_id} — ignoré (pas de données)")
@@ -402,23 +414,20 @@ def run():
 
             save_game_details(conn, app_id, details)
 
+            save_steamspy_data(conn, app_id, spy_data)
+            if spy_data.get("tags"):
+                save_game_tags(conn, app_id, spy_data["tags"])
+
             # Top 5 avis toutes langues confondues (triés par votes_up)
             reviews, summary = fetch_app_reviews(app_id)
             save_reviews(conn, app_id, reviews)
             if summary:
                 save_review_score(conn, app_id, summary)
-            time.sleep(0.8)
+            time.sleep(0.5)
 
             twitch_data = fetch_twitch_data(details.get("name", ""), twitch_token)
             save_twitch_data(conn, app_id, twitch_data)
-            time.sleep(0.5)
-
-            spy_data = fetch_steamspy_data(app_id)
-            if spy_data:
-                save_steamspy_data(conn, app_id, spy_data)
-                if spy_data.get("tags"):
-                    save_game_tags(conn, app_id, spy_data["tags"])
-            time.sleep(1.0)
+            time.sleep(0.3)
 
             print(f"[{i}/{len(to_fetch)}] {details.get('name')} ({app_id}) — OK")
 
