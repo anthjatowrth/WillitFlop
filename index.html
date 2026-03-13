@@ -6,7 +6,6 @@
 <title>WillItFlop — Présentation Projet</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Space+Mono:wght@400;700&family=Exo+2:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 <style>
-/* ── PRINT ── */
 @media print {
   .no-print { display: none !important; }
   body { background: #F4F2EE !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -42,7 +41,6 @@ body {
   line-height: 1.65;
 }
 
-/* Grain */
 body::after {
   content: '';
   position: fixed; inset: 0;
@@ -50,7 +48,6 @@ body::after {
   pointer-events: none; z-index: 9999; opacity: 0.5;
 }
 
-/* ── NAV ── */
 .nav {
   position: sticky; top: 0; z-index: 100;
   background: rgba(244,242,238,0.94);
@@ -75,7 +72,6 @@ body::after {
 }
 .btn-print:hover { background: #c50051; }
 
-/* ── HERO ── */
 .hero {
   min-height: 52vh;
   display: flex; align-items: center; justify-content: center;
@@ -147,10 +143,8 @@ body::after {
 .badge-ink  { color: var(--ink2); background: rgba(13,13,26,0.06); border: 1px solid rgba(13,13,26,0.15); }
 .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; animation: blink 1.2s step-end infinite; }
 @keyframes blink { 50%{opacity:0} }
-
 @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 
-/* ── LAYOUT ── */
 .container { max-width: 1060px; margin: 0 auto; padding: 72px 48px; }
 .divider { height: 1px; margin: 0 48px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
 
@@ -165,10 +159,7 @@ body::after {
   font-weight: 700; color: var(--ink); letter-spacing: 0.04em; margin-bottom: 36px;
 }
 
-/* ── CONCEPT ── */
-.concept-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
-}
+.concept-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 @media(max-width:680px){ .concept-grid { grid-template-columns: 1fr; } }
 
 .concept-card {
@@ -180,8 +171,7 @@ body::after {
 
 .card-icon {
   width: 40px; height: 40px; border-radius: 8px; margin-bottom: 14px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.1rem;
+  display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
 }
 .icon-pink { background: rgba(232,0,90,0.1); border: 1px solid rgba(232,0,90,0.2); }
 .icon-cyan { background: rgba(0,122,140,0.1); border: 1px solid rgba(0,122,140,0.2); }
@@ -195,10 +185,7 @@ body::after {
 .card-text { font-size: 0.88rem; color: var(--gray); line-height: 1.65; }
 .card-text strong { color: var(--ink2); font-weight: 600; }
 
-/* ── STACK ── */
-.stack-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;
-}
+.stack-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
 .stack-card {
   background: var(--white); border: 1px solid var(--border); border-radius: 10px;
   padding: 20px; display: flex; flex-direction: column; gap: 10px;
@@ -209,10 +196,7 @@ body::after {
   font-family: 'Space Mono', monospace; font-size: 0.55rem;
   letter-spacing: 0.25em; text-transform: uppercase; color: var(--cyan);
 }
-.stack-name {
-  font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: 700;
-  color: var(--ink); letter-spacing: 0.04em;
-}
+.stack-name { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: 700; color: var(--ink); letter-spacing: 0.04em; }
 .stack-role { font-size: 0.78rem; color: var(--gray); }
 .stack-tag {
   display: inline-block; padding: 2px 8px; border-radius: 3px;
@@ -223,11 +207,11 @@ body::after {
 .tag-cyan  { background: rgba(0,122,140,0.08); color: var(--cyan); border: 1px solid rgba(0,122,140,0.2); }
 .tag-green { background: rgba(0,122,76,0.08);  color: var(--success); border: 1px solid rgba(0,122,76,0.2); }
 .tag-gray  { background: rgba(13,13,26,0.06);  color: var(--ink2); border: 1px solid rgba(13,13,26,0.12); }
+.tag-warn  { background: rgba(140,106,0,0.08); color: var(--warn); border: 1px solid rgba(140,106,0,0.25); }
+.tag-danger{ background: rgba(204,26,26,0.08); color: var(--danger); border: 1px solid rgba(204,26,26,0.25); }
 
-/* ── FLUX / PIPELINE ── */
 .pipeline {
-  display: flex; align-items: stretch; gap: 0;
-  flex-wrap: wrap; margin-top: 8px;
+  display: flex; align-items: stretch; gap: 0; flex-wrap: wrap; margin-top: 8px;
 }
 .pipe-step {
   flex: 1; min-width: 130px;
@@ -238,12 +222,10 @@ body::after {
 }
 .pipe-step:hover { border-color: var(--pink); }
 .pipe-step + .pipe-step::before {
-  content: '→';
-  position: absolute; left: -18px; top: 50%; transform: translateY(-50%);
+  content: '→'; position: absolute; left: -18px; top: 50%; transform: translateY(-50%);
   color: var(--pink); font-size: 1rem; font-weight: 700;
 }
 @media(max-width:600px){ .pipe-step + .pipe-step::before { display: none; } }
-
 .pipe-num {
   width: 28px; height: 28px; border-radius: 50%; background: var(--pink);
   color: #fff; font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 700;
@@ -252,10 +234,7 @@ body::after {
 .pipe-name { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; font-weight: 700; color: var(--ink); }
 .pipe-desc { font-size: 0.72rem; color: var(--gray); line-height: 1.4; }
 
-/* ── FONCTIONNALITÉS IA ── */
-.ia-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 16px;
-}
+.ia-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 16px; }
 .ia-card {
   background: var(--white); border: 1px solid var(--border); border-radius: 10px;
   padding: 24px; transition: border-color 0.2s, box-shadow 0.2s;
@@ -265,10 +244,8 @@ body::after {
 .ia-title { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
 .ia-desc  { font-size: 0.8rem; color: var(--gray); line-height: 1.55; }
 
-/* ── ÉQUIPE ── */
 .team-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 @media(max-width:580px){ .team-grid { grid-template-columns: 1fr; } }
-
 .team-card {
   background: var(--white); border: 1px solid var(--border); border-radius: 12px;
   padding: 28px; display: flex; flex-direction: column; gap: 14px;
@@ -290,7 +267,6 @@ body::after {
 }
 .task-item::before { content: '▸'; color: var(--pink); flex-shrink: 0; margin-top: 1px; }
 
-/* ── DONNÉES ── */
 .data-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 16px; }
 .data-card {
   background: var(--white); border: 1px solid var(--border); border-radius: 10px;
@@ -301,7 +277,6 @@ body::after {
 .data-type   { font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 0.2em; color: var(--cyan); text-transform: uppercase; margin-bottom: 8px; }
 .data-desc   { font-size: 0.78rem; color: var(--gray); line-height: 1.5; }
 
-/* ── OBJECTIFS ── */
 .obj-list { display: flex; flex-direction: column; gap: 12px; }
 .obj-item {
   display: flex; align-items: flex-start; gap: 14px;
@@ -315,37 +290,24 @@ body::after {
 .obj-text { font-size: 0.88rem; color: var(--ink2); line-height: 1.55; }
 .obj-text strong { color: var(--pink); }
 
-/* ── RÉSULTAT ATTENDU ── */
 .result-card {
   background: var(--white); border: 2px solid var(--pink); border-radius: 14px;
   padding: 36px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center;
 }
 @media(max-width:620px){ .result-card { grid-template-columns: 1fr; } }
-.result-score {
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-  text-align: center;
-}
-.result-big {
-  font-family: 'Orbitron', sans-serif; font-size: 5rem; font-weight: 900;
-  color: var(--pink); line-height: 1;
-}
-.result-label {
-  font-family: 'Space Mono', monospace; font-size: 0.65rem;
-  letter-spacing: 0.2em; color: var(--gray); text-transform: uppercase;
-}
+.result-score { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.result-big { font-family: 'Orbitron', sans-serif; font-size: 5rem; font-weight: 900; color: var(--pink); line-height: 1; }
+.result-label { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; color: var(--gray); text-transform: uppercase; }
 .result-verdict {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 7px 16px; border-radius: 30px;
+  display: inline-flex; align-items: center; gap: 8px; padding: 7px 16px; border-radius: 30px;
   font-family: 'Orbitron', sans-serif; font-size: 0.8rem; font-weight: 700;
   background: rgba(0,122,76,0.1); color: var(--success); border: 1px solid rgba(0,122,76,0.3);
 }
 .result-text { font-size: 0.88rem; color: var(--gray); line-height: 1.65; }
 .result-text strong { color: var(--ink2); font-weight: 600; }
 
-/* ── FOOTER ── */
 .footer {
-  border-top: 1px solid var(--border); padding: 36px 48px;
-  background: var(--bg2);
+  border-top: 1px solid var(--border); padding: 36px 48px; background: var(--bg2);
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
 }
 .footer-brand { font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 900; color: var(--ink); letter-spacing: 0.08em; }
@@ -356,7 +318,6 @@ body::after {
 </head>
 <body>
 
-<!-- NAV -->
 <nav class="nav no-print">
   <div class="nav-brand">WILL<span class="hl">IT</span>FLOP</div>
   <div class="nav-right">
@@ -365,7 +326,6 @@ body::after {
   </div>
 </nav>
 
-<!-- HERO -->
 <section class="hero">
   <div class="hero-grid"></div>
   <div class="hero-eyebrow">// FICHE DE PRÉSENTATION PROJET — BOOTCAMP DATA ANALYST //</div>
@@ -380,12 +340,11 @@ body::after {
 
 <div class="divider"></div>
 
-<!-- CONCEPT -->
+<!-- 01 CONCEPT -->
 <section class="container">
   <div class="section-label">01 — Concept</div>
   <h2 class="section-h2">Qu'est-ce que WillItFlop ?</h2>
   <div class="concept-grid">
-
     <div class="concept-card full">
       <div class="card-icon icon-pink">🎮</div>
       <div class="card-title">La problématique</div>
@@ -394,7 +353,6 @@ body::after {
         <strong>WillItFlop</strong> répond à cette question : <em>« Si ce jeu vidéo existait, aurait-il des chances de réussir commercialement ? »</em>
       </div>
     </div>
-
     <div class="concept-card">
       <div class="card-icon icon-cyan">💡</div>
       <div class="card-title">La solution</div>
@@ -402,32 +360,30 @@ body::after {
         Une plateforme web où l'utilisateur <strong>décrit un jeu vidéo fictif</strong> (genre, plateformes, budget, univers…). Le système collecte des données réelles sur des jeux similaires, les analyse, et produit un <strong>score de viabilité commerciale</strong> accompagné d'un rapport détaillé.
       </div>
     </div>
-
     <div class="concept-card">
       <div class="card-icon icon-green">🎯</div>
       <div class="card-title">La valeur ajoutée</div>
       <div class="card-text">
-        Le projet combine <strong>collecte de données réelles</strong> (API gaming, web scraping), <strong>pipeline de traitement automatisé</strong> (Airflow + PostgreSQL) et <strong>IA générative</strong> pour produire une expérience à la fois analytique et immersive — jusqu'à générer une image et un synopsis du jeu fictif.
+        Le projet combine <strong>collecte de données réelles via APIs</strong> (IGDB, Steam), <strong>pipeline de traitement automatisé</strong> (Airflow + dbt + PostgreSQL) et <strong>IA générative</strong> pour produire une expérience à la fois analytique et immersive — jusqu'à générer une image et un synopsis du jeu fictif.
       </div>
     </div>
-
   </div>
 </section>
 
 <div class="divider"></div>
 
-<!-- OBJECTIFS -->
+<!-- 02 OBJECTIFS -->
 <section class="container">
   <div class="section-label">02 — Objectifs</div>
   <h2 class="section-h2">Ce que le projet démontre</h2>
   <div class="obj-list">
     <div class="obj-item">
       <div class="obj-num">01</div>
-      <div class="obj-text"><strong>Maîtrise de la collecte de données</strong> — Interroger des APIs tierces (données gaming) et effectuer du web scraping pour enrichir une base de référence sur les jeux vidéo existants.</div>
+      <div class="obj-text"><strong>Maîtrise de la collecte de données</strong> — Interroger des APIs tierces (IGDB, Steam / SteamSpy) pour constituer une base de référence riche sur les jeux vidéo existants.</div>
     </div>
     <div class="obj-item">
       <div class="obj-num">02</div>
-      <div class="obj-text"><strong>Pipeline de données automatisé</strong> — Orchestrer les flux de données avec Apache Airflow, stocker et interroger les données dans PostgreSQL, assurer la qualité et la cohérence des données.</div>
+      <div class="obj-text"><strong>Pipeline de données automatisé</strong> — Orchestrer les flux de données avec Apache Airflow, transformer et modéliser les données avec <strong>dbt</strong>, stocker et interroger dans PostgreSQL.</div>
     </div>
     <div class="obj-item">
       <div class="obj-num">03</div>
@@ -439,14 +395,18 @@ body::after {
     </div>
     <div class="obj-item">
       <div class="obj-num">05</div>
-      <div class="obj-text"><strong>Restitution claire et impactante</strong> — Présenter les résultats via un <strong>site web custom</strong> intégrant des visualisations PowerBI et une interface soignée à destination de l'utilisateur final.</div>
+      <div class="obj-text"><strong>Qualité & sécurité du code</strong> — Sécuriser le code via <strong>SonarQube</strong> (analyse statique, dette technique) et vérifier les failles de sécurité avec les standards <strong>OWASP</strong>.</div>
+    </div>
+    <div class="obj-item">
+      <div class="obj-num">06</div>
+      <div class="obj-text"><strong>Restitution claire et impactante</strong> — Présenter les résultats via un <strong>site web custom</strong> intégrant des visualisations Python et une interface soignée à destination de l'utilisateur final.</div>
     </div>
   </div>
 </section>
 
 <div class="divider"></div>
 
-<!-- PIPELINE -->
+<!-- 03 PIPELINE -->
 <section class="container">
   <div class="section-label">03 — Fonctionnement</div>
   <h2 class="section-h2">Les étapes · Comment ça marche ?</h2>
@@ -459,12 +419,12 @@ body::after {
     <div class="pipe-step">
       <div class="pipe-num">2</div>
       <div class="pipe-name">COLLECTE</div>
-      <div class="pipe-desc">API gaming + Web scraping récupèrent des données de référence</div>
+      <div class="pipe-desc">APIs gaming (IGDB, Steam) récupèrent les données de référence</div>
     </div>
     <div class="pipe-step">
       <div class="pipe-num">3</div>
-      <div class="pipe-name">STOCKAGE</div>
-      <div class="pipe-desc">PostgreSQL stocke et structure toutes les données</div>
+      <div class="pipe-name">TRANSFORM</div>
+      <div class="pipe-desc">dbt modélise et transforme les données dans PostgreSQL</div>
     </div>
     <div class="pipe-step">
       <div class="pipe-num">4</div>
@@ -486,7 +446,7 @@ body::after {
 
 <div class="divider"></div>
 
-<!-- STACK TECHNIQUE -->
+<!-- 04 STACK -->
 <section class="container">
   <div class="section-label">04 — Stack technique</div>
   <h2 class="section-h2">Outils & Technologies</h2>
@@ -507,17 +467,17 @@ body::after {
     </div>
 
     <div class="stack-card">
-      <div class="stack-layer">Collecte</div>
-      <div class="stack-name">API Gaming</div>
-      <div class="stack-role">Récupération de données structurées sur les jeux vidéo existants (genre, plateformes, ventes, notes…).</div>
-      <span class="stack-tag tag-green">Données réelles</span>
+      <div class="stack-layer">Transformation</div>
+      <div class="stack-name">dbt</div>
+      <div class="stack-role">Modélisation et transformation des données directement dans PostgreSQL — documentation, tests et lignage inclus.</div>
+      <span class="stack-tag tag-cyan">Data Transform</span>
     </div>
 
     <div class="stack-card">
       <div class="stack-layer">Collecte</div>
-      <div class="stack-name">Web Scraping</div>
-      <div class="stack-role">Extraction de données complémentaires sur les tendances du marché, avis et comparatifs de jeux.</div>
-      <span class="stack-tag tag-pink">Enrichissement</span>
+      <div class="stack-name">API Gaming</div>
+      <div class="stack-role">Récupération de données structurées sur les jeux vidéo existants (genre, plateformes, ventes, notes…) via IGDB et Steam.</div>
+      <span class="stack-tag tag-green">Données réelles</span>
     </div>
 
     <div class="stack-card">
@@ -525,6 +485,20 @@ body::after {
       <div class="stack-name">API IA</div>
       <div class="stack-role">Génération d'image de couverture et de synopsis narratif pour le jeu fictif décrit par l'utilisateur.</div>
       <span class="stack-tag tag-cyan">Génératif</span>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-layer">Qualité du code</div>
+      <div class="stack-name">SonarQube</div>
+      <div class="stack-role">Analyse statique du code pour détecter bugs, dette technique, duplications et failles de sécurité tout au long du développement.</div>
+      <span class="stack-tag tag-warn">Code Quality</span>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-layer">Sécurité</div>
+      <div class="stack-name">OWASP</div>
+      <div class="stack-role">Vérification des failles de sécurité applicative en s'appuyant sur le référentiel OWASP Top 10 pour sécuriser l'ensemble du projet.</div>
+      <span class="stack-tag tag-danger">Sécurité</span>
     </div>
 
     <div class="stack-card">
@@ -553,7 +527,7 @@ body::after {
 
 <div class="divider"></div>
 
-<!-- FONCTIONNALITÉS IA -->
+<!-- 05 IA -->
 <section class="container">
   <div class="section-label">05 — Intelligence Artificielle</div>
   <h2 class="section-h2">Fonctionnalités IA / ML du projet</h2>
@@ -578,10 +552,10 @@ body::after {
 
 <div class="divider"></div>
 
-<!-- SOURCES DE DONNÉES -->
+<!-- 06 DONNÉES -->
 <section class="container">
   <div class="section-label">06 — Données</div>
-  <h2 class="section-h2">Sources de données envisagées</h2>
+  <h2 class="section-h2">Sources de données</h2>
   <div class="data-grid">
     <div class="data-card">
       <div class="data-type">API</div>
@@ -589,26 +563,21 @@ body::after {
       <div class="data-desc">Base de données de référence sur les jeux vidéo : genres, plateformes, dates de sortie, éditeurs, notes.</div>
     </div>
     <div class="data-card">
-      <div class="data-type">API + Scraping</div>
+      <div class="data-type">API</div>
       <div class="data-source">Steam / SteamSpy</div>
-      <div class="data-desc">Données de ventes estimées, nombre de joueurs, avis utilisateurs et tendances du marché PC.</div>
+      <div class="data-desc">Données de ventes estimées, nombre de joueurs, avis utilisateurs, notes Metacritic et tendances du marché PC.</div>
     </div>
     <div class="data-card">
-      <div class="data-type">Scraping</div>
-      <div class="data-source">Metacritic</div>
-      <div class="data-desc">Notes presse et joueurs, historique des scores par genre et plateforme pour l'analyse comparative.</div>
-    </div>
-    <div class="data-card">
-      <div class="data-type">Scraping</div>
+      <div class="data-type">API</div>
       <div class="data-source">Sources complémentaires</div>
-      <div class="data-desc">Articles spécialisés, rapports de marché (Newzoo, GSD) pour enrichir le contexte concurrentiel.</div>
+      <div class="data-desc">Rapports de marché (Newzoo, GSD) et données sectorielles pour enrichir le contexte concurrentiel.</div>
     </div>
   </div>
 </section>
 
 <div class="divider"></div>
 
-<!-- ÉQUIPE -->
+<!-- 07 ÉQUIPE -->
 <section class="container">
   <div class="section-label">07 — Équipe</div>
   <h2 class="section-h2">Répartition des rôles</h2>
@@ -622,33 +591,35 @@ body::after {
         </div>
       </div>
       <div class="team-tasks">
-                   <div class="task-item">Conception et gestion de la base PostgreSQL</div>
+        <div class="task-item">Conception et gestion de la base PostgreSQL</div>
         <div class="task-item">Développement des pipelines Airflow</div>
+        <div class="task-item">Modélisation des données avec dbt</div>
         <div class="task-item">Intégration des APIs de collecte (IGDB, Steam…)</div>
-        <div class="task-item">Scripts de web scraping</div>
         <div class="task-item">Développement du site web (interface utilisateur)</div>
         <div class="task-item">Intégration des APIs IA (image + texte)</div>
         <div class="task-item">Conception des visualisations Matplotlib / Seaborn</div>
         <div class="task-item">Analyse des données et modèle de scoring</div>
+        <div class="task-item">Sécurisation du code (SonarQube / OWASP)</div>
       </div>
     </div>
     <div class="team-card">
       <div class="team-header">
-        <div class="team-avatar" style="color:var(--cyan)">M</div>
+        <div class="team-avatar" style="color:var(--cyan)">P</div>
         <div>
           <div class="team-name">Pierre</div>
           <div class="team-role">Data Analyst</div>
         </div>
       </div>
       <div class="team-tasks">
-                <div class="task-item">Conception et gestion de la base PostgreSQL</div>
+        <div class="task-item">Conception et gestion de la base PostgreSQL</div>
         <div class="task-item">Développement des pipelines Airflow</div>
+        <div class="task-item">Modélisation des données avec dbt</div>
         <div class="task-item">Intégration des APIs de collecte (IGDB, Steam…)</div>
-        <div class="task-item">Scripts de web scraping</div>
         <div class="task-item">Développement du site web (interface utilisateur)</div>
         <div class="task-item">Intégration des APIs IA (image + texte)</div>
         <div class="task-item">Conception des visualisations Matplotlib / Seaborn</div>
         <div class="task-item">Analyse des données et modèle de scoring</div>
+        <div class="task-item">Sécurisation du code (SonarQube / OWASP)</div>
       </div>
     </div>
   </div>
@@ -656,7 +627,7 @@ body::after {
 
 <div class="divider"></div>
 
-<!-- RÉSULTAT ATTENDU -->
+<!-- 08 LIVRABLE -->
 <section class="container">
   <div class="section-label">08 — Livrable</div>
   <h2 class="section-h2">Résultat attendu</h2>
@@ -672,21 +643,23 @@ body::after {
       • Un <strong>synopsis narratif</strong> du jeu<br>
       • Un <strong>score de viabilité commerciale</strong> sur 10<br>
       • Un <strong>rapport analytique</strong> comparant le jeu fictif au marché réel<br>
-      • Des <strong>visualisations Python</strong> (Matplotlib / Seaborn) intégrées au site sur le positionnement marché<br><br>
-      L'ensemble est hébergé sur un site web custom développé en HTML/CSS/JS, dans la charte graphique <em>Cyberpunk Neon Light</em> du projet.
+      • Des <strong>visualisations Python</strong> (Matplotlib / Seaborn) sur le positionnement marché<br><br>
+      L'ensemble est hébergé sur un site web custom développé en HTML/CSS/JS, dans la charte graphique <em>Cyberpunk Neon Light</em> du projet, avec un code <strong>sécurisé et audité</strong> (SonarQube + OWASP).
     </div>
   </div>
 </section>
 
-<!-- FOOTER -->
 <footer class="footer">
   <div class="footer-brand">WILL<span class="hl">IT</span>FLOP</div>
   <div class="footer-copy">FICHE PROJET — Bootcamp Data Analyst 2026 — À soumettre pour validation</div>
   <div class="footer-tags">
     <span class="stack-tag tag-pink">PostgreSQL</span>
     <span class="stack-tag tag-cyan">Airflow</span>
+    <span class="stack-tag tag-cyan">dbt</span>
     <span class="stack-tag tag-green">API IA</span>
     <span class="stack-tag tag-green">Matplotlib</span>
+    <span class="stack-tag tag-warn">SonarQube</span>
+    <span class="stack-tag tag-danger">OWASP</span>
     <span class="stack-tag tag-gray">Web</span>
   </div>
 </footer>
