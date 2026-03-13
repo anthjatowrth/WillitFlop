@@ -8,6 +8,9 @@ select
     g.achievement_count,
     g.metacritic_score,
     g.nb_supported_languages,
+    g.review_total,
+    g.spy_median_playtime,
+    g.achievement_median_unlock_rate,
 
     -- Features booléennes
     g.is_free,

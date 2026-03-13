@@ -200,8 +200,7 @@ def save_kpis(conn, app_id: int):
     with conn.cursor() as cur:
         cur.execute("""
             SELECT review_total_positive, review_total_negative,
-                   spy_owners_min, spy_owners_max,
-                   spy_median_playtime, achievement_median_unlock_rate
+                   spy_owners_min, spy_owners_max
             FROM games WHERE app_id = %s
         """, (app_id,))
         row = cur.fetchone()

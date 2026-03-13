@@ -16,10 +16,6 @@ CATEGORY_WHITELIST = {
     "Steam Workshop",
 }
 
-# Seuils pour le scoring is_successful (3 critères sur 5 requis)
+# Seuils pour is_successful (les deux conditions doivent être réunies)
 SUCCESS_OWNERS_MIDPOINT   = 100_000
 SUCCESS_WILSON_SCORE      = 0.75
-SUCCESS_REVIEW_TOTAL      = 500
-SUCCESS_MEDIAN_PLAYTIME   = 180     # minutes
-SUCCESS_ACH_UNLOCK_RATE   = 20.0    # %
-SUCCESS_MIN_SCORE         = 3
