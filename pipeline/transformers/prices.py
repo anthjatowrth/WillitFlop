@@ -13,7 +13,7 @@ def convert_price_to_eur(amount_cents: int | None, currency: str | None) -> floa
     """
     if amount_cents is None or currency is None:
         return None
-    amount = amount_cents / 100
+    amount = int(amount_cents) / 100
     if currency == "EUR":
         return round(amount, 2)
     try:

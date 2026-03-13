@@ -63,6 +63,10 @@ def run():
                 print(f"[{saved_count}] {app_id} — ignoré (type={details.get('type')})")
                 continue
 
+            if details.get("fullgame"):
+                print(f"[{saved_count}] {app_id} — ignoré (DLC de {details['fullgame'].get('name')})")
+                continue
+
             categories = details.get("categories") or []
             if any("VR" in (c.get("description") or "") for c in categories):
                 print(f"[{saved_count}] {app_id} — ignoré (VR)")
@@ -130,6 +134,8 @@ def run_collect_new():
             details = fetch_app_details(app_id)
             time.sleep(0.5)
             if details is None or details.get("type") != "game":
+                continue
+            if details.get("fullgame"):
                 continue
             categories = details.get("categories") or []
             if any("VR" in (c.get("description") or "") for c in categories):

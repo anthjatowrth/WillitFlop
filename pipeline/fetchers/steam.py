@@ -80,6 +80,8 @@ def fetch_achievement_stats(app_id: int) -> dict | None:
         params={"gameid": app_id, "key": os.getenv("STEAM_API_KEY")},
         timeout=15,
     )
+    if resp.status_code == 403:
+        return None
     resp.raise_for_status()
     achievements = resp.json().get("achievementpercentages", {}).get("achievements", [])
     percents = [a["percent"] for a in achievements if "percent" in a]
