@@ -95,9 +95,8 @@ def run():
             time.sleep(0.3)
 
             try:
-                achievement_stats = fetch_achievement_stats(app_id)
-                if achievement_stats:
-                    save_achievement_stats(conn, app_id, achievement_stats)
+                achievement_stats = fetch_achievement_stats(app_id) or {"achievement_count": 0, "achievement_median_unlock_rate": 0.0}
+                save_achievement_stats(conn, app_id, achievement_stats)
             except Exception as e:
                 print(f"[{saved_count}] {app_id} — achievements ignorés: {e}")
             time.sleep(0.5)

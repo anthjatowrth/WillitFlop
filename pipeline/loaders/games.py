@@ -15,6 +15,9 @@ def save_game_details(conn, app_id: int, d: dict):
     is_early_access = any(c.get("id") == 70 for c in categories)
     short_description_clean = clean_short_description(d.get("short_description"))
     price_eur = convert_price_to_eur(price.get("initial"), price.get("currency"))
+    if price_eur is None and d.get("is_free"):
+        price_eur = 0.0
+    metacritic_score = metacritic.get("score") or 0
     screenshots = d.get("screenshots") or []
     first_screenshot_url = screenshots[0].get("path_full") if screenshots else None
 
@@ -65,7 +68,7 @@ def save_game_details(conn, app_id: int, d: dict):
             first_screenshot_url,
             clean_supported_languages(d.get("supported_languages")),
             price_eur,
-            metacritic.get("score"),
+            metacritic_score,
             datetime.now(timezone.utc),
         ))
 

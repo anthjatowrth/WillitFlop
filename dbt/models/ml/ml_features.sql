@@ -24,7 +24,7 @@ select
     -- Cible ML modèle 1
     g.is_successful,
 
-    -- Cible ML modèle 2 (régression Metacritic, sous-ensemble non NULL)
+    -- Cible ML modèle 2 (régression Metacritic, filtrer target_metacritic > 0 côté sklearn)
     g.metacritic_score      as target_metacritic
 
 from {{ ref('stg_games') }} g
