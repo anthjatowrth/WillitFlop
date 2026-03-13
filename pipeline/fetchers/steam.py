@@ -84,7 +84,7 @@ def fetch_achievement_stats(app_id: int) -> dict | None:
         return None
     resp.raise_for_status()
     achievements = resp.json().get("achievementpercentages", {}).get("achievements", [])
-    percents = [a["percent"] for a in achievements if "percent" in a]
+    percents = [float(a["percent"]) for a in achievements if "percent" in a]
     if not percents:
         return None
     return {
