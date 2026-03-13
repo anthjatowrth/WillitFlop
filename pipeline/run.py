@@ -78,19 +78,28 @@ def run():
             if spy_data.get("tags"):
                 save_game_tags(conn, app_id, spy_data["tags"])
 
-            reviews, summary = fetch_app_reviews(app_id)
-            save_reviews(conn, app_id, reviews)
-            if summary:
-                save_review_score(conn, app_id, summary)
+            try:
+                reviews, summary = fetch_app_reviews(app_id)
+                save_reviews(conn, app_id, reviews)
+                if summary:
+                    save_review_score(conn, app_id, summary)
+            except Exception as e:
+                print(f"[{saved_count}] {app_id} — reviews ignorées: {e}")
             time.sleep(0.5)
 
-            twitch_data = fetch_twitch_data(details.get("name", ""), twitch_token)
-            save_twitch_data(conn, app_id, twitch_data)
+            try:
+                twitch_data = fetch_twitch_data(details.get("name", ""), twitch_token)
+                save_twitch_data(conn, app_id, twitch_data)
+            except Exception as e:
+                print(f"[{saved_count}] {app_id} — twitch ignoré: {e}")
             time.sleep(0.3)
 
-            achievement_stats = fetch_achievement_stats(app_id)
-            if achievement_stats:
-                save_achievement_stats(conn, app_id, achievement_stats)
+            try:
+                achievement_stats = fetch_achievement_stats(app_id)
+                if achievement_stats:
+                    save_achievement_stats(conn, app_id, achievement_stats)
+            except Exception as e:
+                print(f"[{saved_count}] {app_id} — achievements ignorés: {e}")
             time.sleep(0.5)
 
             # 4. KPIs dérivés et label is_successful
@@ -146,19 +155,28 @@ def run_collect_new():
             if spy_data.get("tags"):
                 save_game_tags(conn, app_id, spy_data["tags"])
 
-            reviews, summary = fetch_app_reviews(app_id)
-            save_reviews(conn, app_id, reviews)
-            if summary:
-                save_review_score(conn, app_id, summary)
+            try:
+                reviews, summary = fetch_app_reviews(app_id)
+                save_reviews(conn, app_id, reviews)
+                if summary:
+                    save_review_score(conn, app_id, summary)
+            except Exception as e:
+                print(f"[ERREUR] {app_id} — reviews ignorées: {e}")
             time.sleep(0.5)
 
-            twitch_data = fetch_twitch_data(details.get("name", ""), twitch_token)
-            save_twitch_data(conn, app_id, twitch_data)
+            try:
+                twitch_data = fetch_twitch_data(details.get("name", ""), twitch_token)
+                save_twitch_data(conn, app_id, twitch_data)
+            except Exception as e:
+                print(f"[ERREUR] {app_id} — twitch ignoré: {e}")
             time.sleep(0.3)
 
-            achievement_stats = fetch_achievement_stats(app_id)
-            if achievement_stats:
-                save_achievement_stats(conn, app_id, achievement_stats)
+            try:
+                achievement_stats = fetch_achievement_stats(app_id)
+                if achievement_stats:
+                    save_achievement_stats(conn, app_id, achievement_stats)
+            except Exception as e:
+                print(f"[ERREUR] {app_id} — achievements ignorés: {e}")
             time.sleep(0.5)
 
             save_kpis(conn, app_id)
