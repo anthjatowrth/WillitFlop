@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from pipeline.config import CATEGORY_WHITELIST
-from pipeline.transformers.text import clean_game_text, clean_supported_languages
+from pipeline.transformers.text import clean_short_description, clean_supported_languages
 from pipeline.transformers.kpis import compute_kpis
 from pipeline.transformers.prices import convert_price_to_eur
 
@@ -13,16 +13,18 @@ def save_game_details(conn, app_id: int, d: dict):
     categories  = d.get("categories") or []
     has_dlc         = bool(d.get("dlc"))
     is_early_access = any(c.get("id") == 70 for c in categories)
-    text      = clean_game_text(d.get("short_description"), d.get("detailed_description"))
+    short_description_clean = clean_short_description(d.get("short_description"))
     price_eur = convert_price_to_eur(price.get("initial"), price.get("currency"))
+    screenshots = d.get("screenshots") or []
+    first_screenshot_url = screenshots[0].get("path_full") if screenshots else None
 
     with conn.cursor() as cur:
         cur.execute("""
             INSERT INTO games (
                 app_id, name, is_free,
                 release_date, has_dlc, is_early_access,
-                short_description_clean, detailed_description_clean,
-                press_quotes, image_urls,
+                short_description_clean,
+                header_image, first_screenshot_url,
                 supported_languages,
                 price_eur,
                 metacritic_score,
@@ -30,7 +32,7 @@ def save_game_details(conn, app_id: int, d: dict):
             ) VALUES (
                 %s,%s,%s,
                 %s,%s,%s,
-                %s,%s,
+                %s,
                 %s,%s,
                 %s,
                 %s,
@@ -44,9 +46,8 @@ def save_game_details(conn, app_id: int, d: dict):
                 has_dlc                     = EXCLUDED.has_dlc,
                 is_early_access             = EXCLUDED.is_early_access,
                 short_description_clean     = EXCLUDED.short_description_clean,
-                detailed_description_clean  = EXCLUDED.detailed_description_clean,
-                press_quotes                = EXCLUDED.press_quotes,
-                image_urls                  = EXCLUDED.image_urls,
+                header_image                = EXCLUDED.header_image,
+                first_screenshot_url        = EXCLUDED.first_screenshot_url,
                 supported_languages         = EXCLUDED.supported_languages,
                 price_eur                   = EXCLUDED.price_eur,
                 metacritic_score            = EXCLUDED.metacritic_score,
@@ -59,10 +60,9 @@ def save_game_details(conn, app_id: int, d: dict):
             release.get("date"),
             has_dlc,
             is_early_access,
-            text["short_description_clean"],
-            text["detailed_description_clean"],
-            text["press_quotes"],
-            text["image_urls"],
+            short_description_clean,
+            d.get("header_image"),
+            first_screenshot_url,
             clean_supported_languages(d.get("supported_languages")),
             price_eur,
             metacritic.get("score"),

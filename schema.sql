@@ -38,10 +38,11 @@ CREATE TABLE IF NOT EXISTS games (
 
     -- ── Textes nettoyés (NLP) ─────────────────────────────────────────────────
     short_description_clean     TEXT,           -- description courte, HTML retiré, URLs retirées
-    detailed_description_clean  TEXT,           -- description longue, HTML retiré, URLs et citations presse retirées
-    press_quotes                TEXT[],         -- citations presse extraites de la description longue
-    image_urls                  TEXT[],         -- URLs d'images trouvées dans les deux descriptions
     supported_languages         TEXT[],         -- liste des langues supportées
+
+    -- ── Images ────────────────────────────────────────────────────────────────
+    header_image                TEXT,           -- bannière principale (460×215)
+    first_screenshot_url        TEXT,           -- premier screenshot gameplay (pleine résolution)
 
     -- ── Label ML ──────────────────────────────────────────────────────────────
     is_successful           BOOLEAN,        -- label calculé (scoring multi-critères)
@@ -71,7 +72,7 @@ CREATE TABLE IF NOT EXISTS game_categories (
 CREATE TABLE IF NOT EXISTS game_tags (
     app_id      INTEGER REFERENCES games(app_id) ON DELETE CASCADE,
     tag_name    TEXT,
-    votes       INTEGER,    -- nombre de votes joueurs sur ce tag
+    votes       INTEGER,    
     PRIMARY KEY (app_id, tag_name)
 );
 

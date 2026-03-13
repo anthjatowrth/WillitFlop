@@ -3,7 +3,7 @@ import time
 
 import requests
 
-from pipeline.config import TARGET, MIN_OWNERS
+from pipeline.config import MIN_OWNERS
 from pipeline.db import get_connection, init_schema, get_already_fetched, get_games_for_monthly_update
 from pipeline.fetchers.steam import (
     fetch_indie_app_ids,
@@ -38,13 +38,9 @@ def run():
     already_done = get_already_fetched(conn)
     to_fetch     = [aid for aid in app_ids if aid not in already_done]
     saved_count  = len(already_done)
-    print(f"\n{saved_count} jeux déjà en DB, objectif {TARGET}.\n")
+    print(f"\n{saved_count} jeux déjà en DB — {len(to_fetch)} candidats restants.\n")
 
     for app_id in to_fetch:
-        if saved_count >= TARGET:
-            print(f"Objectif de {TARGET} jeux atteint.")
-            break
-
         try:
             # 1. Filtre popularité — SteamSpy en premier (économise les appels suivants)
             spy_data = fetch_steamspy_data(app_id)
@@ -52,7 +48,7 @@ def run():
 
             if not spy_data or (spy_data["spy_owners_min"] or 0) < MIN_OWNERS:
                 owners_val = spy_data["spy_owners_min"] if spy_data else "N/A"
-                print(f"[{saved_count}/{TARGET}] {app_id} — ignoré (owners_min={owners_val} < {MIN_OWNERS})")
+                print(f"[{saved_count}] {app_id} — ignoré (owners_min={owners_val} < {MIN_OWNERS})")
                 continue
 
             # 2. Détails Steam + filtres type et VR
@@ -60,16 +56,16 @@ def run():
             time.sleep(0.5)
 
             if details is None:
-                print(f"[{saved_count}/{TARGET}] {app_id} — ignoré (pas de données)")
+                print(f"[{saved_count}] {app_id} — ignoré (pas de données)")
                 continue
 
             if details.get("type") != "game":
-                print(f"[{saved_count}/{TARGET}] {app_id} — ignoré (type={details.get('type')})")
+                print(f"[{saved_count}] {app_id} — ignoré (type={details.get('type')})")
                 continue
 
             categories = details.get("categories") or []
             if any("VR" in (c.get("description") or "") for c in categories):
-                print(f"[{saved_count}/{TARGET}] {app_id} — ignoré (VR)")
+                print(f"[{saved_count}] {app_id} — ignoré (VR)")
                 continue
 
             # 3. Sauvegarde
@@ -97,12 +93,12 @@ def run():
             save_kpis(conn, app_id)
 
             saved_count += 1
-            print(f"[{saved_count}/{TARGET}] {details.get('name')} ({app_id}) — OK")
+            print(f"[{saved_count}] {details.get('name')} ({app_id}) — OK")
 
         except requests.HTTPError as e:
-            print(f"[{saved_count}/{TARGET}] {app_id} — erreur HTTP: {e}")
+            print(f"[{saved_count}] {app_id} — erreur HTTP: {e}")
         except Exception as e:
-            print(f"[{saved_count}/{TARGET}] {app_id} — erreur: {e}")
+            print(f"[{saved_count}] {app_id} — erreur: {e}")
             conn.rollback()
 
     conn.close()

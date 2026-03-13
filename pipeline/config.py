@@ -1,4 +1,3 @@
-TARGET     = 500       # nombre de jeux à collecter
 MIN_OWNERS = 20_000    # seuil minimum spy_owners_min pour filtrer les jeux obscurs
 
 CATEGORY_WHITELIST = {
