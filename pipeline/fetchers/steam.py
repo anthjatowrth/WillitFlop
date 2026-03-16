@@ -89,5 +89,5 @@ def fetch_achievement_stats(app_id: int) -> dict | None:
         return None
     return {
         "achievement_count":              len(percents),
-        "achievement_median_unlock_rate": statistics.median(percents),
+        "achievement_median_unlock_rate": round(statistics.median(percents), 2),
     }

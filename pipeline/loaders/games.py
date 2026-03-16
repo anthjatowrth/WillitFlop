@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from pipeline.config import CATEGORY_WHITELIST
-from pipeline.transformers.text import clean_short_description, clean_supported_languages
+from pipeline.transformers.text import clean_short_description, clean_supported_languages, clean_release_date
 from pipeline.transformers.kpis import compute_kpis
 from pipeline.transformers.prices import convert_price_to_eur
 
@@ -60,7 +60,7 @@ def save_game_details(conn, app_id: int, d: dict):
             app_id,
             d.get("name"),
             d.get("is_free"),
-            release.get("date"),
+            clean_release_date(release.get("date")),
             has_dlc,
             is_early_access,
             short_description_clean,

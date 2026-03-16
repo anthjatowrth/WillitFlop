@@ -40,7 +40,17 @@ def run():
     saved_count  = len(already_done)
     print(f"\n{saved_count} jeux déjà en DB — {len(to_fetch)} candidats restants.\n")
 
-    for app_id in to_fetch:
+    total_candidates = len(to_fetch)
+    next_milestone   = 10
+
+    for i, app_id in enumerate(to_fetch, start=1):
+        pct = i * 100 // total_candidates
+        if pct >= next_milestone:
+            print(f"\n{'='*50}")
+            print(f"  PROGRESSION : {pct}% ({i}/{total_candidates} candidats traités, {saved_count} jeux sauvegardés)")
+            print(f"{'='*50}\n")
+            next_milestone += 10
+
         try:
             # 1. Filtre popularité — SteamSpy en premier (économise les appels suivants)
             spy_data = fetch_steamspy_data(app_id)

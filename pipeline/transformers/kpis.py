@@ -36,7 +36,7 @@ def compute_kpis(
 
     return {
         "review_total":        total,
-        "review_wilson_score": wilson,
+        "review_wilson_score": round(wilson, 2),
         "owners_midpoint":     midpoint,
         "is_successful":       midpoint >= SUCCESS_OWNERS_MIDPOINT and wilson >= SUCCESS_WILSON_SCORE,
     }
