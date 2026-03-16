@@ -1,0 +1,238 @@
+[2026-03-16T15:14:10.550+0000] {processor.py:161} INFO - Started process (PID=173) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:14:10.551+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:14:10.552+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:14:10.552+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:14:10.584+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:14:10.610+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:14:10.610+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:14:10.628+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:14:10.628+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:14:10.647+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.101 seconds
+[2026-03-16T15:14:40.719+0000] {processor.py:161} INFO - Started process (PID=178) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:14:40.720+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:14:40.722+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:14:40.721+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:14:40.741+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:14:40.885+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:14:40.884+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:14:40.897+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:14:40.897+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:14:40.922+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.208 seconds
+[2026-03-16T15:15:11.073+0000] {processor.py:161} INFO - Started process (PID=183) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:15:11.074+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:15:11.076+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:15:11.075+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:15:11.101+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:15:11.125+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:15:11.125+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:15:11.142+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:15:11.142+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:15:11.161+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.094 seconds
+[2026-03-16T15:15:41.222+0000] {processor.py:161} INFO - Started process (PID=188) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:15:41.223+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:15:41.225+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:15:41.225+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:15:41.242+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:15:41.267+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:15:41.267+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:15:41.283+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:15:41.283+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:15:41.305+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.088 seconds
+[2026-03-16T15:16:11.462+0000] {processor.py:161} INFO - Started process (PID=193) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:16:11.463+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:16:11.464+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:16:11.464+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:16:11.481+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:16:11.506+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:16:11.506+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:16:11.522+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:16:11.522+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:16:11.539+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.081 seconds
+[2026-03-16T15:16:41.610+0000] {processor.py:161} INFO - Started process (PID=198) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:16:41.611+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:16:41.613+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:16:41.612+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:16:41.631+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:16:41.657+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:16:41.656+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:16:41.672+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:16:41.672+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:16:41.690+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.083 seconds
+[2026-03-16T15:17:11.827+0000] {processor.py:161} INFO - Started process (PID=203) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:17:11.829+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:17:11.830+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:17:11.830+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:17:11.851+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:17:11.872+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:17:11.872+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:17:11.889+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:17:11.889+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:17:11.909+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.085 seconds
+[2026-03-16T15:17:41.971+0000] {processor.py:161} INFO - Started process (PID=208) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:17:41.972+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:17:41.974+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:17:41.973+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:17:41.992+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:17:42.015+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:17:42.015+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:17:42.031+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:17:42.031+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:17:42.050+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.082 seconds
+[2026-03-16T15:18:12.187+0000] {processor.py:161} INFO - Started process (PID=213) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:18:12.188+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:18:12.189+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:18:12.189+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:18:12.207+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:18:12.229+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:18:12.229+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:18:12.244+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:18:12.244+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:18:12.260+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.077 seconds
+[2026-03-16T15:18:42.327+0000] {processor.py:161} INFO - Started process (PID=218) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:18:42.328+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:18:42.329+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:18:42.329+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:18:42.347+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:18:42.370+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:18:42.370+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:18:42.385+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:18:42.385+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:18:42.402+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.079 seconds
+[2026-03-16T15:19:12.556+0000] {processor.py:161} INFO - Started process (PID=223) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:19:12.557+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:19:12.559+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:19:12.559+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:19:12.576+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:19:12.597+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:19:12.597+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:19:12.611+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:19:12.611+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:19:12.628+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.078 seconds
+[2026-03-16T15:19:42.713+0000] {processor.py:161} INFO - Started process (PID=228) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:19:42.714+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:19:42.716+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:19:42.716+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:19:42.736+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:19:42.759+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:19:42.759+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:19:42.777+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:19:42.777+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:19:42.796+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.089 seconds
+[2026-03-16T15:20:12.899+0000] {processor.py:161} INFO - Started process (PID=233) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:20:12.900+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:20:12.901+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:20:12.901+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:20:12.921+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:20:12.943+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:20:12.943+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:20:12.958+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:20:12.958+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:20:12.985+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.090 seconds
+[2026-03-16T15:20:43.084+0000] {processor.py:161} INFO - Started process (PID=238) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:20:43.085+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:20:43.086+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:20:43.086+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:20:43.103+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:20:43.127+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:20:43.127+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:20:43.144+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:20:43.143+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:20:43.161+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.082 seconds
+[2026-03-16T15:21:13.271+0000] {processor.py:161} INFO - Started process (PID=243) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:21:13.272+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:21:13.273+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:21:13.273+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:21:13.293+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:21:13.319+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:21:13.318+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:21:13.334+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:21:13.334+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:21:13.353+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.088 seconds
+[2026-03-16T15:21:43.458+0000] {processor.py:161} INFO - Started process (PID=248) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:21:43.459+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:21:43.461+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:21:43.461+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:21:43.485+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:21:43.514+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:21:43.514+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:21:43.532+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:21:43.532+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:21:43.553+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.099 seconds
+[2026-03-16T15:22:13.652+0000] {processor.py:161} INFO - Started process (PID=253) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:22:13.653+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:22:13.654+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:22:13.654+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:22:13.670+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:22:13.695+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:22:13.694+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:22:13.712+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:22:13.712+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:22:13.738+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.090 seconds
+[2026-03-16T15:22:43.826+0000] {processor.py:161} INFO - Started process (PID=258) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:22:43.827+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:22:43.828+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:22:43.828+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:22:43.843+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:22:43.864+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:22:43.864+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:22:43.879+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:22:43.879+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:22:43.905+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.083 seconds
+[2026-03-16T15:23:14.011+0000] {processor.py:161} INFO - Started process (PID=263) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:23:14.012+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:23:14.014+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:23:14.013+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:23:14.028+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:23:14.049+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:23:14.049+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:23:14.064+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:23:14.063+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:23:14.082+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.075 seconds
+[2026-03-16T15:23:44.191+0000] {processor.py:161} INFO - Started process (PID=268) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:23:44.192+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:23:44.193+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:23:44.193+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:23:44.209+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:23:44.232+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:23:44.232+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:23:44.249+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:23:44.249+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:23:44.274+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.087 seconds
+[2026-03-16T15:24:14.410+0000] {processor.py:161} INFO - Started process (PID=273) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:24:14.411+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:24:14.412+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:24:14.412+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:24:14.431+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:24:14.459+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:24:14.459+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:24:14.476+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:24:14.475+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:24:14.492+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.096 seconds
+[2026-03-16T15:24:44.554+0000] {processor.py:161} INFO - Started process (PID=278) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:24:44.555+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:24:44.556+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:24:44.556+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:24:44.572+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:24:44.592+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:24:44.592+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:24:44.608+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:24:44.608+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:24:44.625+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.075 seconds
+[2026-03-16T15:25:14.780+0000] {processor.py:161} INFO - Started process (PID=283) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:25:14.781+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:25:14.782+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:25:14.782+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:25:14.800+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:25:14.820+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:25:14.819+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:25:14.835+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:25:14.835+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:25:14.857+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.081 seconds
+[2026-03-16T15:25:44.932+0000] {processor.py:161} INFO - Started process (PID=288) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:25:44.933+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:25:44.935+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:25:44.934+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:25:44.952+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:25:44.972+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:25:44.972+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:25:44.987+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:25:44.987+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:25:45.005+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.077 seconds
+[2026-03-16T15:26:15.136+0000] {processor.py:161} INFO - Started process (PID=293) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:26:15.138+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:26:15.139+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:26:15.139+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:26:15.155+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:26:15.177+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:26:15.177+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:26:15.194+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:26:15.193+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:26:15.218+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.087 seconds
+[2026-03-16T15:26:45.290+0000] {processor.py:161} INFO - Started process (PID=298) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:26:45.291+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:26:45.292+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:26:45.292+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:26:45.311+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:26:45.331+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:26:45.331+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:26:45.348+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:26:45.348+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:26:45.367+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.081 seconds
+[2026-03-16T15:27:15.522+0000] {processor.py:161} INFO - Started process (PID=303) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:27:15.523+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:27:15.524+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:27:15.524+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:27:15.541+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:27:15.565+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:27:15.564+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:27:15.583+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:27:15.583+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:27:15.608+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.090 seconds
+[2026-03-16T15:27:45.672+0000] {processor.py:161} INFO - Started process (PID=308) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:27:45.672+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:27:45.674+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:27:45.673+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:27:45.693+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:27:45.715+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:27:45.715+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:27:45.735+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:27:45.735+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:27:45.760+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.093 seconds
+[2026-03-16T15:28:15.888+0000] {processor.py:161} INFO - Started process (PID=313) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:28:15.889+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:28:15.890+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:28:15.890+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:28:15.909+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:28:15.932+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:28:15.932+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:28:15.952+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:28:15.952+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:28:15.975+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.091 seconds
+[2026-03-16T15:28:46.045+0000] {processor.py:161} INFO - Started process (PID=318) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:28:46.046+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:28:46.047+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:28:46.047+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:28:46.064+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:28:46.087+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:28:46.087+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:28:46.103+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:28:46.103+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:28:46.129+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.089 seconds
+[2026-03-16T15:29:16.274+0000] {processor.py:161} INFO - Started process (PID=323) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:29:16.274+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:29:16.276+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:29:16.276+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:29:16.293+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:29:16.315+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:29:16.315+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:29:16.332+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:29:16.332+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:29:16.358+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.088 seconds
+[2026-03-16T15:29:46.422+0000] {processor.py:161} INFO - Started process (PID=328) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:29:46.423+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:29:46.425+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:29:46.425+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:29:46.442+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:29:46.466+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:29:46.466+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:29:46.482+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:29:46.482+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:29:46.507+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.090 seconds
+[2026-03-16T15:30:16.657+0000] {processor.py:161} INFO - Started process (PID=333) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:30:16.657+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:30:16.659+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:30:16.659+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:30:16.676+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:30:16.699+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:30:16.698+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:30:16.716+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:30:16.715+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:30:16.733+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.081 seconds
+[2026-03-16T15:30:46.806+0000] {processor.py:161} INFO - Started process (PID=338) to work on /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:30:46.807+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/willitflop_dag.py for tasks to queue
+[2026-03-16T15:30:46.808+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:30:46.808+0000] {dagbag.py:545} INFO - Filling up the DagBag from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:30:46.828+0000] {processor.py:840} INFO - DAG(s) 'willitflop_monthly' retrieved from /opt/airflow/dags/willitflop_dag.py
+[2026-03-16T15:30:46.852+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:30:46.852+0000] {dag.py:3096} INFO - Sync 1 DAGs
+[2026-03-16T15:30:46.869+0000] {logging_mixin.py:188} INFO - [2026-03-16T15:30:46.869+0000] {dag.py:3954} INFO - Setting next_dagrun for willitflop_monthly to 2026-02-01 00:00:00+00:00, run_after=2026-03-01 00:00:00+00:00
+[2026-03-16T15:30:46.887+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/willitflop_dag.py took 0.086 seconds

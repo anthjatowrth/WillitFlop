@@ -1,0 +1,84 @@
+# ============================================================
+# docker-compose.yml — WillItFlop
+# ============================================================
+# Services lancés :
+#   - postgres          : ta base de données WillItFlop + base Airflow
+#   - airflow-init      : initialise Airflow au premier lancement
+#   - airflow-webserver : l'interface web Airflow (port 8080)
+#   - airflow-scheduler : le moteur qui exécute les DAGs
+# ============================================================
+
+x-airflow-common: &airflow-common
+  image: apache/airflow:2.9.1
+  environment:
+    # Connexion d'Airflow à SA propre base de métadonnées
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    # Pas d'exemples de DAGs pour garder l'UI propre
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    # LocalExecutor — parfait pour un projet solo/duo
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+
+    # ── Variables de ton projet (lues depuis ton .env) ───────
+    STEAM_API_KEY: ${STEAM_API_KEY}
+    TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
+    TWITCH_CLIENT_SECRET: ${TWITCH_CLIENT_SECRET}
+    DB_HOST: postgres        # nom du service Docker, pas localhost !
+    DB_PORT: ${DB_PORT}
+    DB_NAME: ${DB_NAME}
+    DB_USER: ${DB_USER}
+    DB_PASSWORD: ${DB_PASSWORD}
+
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./pipeline:/opt/airflow/pipeline
+    - ./airflow/logs:/opt/airflow/logs
+    - ./airflow/plugins:/opt/airflow/plugins
+  depends_on:
+    postgres:
+      condition: service_healthy
+  user: "${AIRFLOW_UID:-50000}:0"
+
+services:
+
+  # ── Base de données ──────────────────────────────────────────
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: willitflop
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Les scripts init sont exécutés dans l'ordre alphabétique
+      - ./schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./init_airflow_user.sql:/docker-entrypoint-initdb.d/02_airflow_user.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      retries: 5
+
+  # ── Initialisation Airflow (ne tourne qu'une seule fois) ─────
+  airflow-init:
+    <<: *airflow-common
+    command: >-
+      bash -c "airflow db migrate && airflow users create --username admin --password admin --firstname Pierre --lastname Admin --role Admin --email admin@willitflop.com"
+    restart: "no"
+
+  # ── Interface web (localhost:8080) ───────────────────────────
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    ports:
+      - "8080:8080"
+    restart: always
+
+  # ── Scheduler (exécute les DAGs) ─────────────────────────────
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    restart: always
+
+volumes:
+  postgres_data:  # volume persistant — tes données survivent aux restarts
