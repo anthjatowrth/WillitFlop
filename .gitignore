@@ -14,3 +14,15 @@ __pycache__/
 # IDE
 .vscode/
 .idea/
+
+# Docker
+postgres_data/
+
+# Airflow
+airflow/logs/
+airflow/plugins/
+
+# DBT
+dbt/target/
+dbt/logs/
+dbt/.user.yml
