@@ -71,6 +71,14 @@ body::after {
   padding: 6px 16px; cursor: pointer; transition: background 0.2s;
 }
 .btn-print:hover { background: #c50051; }
+.btn-explore {
+  font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em;
+  background: transparent; color: var(--cyan); text-decoration: none;
+  border: 1px solid rgba(0,122,140,0.5); border-radius: 4px;
+  padding: 5px 14px; transition: background 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.btn-explore:hover { background: rgba(0,122,140,0.1); border-color: var(--cyan); }
 
 .hero {
   min-height: 52vh;
@@ -322,6 +330,7 @@ body::after {
   <div class="nav-brand">WILL<span class="hl">IT</span>FLOP</div>
   <div class="nav-right">
     <div class="nav-tag">FICHE PROJET — 2026</div>
+    <a href="explorer.html" class="btn-explore">🎮 Le Monde du Jeu Indé</a>
     <button class="btn-print" onclick="window.print()">⎙ IMPRIMER</button>
   </div>
 </nav>

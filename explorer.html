@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WillItFlop — Explorer le marché</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Space+Mono:wght@400;700&family=Exo+2:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:      #F4F2EE;
+  --bg2:     #EDEAE4;
+  --bg3:     #E3E0D8;
+  --border:  #D4D0C8;
+  --pink:    #E8005A;
+  --cyan:    #007A8C;
+  --cyan-b:  #00C8B4;
+  --ink:     #0D0D1A;
+  --ink2:    #2A2A3A;
+  --gray:    #7A7A8C;
+  --success: #007A4C;
+  --warn:    #8C6A00;
+  --white:   #FFFFFF;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: 'Exo 2', sans-serif; line-height: 1.65; min-height: 100vh;
+}
+body::after {
+  content: ''; position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 9999; opacity: 0.5;
+}
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(244,242,238,0.94); backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 48px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+}
+.nav-brand { font-family: 'Orbitron', sans-serif; font-size: 0.95rem; font-weight: 900; color: var(--ink); letter-spacing: 0.08em; text-decoration: none; }
+.nav-brand .hl { color: var(--pink); }
+.nav-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.nav-tag {
+  font-family: 'Space Mono', monospace; font-size: 0.6rem;
+  color: var(--cyan); background: rgba(0,122,140,0.1);
+  border: 1px solid rgba(0,122,140,0.3); padding: 4px 14px; border-radius: 20px; letter-spacing: 0.15em;
+}
+.nav-link {
+  font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em;
+  color: var(--gray); text-decoration: none; border: 1px solid var(--border);
+  border-radius: 4px; padding: 5px 12px; transition: color .2s, border-color .2s;
+}
+.nav-link:hover { color: var(--cyan); border-color: var(--cyan); }
+
+/* BREADCRUMB */
+#breadcrumb {
+  display: none; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: 10px 48px; background: var(--bg2); border-bottom: 1px solid var(--border);
+  font-family: 'Space Mono', monospace; font-size: 0.62rem;
+}
+.crumb { color: var(--gray); }
+.crumb.link { color: var(--cyan); cursor: pointer; text-decoration: underline; }
+.crumb.link:hover { color: var(--pink); }
+.crumb.current { color: var(--ink2); font-weight: 700; }
+.crumb-sep { color: var(--border); }
+
+/* PROGRESS DOTS */
+.progress-dots { display: flex; gap: 6px; align-items: center; }
+.dot-step {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--border); transition: background .3s;
+}
+.dot-step.active { background: var(--pink); }
+.dot-step.done   { background: var(--cyan); }
+
+/* APP CONTAINER */
+#app {
+  transition: opacity .22s ease, transform .22s ease;
+}
+#app.fading { opacity: 0; transform: translateY(10px); }
+
+/* HOME HERO */
+.home-hero {
+  min-height: 38vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; gap: 16px; padding: 64px 48px 48px; position: relative; overflow: hidden;
+}
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(232,0,90,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(232,0,90,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 0%, transparent 100%);
+}
+.home-hero::before {
+  content: ''; position: absolute; width: 400px; height: 400px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(232,0,90,0.05) 0%, rgba(0,122,140,0.03) 50%, transparent 70%);
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+  animation: pulse 7s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-50%) scale(1.1)} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+@keyframes blink { 50%{opacity:0} }
+
+.home-eyebrow {
+  font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.4em;
+  color: var(--cyan); position: relative; z-index: 1;
+  animation: fadeUp .5s .1s both;
+}
+.home-title {
+  font-family: 'Orbitron', sans-serif; font-weight: 900;
+  font-size: clamp(1.8rem, 5vw, 3.5rem); line-height: 1.05;
+  color: var(--ink); position: relative; z-index: 1;
+  animation: fadeUp .5s .25s both;
+}
+.home-title .hl { color: var(--pink); }
+.home-sub {
+  font-family: 'Space Mono', monospace; font-size: 0.75rem;
+  color: var(--gray); letter-spacing: 0.1em; position: relative; z-index: 1;
+  animation: fadeUp .5s .4s both;
+}
+
+/* THEMES GRID */
+.themes-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 20px; max-width: 900px; margin: 0 auto; padding: 0 48px 64px;
+}
+@media(max-width:640px){ .themes-grid { grid-template-columns: 1fr; } }
+
+.theme-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: 14px;
+  padding: 32px 28px; cursor: pointer; position: relative; overflow: hidden;
+  transition: transform .2s, border-color .2s, box-shadow .2s;
+  animation: fadeUp .5s ease both;
+}
+.theme-card:nth-child(1){animation-delay:.1s} .theme-card:nth-child(2){animation-delay:.18s}
+.theme-card:nth-child(3){animation-delay:.26s} .theme-card:nth-child(4){animation-delay:.34s}
+.theme-card:hover { transform: translateY(-4px); border-color: var(--pink); box-shadow: 0 8px 32px rgba(232,0,90,0.12); }
+.theme-card::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--pink), var(--cyan));
+  transform: scaleX(0); transform-origin: left; transition: transform .25s;
+}
+.theme-card:hover::after { transform: scaleX(1); }
+
+.theme-icon { font-size: 2.2rem; margin-bottom: 12px; }
+.theme-label {
+  font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 700;
+  color: var(--ink); margin-bottom: 8px; letter-spacing: 0.04em;
+}
+.theme-desc { font-size: 0.85rem; color: var(--gray); line-height: 1.6; margin-bottom: 16px; }
+.theme-cta {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: 'Space Mono', monospace; font-size: 0.62rem;
+  color: var(--pink); letter-spacing: 0.1em;
+}
+
+/* LEVEL SCREEN */
+.level-container { max-width: 1100px; margin: 0 auto; padding: 40px 48px 64px; }
+
+.level-top {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 32px; flex-wrap: wrap; gap: 16px;
+}
+.level-meta { display: flex; flex-direction: column; gap: 6px; }
+.level-num {
+  font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.4em;
+  color: var(--pink); text-transform: uppercase;
+}
+.level-title {
+  font-family: 'Orbitron', sans-serif; font-size: clamp(1rem, 2.5vw, 1.4rem);
+  font-weight: 700; color: var(--ink); letter-spacing: 0.04em;
+}
+.level-sub { font-family: 'Space Mono', monospace; font-size: 0.62rem; color: var(--gray); }
+.level-right { display: flex; align-items: center; gap: 12px; }
+
+.btn-back {
+  font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em;
+  background: transparent; color: var(--ink2); border: 1px solid var(--border);
+  border-radius: 4px; padding: 6px 14px; cursor: pointer; transition: color .2s, border-color .2s;
+}
+.btn-back:hover { color: var(--cyan); border-color: var(--cyan); }
+
+/* CHART CARDS */
+.charts-row { display: grid; grid-template-columns: repeat(12,1fr); gap: 16px; margin-bottom: 16px; }
+@media(max-width:900px){ .charts-row [class*="col-"] { grid-column: span 12 !important; } }
+.col-12 { grid-column: span 12; }
+.col-7  { grid-column: span 7; }
+.col-5  { grid-column: span 5; }
+.col-6  { grid-column: span 6; }
+.col-4  { grid-column: span 4; }
+.col-8  { grid-column: span 8; }
+
+.chart-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 24px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.chart-card.clickable:hover { border-color: var(--pink); box-shadow: 0 4px 20px rgba(232,0,90,0.1); }
+.card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; gap: 10px; }
+.card-title { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; font-weight: 700; color: var(--ink); }
+.card-sub   { font-family: 'Space Mono', monospace; font-size: 0.58rem; color: var(--gray); margin-top: 3px; line-height: 1.5; }
+.ctag {
+  display: inline-block; padding: 2px 8px; border-radius: 3px; flex-shrink: 0;
+  font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 0.1em;
+}
+.ctag-pink  { background: rgba(232,0,90,0.08);  color: var(--pink);    border: 1px solid rgba(232,0,90,0.2); }
+.ctag-cyan  { background: rgba(0,122,140,0.08); color: var(--cyan);    border: 1px solid rgba(0,122,140,0.2); }
+.ctag-green { background: rgba(0,122,76,0.08);  color: var(--success); border: 1px solid rgba(0,122,76,0.2); }
+.ctag-warn  { background: rgba(140,106,0,0.08); color: var(--warn);    border: 1px solid rgba(140,106,0,0.25); }
+
+.chart-hint {
+  font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--cyan);
+  margin-top: 12px; text-align: center; letter-spacing: 0.05em;
+  animation: blink-hint 2.5s ease-in-out infinite;
+}
+@keyframes blink-hint { 0%,100%{opacity:.6} 50%{opacity:1} }
+
+/* STAT CARD */
+.stat-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 24px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.stat-rows { display: flex; flex-direction: column; gap: 8px; }
+.stat-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px; border-radius: 6px; background: var(--bg2);
+  font-family: 'Space Mono', monospace; font-size: 0.62rem;
+}
+.stat-row .sl { color: var(--gray); }
+.stat-row .sv { font-weight: 700; }
+
+/* INSIGHT BOX */
+.insight-box {
+  background: rgba(0,122,140,0.06); border: 1px solid rgba(0,122,140,0.2);
+  border-left: 3px solid var(--cyan); border-radius: 6px;
+  padding: 14px 16px; margin-top: 8px;
+  font-size: 0.82rem; color: var(--ink2); line-height: 1.65;
+}
+.insight-box .label {
+  font-family: 'Space Mono', monospace; font-size: 0.55rem;
+  color: var(--cyan); letter-spacing: 0.2em; text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+/* END SCREEN */
+.end-card {
+  background: var(--white); border: 2px solid var(--pink); border-radius: 14px;
+  padding: 36px 40px; margin-top: 28px; text-align: center;
+}
+.end-icon { font-size: 2.5rem; margin-bottom: 12px; }
+.end-title {
+  font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 700;
+  color: var(--ink); margin-bottom: 8px; letter-spacing: 0.04em;
+}
+.end-sub { font-size: 0.85rem; color: var(--gray); margin-bottom: 24px; line-height: 1.65; }
+.end-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.btn-global {
+  font-family: 'Space Mono', monospace; font-size: 0.7rem; letter-spacing: 0.12em;
+  background: var(--pink); color: #fff; border: none; border-radius: 6px;
+  padding: 10px 24px; cursor: pointer; text-decoration: none;
+  transition: background .2s; display: inline-block;
+}
+.btn-global:hover { background: #c50051; }
+.btn-restart {
+  font-family: 'Space Mono', monospace; font-size: 0.7rem; letter-spacing: 0.12em;
+  background: transparent; color: var(--ink2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 10px 24px; cursor: pointer; transition: border-color .2s, color .2s;
+}
+.btn-restart:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* TAG PILLS */
+.tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.tag-pill {
+  font-family: 'Space Mono', monospace; font-size: 0.58rem; padding: 3px 9px;
+  border-radius: 20px; border: 1px solid;
+}
+.tp-pink  { color: var(--pink);    border-color: rgba(232,0,90,0.3);  background: rgba(232,0,90,0.06); }
+.tp-cyan  { color: var(--cyan);    border-color: rgba(0,122,140,0.3); background: rgba(0,122,140,0.06); }
+.tp-green { color: var(--success); border-color: rgba(0,122,76,0.3);  background: rgba(0,122,76,0.06); }
+.tp-gray  { color: var(--gray);    border-color: var(--border);       background: var(--bg2); }
+
+/* FOOTER */
+.footer {
+  border-top: 1px solid var(--border); padding: 28px 48px; background: var(--bg2);
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+}
+.footer-brand { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: 900; color: var(--ink); }
+.footer-brand .hl { color: var(--pink); }
+.footer-copy { font-family: 'Space Mono', monospace; font-size: 0.58rem; color: var(--gray); }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-brand">WILL<span class="hl">IT</span>FLOP</a>
+  <div class="nav-right">
+    <div class="nav-tag">DATA EXPLORER</div>
+    <a href="indie-world.html" class="nav-link">Étude complète →</a>
+    <a href="index.html" class="nav-link">← Accueil</a>
+  </div>
+</nav>
+
+<div id="breadcrumb">
+  <!-- rendered by JS -->
+</div>
+
+<div id="app">
+  <!-- rendered by JS -->
+</div>
+
+<footer class="footer">
+  <div class="footer-brand">WILL<span class="hl">IT</span>FLOP</div>
+  <div class="footer-copy">Explorer · Bootcamp Data Analyst 2026 · Anthony &amp; Pierre</div>
+</footer>
+
+<script>
+// ============================================================
+// CHART.JS DEFAULTS
+// ============================================================
+Chart.defaults.color       = '#7A7A8C';
+Chart.defaults.font.family = "'Space Mono', monospace";
+Chart.defaults.font.size   = 10;
+
+const PINK    = '#E8005A';
+const CYAN    = '#007A8C';
+const CYAN_B  = '#00C8B4';
+const SUCCESS = '#007A4C';
+const WARN    = '#8C6A00';
+const GRID    = 'rgba(212,208,200,0.8)';
+
+function a(hex, op) {
+  const [r,g,b] = [hex.slice(1,3),hex.slice(3,5),hex.slice(5,7)].map(h=>parseInt(h,16));
+  return `rgba(${r},${g},${b},${op})`;
+}
+
+// ============================================================
+// DATA
+// ============================================================
+const DATA = {
+
+  genres: {
+    overview: [
+      { label:'Puzzle',     n:312,  rate:44 },
+      { label:'Roguelite',  n:187,  rate:42 },
+      { label:'RPG',        n:487,  rate:38 },
+      { label:'Strategy',   n:423,  rate:35 },
+      { label:'Simulation', n:398,  rate:32 },
+      { label:'Adventure',  n:654,  rate:29 },
+      { label:'Casual',     n:521,  rate:26 },
+      { label:'Action',     n:1248, rate:24 },
+      { label:'Platformer', n:287,  rate:22 },
+      { label:'Horror',     n:198,  rate:19 },
+    ].sort((a,b)=>b.rate-a.rate),
+    detail: {
+      'Puzzle':     { avgPrice:6.5,  twitch:28, ea:18, topTags:['Puzzle','Casual','2D','Logic','Relaxing','Colorful'],  trend:[12,18,24,31,38,45,42,50,58,62,55] },
+      'Roguelite':  { avgPrice:11.2, twitch:52, ea:45, topTags:['Roguelite','2D','Difficult','Dungeon Crawler','Procedural','Action'], trend:[5,8,12,22,35,52,61,74,89,98,82] },
+      'RPG':        { avgPrice:14.8, twitch:61, ea:22, topTags:['RPG','Story Rich','Fantasy','Turn-Based','Open World','Adventure'],   trend:[18,24,32,41,52,58,55,62,71,78,65] },
+      'Strategy':   { avgPrice:12.4, twitch:38, ea:31, topTags:['Strategy','Turn-Based','Tactical','Management','Simulation','4X'],   trend:[22,28,34,42,50,56,52,58,64,71,60] },
+      'Simulation': { avgPrice:9.8,  twitch:42, ea:38, topTags:['Simulation','Management','Building','Economy','Relaxing','Casual'], trend:[15,22,28,36,48,61,72,80,91,95,81] },
+      'Adventure':  { avgPrice:8.9,  twitch:45, ea:19, topTags:['Adventure','Story Rich','2D','Exploration','Atmospheric','Casual'], trend:[28,36,48,58,72,85,78,88,97,108,92] },
+      'Casual':     { avgPrice:4.2,  twitch:22, ea:12, topTags:['Casual','2D','Colorful','Relaxing','Puzzle','Family Friendly'],      trend:[18,26,35,48,62,78,85,94,105,112,98] },
+      'Action':     { avgPrice:8.5,  twitch:68, ea:28, topTags:['Action','2D','Singleplayer','Difficult','Indie','Platformer'],       trend:[42,58,78,95,118,138,128,145,162,178,152] },
+      'Platformer': { avgPrice:7.8,  twitch:35, ea:24, topTags:['Platformer','2D','Action','Indie','Pixel Graphics','Casual'],        trend:[25,32,41,52,62,72,68,78,85,91,78] },
+      'Horror':     { avgPrice:7.2,  twitch:58, ea:32, topTags:['Horror','Atmospheric','Singleplayer','Dark','Thriller','First-Person'], trend:[12,18,24,32,42,52,58,65,72,78,68] },
+    },
+    insights: {
+      'Puzzle':     'Le puzzle est le genre le plus rentable proportionnellement : faible coût de dev, audience large et fidèle.',
+      'Roguelite':  'Le roguelite explose depuis 2020 (Hades, Dead Cells). La rejouabilité infinie compense un prix premium.',
+      'RPG':        'Le RPG indie souffre des attentes élevées mais récompense fortement les projets ambitieux et narratifs.',
+      'Strategy':   'La stratégie attire une niche passionnée, peu sensible au prix et très encline aux DLC.',
+      'Simulation': "La sim 'cozy' (farming, city-builder) est le segment le plus en croissance depuis 2020.",
+      'Adventure':  "L'aventure narrative performe si elle mise sur l'écriture — le gameplay seul ne suffit plus.",
+      'Casual':     'Le casual souffre de la concurrence mobile. Prix bas requis, volumes très élevés nécessaires.',
+      'Action':     "L'action indie est le genre le plus concurrentiel — seuls les projets très polis percent.",
+      'Platformer': 'Le platformer 2D est saturé. La différenciation par art direction ou mécaniques uniques est clé.',
+      'Horror':     'Le horror bénéficie massivement de Twitch : la viralité des streamers est son principal vecteur.',
+    },
+  },
+
+  prix: {
+    overview: [
+      { label:'Gratuit',  n:782,  rate:31 },
+      { label:'< 2 €',   n:234,  rate:12 },
+      { label:'2–5 €',   n:687,  rate:18 },
+      { label:'5–10 €',  n:1124, rate:26 },
+      { label:'10–15 €', n:892,  rate:33 },
+      { label:'15–20 €', n:543,  rate:38 },
+      { label:'20–30 €', n:312,  rate:42 },
+      { label:'> 30 €',  n:98,   rate:45 },
+    ],
+    detail: {
+      'Gratuit': {
+        topGenres:[{g:'Action',n:198,r:28},{g:'RPG',n:82,r:35},{g:'Simulation',n:98,r:29},{g:'Casual',n:142,r:22},{g:'Strategy',n:65,r:31}],
+        ea:12, twitch:48, dlc:58,
+        insight:"Les F2P performent via la visibilité Twitch et les DLC/cosmétiques. La rétention est le vrai enjeu.",
+      },
+      '< 2 €': {
+        topGenres:[{g:'Casual',n:78,r:8},{g:'Puzzle',n:52,r:15},{g:'Horror',n:38,r:12},{g:'Action',n:48,r:10},{g:'Adventure',n:42,r:11}],
+        ea:8, twitch:15, dlc:22,
+        insight:"< 2€ = perception 'asset flip'. Taux de succès très faible, éviter ce positionnement sauf asset stores.",
+      },
+      '2–5 €': {
+        topGenres:[{g:'Casual',n:198,r:15},{g:'Puzzle',n:142,r:24},{g:'Platformer',n:115,r:18},{g:'Action',n:165,r:16},{g:'Horror',n:82,r:19}],
+        ea:18, twitch:22, dlc:28,
+        insight:"2–5€ convient à des projets courts et polis (< 3h). Au-delà, sous-évaluer son jeu nuit à la perception.",
+      },
+      '5–10 €': {
+        topGenres:[{g:'Action',n:312,r:24},{g:'Adventure',n:198,r:28},{g:'RPG',n:148,r:32},{g:'Platformer',n:165,r:22},{g:'Horror',n:98,r:21}],
+        ea:24, twitch:38, dlc:42,
+        insight:"Sweet spot du marché indie — volume maximal, équilibre qualité/prix, réductions Steam très efficaces.",
+      },
+      '10–15 €': {
+        topGenres:[{g:'RPG',n:248,r:38},{g:'Strategy',n:182,r:35},{g:'Simulation',n:165,r:34},{g:'Adventure',n:198,r:31},{g:'Action',n:215,r:28}],
+        ea:28, twitch:52, dlc:58,
+        insight:"Zone de confort des jeux ambitieux — meilleur rapport succès/effort si la qualité est au rendez-vous.",
+      },
+      '15–20 €': {
+        topGenres:[{g:'RPG',n:148,r:44},{g:'Roguelite',n:78,r:48},{g:'Simulation',n:112,r:41},{g:'Strategy',n:98,r:39},{g:'Adventure',n:115,r:36}],
+        ea:32, twitch:62, dlc:68,
+        insight:"Premium indie — les joueurs investis attendent 20h+ de contenu. Roguelite et RPG y brillent.",
+      },
+      '20–30 €': {
+        topGenres:[{g:'RPG',n:82,r:48},{g:'Roguelite',n:52,r:52},{g:'Simulation',n:65,r:44},{g:'Strategy',n:58,r:46},{g:'Adventure',n:68,r:42}],
+        ea:38, twitch:71, dlc:78,
+        insight:"Niche premium — réservé aux projets très polis avec un fort bouche-à-oreille ou une communauté établie.",
+      },
+      '> 30 €': {
+        topGenres:[{g:'Simulation',n:28,r:52},{g:'RPG',n:22,r:54},{g:'Roguelite',n:15,r:58},{g:'Strategy',n:18,r:49},{g:'Adventure',n:15,r:47}],
+        ea:42, twitch:78, dlc:88,
+        insight:"> 30€ = pari risqué mais ROI maximal si réussi. Exemples : Stardew Valley, Hades, Disco Elysium.",
+      },
+    },
+    genreTags: {
+      'RPG':        ['Story Rich','Turn-Based','Open World','Fantasy','JRPG','Choices Matter'],
+      'Action':     ['2D','Difficult','Singleplayer','Platformer','Pixel Graphics','Action-Adventure'],
+      'Roguelite':  ['Procedural','Dungeon Crawler','Difficult','2D','Bullet Hell','Action'],
+      'Simulation': ['Management','Building','Economy','Relaxing','Farming','Open World'],
+      'Strategy':   ['Turn-Based','4X','Tactical','Management','Replayability','Historical'],
+      'Adventure':  ['Story Rich','Exploration','Atmospheric','Mystery','2D','Hand-drawn'],
+      'Puzzle':     ['Logic','Relaxing','Colorful','2D','Minimalist','Challenging'],
+      'Platformer': ['2D','Pixel Graphics','Difficult','Precision Platformer','Action','Indie'],
+      'Horror':     ['Atmospheric','Dark','Psychological Horror','First-Person','Singleplayer','Thriller'],
+      'Casual':     ['Relaxing','Family Friendly','Colorful','2D','Cute','Casual'],
+    },
+  },
+
+  decennies: {
+    overview: [
+      { year:2015, n:182,  rate:32 }, { year:2016, n:247,  rate:30 },
+      { year:2017, n:389,  rate:28 }, { year:2018, n:512,  rate:27 },
+      { year:2019, n:624,  rate:29 }, { year:2020, n:718,  rate:31 },
+      { year:2021, n:687,  rate:30 }, { year:2022, n:742,  rate:27 },
+      { year:2023, n:831,  rate:25 }, { year:2024, n:912,  rate:23 },
+      { year:2025, n:748,  rate:24 },
+    ],
+    detail: {
+      2015:{ topGenres:[{g:'Action',n:62,r:35},{g:'RPG',n:28,r:38},{g:'Adventure',n:38,r:32},{g:'Strategy',n:24,r:33},{g:'Simulation',n:18,r:31}], avgPrice:7.2, free:8, ea:15, note:"Début de l'âge d'or indie — Undertale, Broforce, Hollow Knight en dev." },
+      2016:{ topGenres:[{g:'Action',n:78,r:33},{g:'RPG',n:38,r:36},{g:'Adventure',n:52,r:30},{g:'Casual',n:42,r:25},{g:'Horror',n:22,r:28}], avgPrice:7.8, free:10, ea:18, note:"Valve ouvre le robinet Steam Direct — première vague de saturation." },
+      2017:{ topGenres:[{g:'Action',n:115,r:30},{g:'RPG',n:55,r:34},{g:'Adventure',n:72,r:28},{g:'Simulation',n:48,r:30},{g:'Casual',n:65,r:22}], avgPrice:8.2, free:12, ea:20, note:"Steam Direct remplace Greenlight — explosion du volume de sorties." },
+      2018:{ topGenres:[{g:'Action',n:158,r:28},{g:'Adventure',n:98,r:27},{g:'RPG',n:72,r:32},{g:'Simulation',n:62,r:29},{g:'Casual',n:88,r:22}], avgPrice:8.8, free:13, ea:22, note:"Saturation croissante — la discoverabilité devient le problème #1." },
+      2019:{ topGenres:[{g:'Action',n:195,r:29},{g:'RPG',n:88,r:33},{g:'Simulation',n:92,r:31},{g:'Adventure',n:118,r:28},{g:'Casual',n:98,r:23}], avgPrice:9.1, free:14, ea:24, note:"Début du boom roguelite — Dead Cells, Slay the Spire. Epic Game Store arrive." },
+      2020:{ topGenres:[{g:'Action',n:228,r:31},{g:'Simulation',n:118,r:33},{g:'RPG',n:105,r:35},{g:'Adventure',n:135,r:30},{g:'Casual',n:115,r:25}], avgPrice:9.5, free:15, ea:26, note:"COVID-19 : boom gaming PC historique. Hades sort, Among Us explose. +15% players." },
+      2021:{ topGenres:[{g:'Action',n:215,r:30},{g:'Roguelite',n:78,r:42},{g:'RPG',n:98,r:33},{g:'Simulation',n:112,r:32},{g:'Adventure',n:128,r:29}], avgPrice:9.8, free:15, ea:28, note:"Le roguelite devient le genre indie dominant. Valheim et Dyson Sphere Program." },
+      2022:{ topGenres:[{g:'Action',n:235,r:28},{g:'Roguelite',n:92,r:44},{g:'Simulation',n:122,r:30},{g:'RPG',n:105,r:32},{g:'Adventure',n:142,r:27}], avgPrice:10.2, free:16, ea:29, note:"Consolidation roguelite. Vampire Survivors prouve que la simplicité peut écraser le marché." },
+      2023:{ topGenres:[{g:'Action',n:262,r:26},{g:'Roguelite',n:108,r:46},{g:'Simulation',n:148,r:29},{g:'RPG',n:118,r:31},{g:'Adventure',n:158,r:26}], avgPrice:10.8, free:16, ea:31, note:"Balatro, Dave the Diver. La sim 'cozy' explose. 912 sorties — saturation record." },
+      2024:{ topGenres:[{g:'Action',n:288,r:24},{g:'Roguelite',n:125,r:47},{g:'Simulation',n:162,r:28},{g:'RPG',n:128,r:30},{g:'Adventure',n:172,r:25}], avgPrice:11.2, free:17, ea:32, note:"Marché au pic de saturation — taux de succès global au plus bas. Seuls les meilleurs percent." },
+      2025:{ topGenres:[{g:'Action',n:235,r:25},{g:'Roguelite',n:108,r:48},{g:'Simulation',n:138,r:28},{g:'RPG',n:105,r:31},{g:'Adventure',n:145,r:26}], avgPrice:11.5, free:17, ea:33, note:"2025 : stabilisation après saturation. Curation communautaire et marketing indie montent en puissance." },
+    },
+  },
+
+  succes: {
+    factors: [
+      { label:'Présence Twitch',       icon:'📺', corr:0.82, desc:'Un jeu streamé activement sur Twitch voit ses owners grimper grâce à la visibilité organique.' },
+      { label:'Disponibilité DLC',     icon:'📦', corr:0.71, desc:'Les jeux avec DLC signalent une base de joueurs fidèle qui finance l\'extension du contenu.' },
+      { label:'Prix ≥ 10 €',           icon:'💶', corr:0.58, desc:'Un prix plus élevé signale la qualité et filtre les acheteurs impulsifs.' },
+      { label:'Sortie finale (non-EA)',icon:'✅', corr:0.43, desc:'Les jeux sortis directement en version finale bénéficient d\'une meilleure couverture médias.' },
+      { label:'Support multi-langue',  icon:'🌍', corr:0.39, desc:'Un jeu localisé touche l\'Europe, l\'Asie, l\'Amérique Latine — marché 5× plus grand.' },
+      { label:'Achievements',          icon:'🏅', corr:0.31, desc:'Les achievements fidélisent les joueurs, augmentent le temps moyen et la note Steam.' },
+    ],
+    detail: {
+      'Présence Twitch': {
+        successData:[28,38,48,58,68,76,82,88],
+        failData:   [18,22,25,27,28,29,29,30],
+        labels:['0','< 10','10-50','50-200','200-1k','1k-5k','5k-20k','20k+'],
+        xLabel:'Viewers Twitch (peak)',
+        optimal:'Les jeux avec 1 000+ viewers peak ont un taux de succès 4× supérieur à la moyenne.',
+        recommendation:'Investir dans le relationnel avec les streamers : envoyer des clés avant la sortie est le levier #1.',
+      },
+      'Disponibilité DLC': {
+        successData:[21,28,38,48,58,65,72],
+        failData:   [21,24,26,27,28,28,29],
+        labels:['0 DLC','1','2','3','4','5','6+'],
+        xLabel:'Nombre de DLC disponibles',
+        optimal:'Dès 2 DLC publiés, le taux de succès dépasse la moyenne globale de 38%.',
+        recommendation:'Planifier au moins un DLC avant la sortie — même annoncé, ça signale un projet suivi.',
+      },
+      'Prix ≥ 10 €': {
+        successData:[12,18,26,33,38,42,45],
+        failData:   [12,15,18,20,22,23,24],
+        labels:['Gratuit','< 2€','2-5€','5-10€','10-15€','15-20€','20+€'],
+        xLabel:'Tranche de prix',
+        optimal:'La tranche 10–20€ maximise le rapport volume/taux de succès.',
+        recommendation:'Ne pas sous-évaluer son jeu. Passer de 7€ à 12€ améliore la perception qualité sans perte de volume significative.',
+      },
+      'Sortie finale (non-EA)': {
+        successData:[22,24,27,30],
+        failData:   [20,21,21,22],
+        labels:['EA < 6 mois','EA 6-18 mois','EA 1-2 ans','Version finale'],
+        xLabel:'Statut de sortie',
+        optimal:'La sortie directe en version finale est 36% plus susceptible d\'aboutir à un succès.',
+        recommendation:"Si l'EA est nécessaire, prévoir 12-18 mois minimum — les sorties EA courtes sont souvent perçues comme abandonnées.",
+      },
+      'Support multi-langue': {
+        successData:[24,28,32,35,38,42],
+        failData:   [24,25,26,27,28,29],
+        labels:['1 langue','2-3','4-5','6-8','9-12','13+'],
+        xLabel:'Nb langues supportées',
+        optimal:'À partir de 6 langues (FR, EN, DE, ES, PT, ZH), le taux dépasse clairement la moyenne.',
+        recommendation:'Prioriser : EN → ZH-SIMPL → PT-BR → DE → ES → FR → RU → JP. La localisation ZH ouvre le marché asiatique.',
+      },
+      'Achievements': {
+        successData:[26,28,30,32,35,38,41],
+        failData:   [26,27,27,28,28,29,29],
+        labels:['0','1-5','6-10','11-20','21-50','51-100','100+'],
+        xLabel:'Nb achievements',
+        optimal:'50-100 achievements bien conçus maximisent la rétention sans diluer la valeur.',
+        recommendation:'Éviter les achievements triviaux (lancer le jeu). Viser des défis mémorables qui encouragent les re-runs.',
+      },
+    },
+  },
+};
+
+// ============================================================
+// STATE & NAVIGATION
+// ============================================================
+let S = { theme:null, level:0, sel1:null, sel2:null };
+let CHARTS = {};
+
+function destroyCharts() {
+  Object.values(CHARTS).forEach(c => { try { c.destroy(); } catch(e){} });
+  CHARTS = {};
+}
+
+function transition(fn) {
+  const app = document.getElementById('app');
+  app.classList.add('fading');
+  destroyCharts();
+  setTimeout(() => { fn(); app.classList.remove('fading'); }, 220);
+}
+
+function goHome() {
+  S = { theme:null, level:0, sel1:null, sel2:null };
+  transition(renderHome);
+}
+function selectTheme(theme) {
+  S = { theme, level:1, sel1:null, sel2:null };
+  transition(() => renderL1(theme));
+}
+function drillL2(sel) {
+  S.sel1 = sel; S.level = 2;
+  transition(() => renderL2(S.theme, sel));
+}
+function drillL3(sel) {
+  S.sel2 = sel; S.level = 3;
+  transition(() => renderL3(S.theme, S.sel1, sel));
+}
+function goBreadcrumb(level) {
+  if (level === 0) { goHome(); return; }
+  if (level === 1) { S.level=1; S.sel1=null; S.sel2=null; transition(()=>renderL1(S.theme)); return; }
+  if (level === 2) { S.level=2; S.sel2=null; transition(()=>renderL2(S.theme,S.sel1)); }
+}
+
+// ============================================================
+// BREADCRUMB
+// ============================================================
+const THEME_LABELS = { genres:'Genres', prix:'Prix', decennies:'Années', succes:'Facteurs de succès' };
+
+function updateBreadcrumb() {
+  const bar = document.getElementById('breadcrumb');
+  if (S.level === 0) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+
+  const dots = [1,2,3].map(i => {
+    const cls = i < S.level ? 'done' : i === S.level ? 'active' : '';
+    return `<span class="dot-step ${cls}"></span>`;
+  }).join('');
+
+  let bc = `<div class="progress-dots">${dots}</div>`;
+  bc += `<span class="crumb link" onclick="goHome()">Accueil</span>`;
+
+  if (S.level >= 1) {
+    bc += `<span class="crumb-sep">›</span>`;
+    bc += S.level > 1
+      ? `<span class="crumb link" onclick="goBreadcrumb(1)">${THEME_LABELS[S.theme]}</span>`
+      : `<span class="crumb current">${THEME_LABELS[S.theme]}</span>`;
+  }
+  if (S.level >= 2 && S.sel1) {
+    bc += `<span class="crumb-sep">›</span>`;
+    bc += S.level > 2
+      ? `<span class="crumb link" onclick="goBreadcrumb(2)">${S.sel1}</span>`
+      : `<span class="crumb current">${S.sel1}</span>`;
+  }
+  if (S.level >= 3 && S.sel2) {
+    bc += `<span class="crumb-sep">›</span><span class="crumb current">${S.sel2}</span>`;
+  }
+  bar.innerHTML = bc;
+}
+
+// ============================================================
+// RENDER HOME
+// ============================================================
+function renderHome() {
+  updateBreadcrumb();
+  document.getElementById('app').innerHTML = `
+    <div class="home-hero">
+      <div class="hero-grid"></div>
+      <p class="home-eyebrow">// exploration interactive · données Steam</p>
+      <h1 class="home-title">Explore le marché du<br><span class="hl">jeu indépendant</span></h1>
+      <p class="home-sub">Choisissez un angle d'exploration — puis cliquez pour zoomer sur les données</p>
+    </div>
+    <div class="themes-grid">
+      <div class="theme-card" onclick="selectTheme('genres')">
+        <div class="theme-icon">🎮</div>
+        <div class="theme-label">Genres</div>
+        <div class="theme-desc">Quel genre indie a le meilleur taux de succès ? Quels tags et tendances le caractérisent ?</div>
+        <div class="theme-cta">Explorer →</div>
+      </div>
+      <div class="theme-card" onclick="selectTheme('prix')">
+        <div class="theme-icon">💶</div>
+        <div class="theme-label">Prix</div>
+        <div class="theme-desc">À quel prix fixer son jeu ? La tranche de prix influence-t-elle vraiment les chances de succès ?</div>
+        <div class="theme-cta">Explorer →</div>
+      </div>
+      <div class="theme-card" onclick="selectTheme('decennies')">
+        <div class="theme-icon">📅</div>
+        <div class="theme-label">Années</div>
+        <div class="theme-desc">Comment le marché indie a-t-il évolué de 2015 à 2025 ? Quelles tendances ont émergé ?</div>
+        <div class="theme-cta">Explorer →</div>
+      </div>
+      <div class="theme-card" onclick="selectTheme('succes')">
+        <div class="theme-icon">🏆</div>
+        <div class="theme-label">Facteurs de succès</div>
+        <div class="theme-desc">Twitch, DLC, prix, langues… Quels sont les vrais leviers qui font la différence ?</div>
+        <div class="theme-cta">Explorer →</div>
+      </div>
+    </div>
+  `;
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function levelTop(num, title, sub, backFn) {
+  return `
+    <div class="level-top">
+      <div class="level-meta">
+        <p class="level-num">NIVEAU ${num} — EXPLORATION</p>
+        <h2 class="level-title">${title}</h2>
+        <p class="level-sub">${sub}</p>
+      </div>
+      <div class="level-right">
+        <button class="btn-back" onclick="${backFn}">← Retour</button>
+      </div>
+    </div>
+  `;
+}
+
+function endCard() {
+  return `
+    <div class="end-card">
+      <div class="end-icon">✅</div>
+      <div class="end-title">Exploration complète !</div>
+      <div class="end-sub">Vous avez atteint le niveau de granularité maximum pour ce chemin.<br>
+        Prêt à voir l'image complète du marché indie ?</div>
+      <div class="end-actions">
+        <button class="btn-restart" onclick="goHome()">← Nouvelle exploration</button>
+        <a class="btn-global" href="indie-world.html">Voir l'étude globale →</a>
+      </div>
+    </div>
+  `;
+}
+
+// ============================================================
+// L1 — GENRES
+// ============================================================
+function renderL1_genres() {
+  const d = DATA.genres.overview;
+  document.getElementById('app').innerHTML = `
+    <div class="level-container">
+      ${levelTop('01','Vue d\'ensemble — Genres','10 genres analysés · taux de succès moyen et volume de jeux','goHome()')}
+      <div class="charts-row">
+        <div class="chart-card clickable col-12">
+          <div class="card-head">
+            <div>
+              <p class="card-title">Taux de succès par genre</p>
+              <p class="card-sub">% de jeux avec owners ≥ 100k &amp; Wilson score ≥ 0.75 · cliquez pour explorer un genre</p>
+            </div>
+            <span class="ctag ctag-pink">GENRES</span>
+          </div>
+          <div style="height:300px"><canvas id="c1"></canvas></div>
+          <p class="chart-hint">👆 Cliquez sur un genre pour explorer ses caractéristiques en détail</p>
+        </div>
+      </div>
+    </div>
+  `;
+  setTimeout(() => {
+    CHARTS.c1 = new Chart(document.getElementById('c1'), {
+      type:'bar',
+      data:{
+        labels: d.map(g=>g.label),
+        datasets:[{
+          label:'Taux de succès (%)',
+          data: d.map(g=>g.rate),
+          backgroundColor: d.map(g => g.rate>=38 ? a(SUCCESS,.55) : g.rate>=28 ? a(CYAN,.55) : a(PINK,.55)),
+          borderColor:     d.map(g => g.rate>=38 ? SUCCESS : g.rate>=28 ? CYAN : PINK),
+          borderWidth:1, borderRadius:4,
+        }]
+      },
+      options:{
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{afterLabel:ctx=>`  Nb jeux : ${d[ctx.dataIndex].n}`}} },
+        scales:{
+          x:{grid:{color:GRID},border:{color:GRID},ticks:{callback:v=>v+'%'},max:55},
+          y:{grid:{display:false},border:{color:GRID}}
+        },
+        onHover:(e,el)=>{ e.native.target.style.cursor = el.length?'pointer':'default'; },
+        onClick:(_,el)=>{ if(el.length) drillL2(d[el[0].index].label); }
+      }
+    });
+  },50);
+}
+
+// ============================================================
+// L2 — GENRES > [genre]
+// ============================================================
+function renderL2_genres(genre) {
+  const info = DATA.genres.overview.find(g=>g.label===genre);
+  const det  = DATA.genres.detail[genre] || {};
+  const tags = det.topTags || [];
+  const years = [2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
+  document.getElementById('app').innerHTML = `
+    <div class="level-container">
+      ${levelTop('02',`Genre : ${genre}`,`${info?.n||'–'} jeux analysés · ${info?.rate||'–'}% de taux de succès moyen`,'goBreadcrumb(1)')}
+      <div class="charts-row">
+        <div class="chart-card clickable col-6">
+          <div class="card-head">
+            <div>
+              <p class="card-title">Top tags associés</p>
+              <p class="card-sub">Tags les plus fréquents dans les jeux ${genre}</p>
+            </div>
+            <span class="ctag ctag-cyan">TAGS</span>
+          </div>
+          <div style="height:230px"><canvas id="c1"></canvas></div>
+          <p class="chart-hint">👆 Cliquez sur un tag pour analyser son impact</p>
+        </div>
+        <div class="chart-card clickable col-6">
+          <div class="card-head">
+            <div>
+              <p class="card-title">Évolution des sorties</p>
+              <p class="card-sub">Nb de jeux ${genre} sortis par année (2015–2025)</p>
+            </div>
+            <span class="ctag ctag-pink">TIMELINE</span>
+          </div>
+          <div style="height:230px"><canvas id="c2"></canvas></div>
+          <p class="chart-hint">👆 Cliquez sur une année pour voir le contexte marché</p>
+        </div>
+      </div>
+      <div class="charts-row">
+        <div class="stat-card col-4">
+          <p class="card-title" style="font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;color:var(--ink)">Profil du genre</p>
+          <div class="stat-rows">
+            <div class="stat-row"><span class="sl">Prix moyen</span><span class="sv" style="color:var(--warn)">€${det.avgPrice||'–'}</span></div>
+            <div class="stat-row"><span class="sl">Présence Twitch</span><span class="sv" style="color:var(--cyan)">${det.twitch||'–'}%</span></div>
+            <div class="stat-row"><span class="sl">Jeux Early Access</span><span class="sv">${det.ea||'–'}%</span></div>
+            <div class="stat-row"><span class="sl">Taux de succès</span><span class="sv" style="color:var(--pink)">${info?.rate||'–'}%</span></div>
+          </div>
+        </div>
+        <div class="chart-card col-8" style="display:flex;flex-direction:column;justify-content:center;gap:10px">
+          <p class="card-title" style="font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;color:var(--ink)">Tags populaires</p>
+          <div class="tag-row">
+            ${tags.map((t,i)=>`<span class="tag-pill ${i<2?'tp-pink':i<4?'tp-cyan':'tp-gray'}">${t}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  setTimeout(()=>{
+    // Tags chart
+    const tagData = tags.map((_,i)=>[88,75,68,58,52,44][i]||30);
+    CHARTS.c1 = new Chart(document.getElementById('c1'),{
+      type:'bar',
+      data:{
+        labels: tags,
+        datasets:[{ label:'Fréquence', data:tagData,
+          backgroundColor: tags.map((_,i)=>i<2?a(PINK,.55):i<4?a(CYAN,.55):a(SUCCESS,.45)),
+          borderColor:     tags.map((_,i)=>i<2?PINK:i<4?CYAN:SUCCESS),
+          borderWidth:1, borderRadius:3 }]
+      },
+      options:{
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false} },
+        scales:{ x:{grid:{color:GRID},border:{color:GRID}}, y:{grid:{display:false},border:{color:GRID}} },
+        onHover:(e,el)=>{ e.native.target.style.cursor=el.length?'pointer':'default'; },
+        onClick:(_,el)=>{ if(el.length) drillL3(tags[el[0].index]); }
+      }
+    });
+    // Trend chart
+    CHARTS.c2 = new Chart(document.getElementById('c2'),{
+      type:'line',
+      data:{
+        labels: years,
+        datasets:[{ label:'Sorties', data:det.trend||[],
+          borderColor:PINK, backgroundColor:a(PINK,.08),
+          borderWidth:2, pointRadius:5, pointBackgroundColor:PINK,
+          fill:true, tension:.35 }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false} },
+        scales:{ x:{grid:{color:GRID},border:{color:GRID}}, y:{grid:{color:GRID},border:{color:GRID}} },
+        onHover:(e,el)=>{ e.native.target.style.cursor=el.length?'pointer':'default'; },
+        onClick:(_,el)=>{ if(el.length) drillL3(String(years[el[0].index])); }
+      }
+    });
+  },50);
+}
+
+// ============================================================
+// L3 — GENRES > genre > tag/year
+// ============================================================
+function renderL3_genres(genre, sel) {
+  const insight = DATA.genres.insights[genre] || '';
+  const det = DATA.genres.detail[genre] || {};
+  const isYear = !isNaN(sel);
+  const heading = isYear ? `${genre} en ${sel}` : `${genre} × ${sel}`;
+  document.getElementById('app').innerHTML = `
+    <div class="level-container">
+      ${levelTop('03',`Analyse détaillée — ${heading}`,'Niveau maximum de granularité','goBreadcrumb(2)')}
+      <div class="charts-row">
+        <div class="stat-card col-5">
+          <p class="card-title" style="font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;color:var(--ink)">Résumé</p>
+          <div class="stat-rows">
+            <div class="stat-row"><span class="sl">Genre</span><span class="sv" style="color:var(--pink)">${genre}</span></div>
+            <div class="stat-row"><span class="sl">${isYear?'Année':'Tag'}</span><span class="sv" style="color:var(--cyan)">${sel}</span></div>
+            <div class="stat-row"><span class="sl">Taux de succès genre</span><span class="sv">${DATA.genres.overview.find(g=>g.label===genre)?.rate||'–'}%</span></div>
+            <div class="stat-row"><span class="sl">Prix moyen</span><span class="sv" style="color:var(--warn)">€${det.avgPrice||'–'}</span></div>
+            <div class="stat-row"><span class="sl">Présence Twitch</span><span class="sv" style="color:var(--cyan)">${det.twitch||'–'}%</span></div>
+          </div>
+          <div class="tag-row" style="margin-top:12px">
+            ${(det.topTags||[]).slice(0,4).map(t=>`<span class="tag-pill tp-gray">${t}</span>`).join('')}
+          </div>
+        </div>
+        <div class="chart-card col-7">
+          <div class="card-head">
+            <div>
+              <p class="card-title">Tags les plus fréquents</p>
+              <p class="card-sub">Pour le genre ${genre}</p>
+            </div>
+            <span class="ctag ctag-green">TAGS</span>
+          </div>
+          <div style="height:220px"><canvas id="c1"></canvas></div>
+        </div>
+      </div>
+      <div class="charts-row">
+        <div class="chart-card col-12">
+          <div class="insight-box">
+            <p class="label">// Insight marché</p>
+            <p>${insight}</p>
+          </div>
+        </div>
+      </div>
+      ${endCard()}
+    </div>
+  `;
+  setTimeout(()=>{
+    const tags = det.topTags || [];
+    const vals = tags.map((_,i)=>[88,74,66,58,50,44][i]||30);
+    CHARTS.c1 = new Chart(document.getElementById('c1'),{
+      type:'bar',
+      data:{
+        labels:tags,
+        datasets:[{ label:'Fréquence', data:vals,
+          backgroundColor:a(CYAN,.55), borderColor:CYAN, borderWidth:1, borderRadius:3 }]
+      },
+      options:{
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false} },
+        scales:{ x:{grid:{color:GRID},border:{color:GRID}}, y:{grid:{display:false},border:{color:GRID}} }
+      }
+    });
+  },50);
+}
+
+// ============================================================
+// L1 — PRIX
+// ============================================================
+function renderL1_prix() {
+  const d = DATA.prix.overview;
+  document.getElementById('app').innerHTML = `
+    <div class="level-container">
+      ${levelTop('01','Vue d\'ensemble — Prix','Distribution des jeux par tranche de prix · taux de succès superposé','goHome()')}
+      <div class="charts-row">
+        <div class="chart-card clickable col-12">
+          <div class="card-head">
+            <div>
+              <p class="card-title">Distribution des prix et taux de succès</p>
+              <p class="card-sub">Barres = nombre de jeux · Ligne = % de succès · cliquez sur une tranche pour explorer</p>
+            </div>
+            <span class="ctag ctag-warn">PRIX</span>
+          </div>
+          <div style="height:300px"><canvas id="c1"></canvas></div>
+          <p class="chart-hint">👆 Cliquez sur une barre pour analyser cette tranche de prix en détail</p>
+        </div>
+      </div>
+    </div>
+  `;
+  setTimeout(()=>{
+    CHARTS.c1 = new Chart(document.getElementById('c1'),{
+      type:'bar',
+      data:{
+        labels: d.map(p=>p.label),
+        datasets:[
+          { label:'Nombre de jeux', data:d.map(p=>p.n),
+            backgroundColor:a(WARN,.45), borderColor:WARN, borderWidth:1, borderRadius:4, yAxisID:'y' },
+          { label:'Taux de succès (%)', data:d.map(p=>p.rate), type:'line',
+            borderColor:SUCCESS, backgroundColor:a(SUCCESS,.07),
+            borderWidth:2, pointRadius:6, pointBackgroundColor:SUCCESS,
+            fill:true, tension:.35, yAxisID:'y2' }
+        ]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{position:'bottom',labels:{padding:14,boxWidth:10}} },
+        scales:{
+          x:{grid:{color:GRID},border:{color:GRID}},
+          y:{ position:'left',grid:{color:GRID},border:{color:GRID} },
+          y2:{ position:'right',grid:{display:false},border:{color:GRID}, ticks:{callback:v=>v+'%',color:SUCCESS},max:60 }
+        },
+        onHover:(e,el)=>{ e.native.target.style.cursor=el.length?'pointer':'default'; },
+        onClick:(_,el)=>{ if(el.length&&el[0].datasetIndex===0) drillL2(d[el[0].index].label); }
+      }
+    });
+  },50);
+}
+
+// ============================================================
+// L2 — PRIX > [range]
+// ============================================================
+function renderL2_prix(range) {
+  const det = DATA.prix.detail[range];
+  if (!det) { drillL3(range); return; }
+  document.getElementById('app').innerHTML = `
+    <div class="level-container">
+      ${levelTop('02',`Tranche de prix : ${range}`,`${det.topGenres.reduce((s,g)=>s+g.n,0)} jeux dans cette tranche · cliquez sur un genre pour approfondir`,'goBreadcrumb(1)')}
+      <div class="charts-row">
+        <div class="chart-card clickable col-7">
+          <div class="card-head">
+            <div>
+              <p class="card-title">Genres les plus présents</p>
+              <p class="card-sub">Taux de succès par genre dans la tranche ${range}</p>
+            </div>
+            <span class="ctag ctag-pink">GENRES</span>
+          </div>
+          <div style="height:240px"><canvas id="c1"></canvas></div>
+          <p class="chart-hint">👆 Cliquez sur un genre pour voir ses tags caractéristiques</p>
+        </div>
+        <div class="stat-card col-5">
+          <p class="card-title" style="font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;color:var(--ink)">Caractéristiques</p>
+          <div class="stat-rows">
+            <div class="stat-row"><span class="sl">Tranche</span><span class="sv" style="color:var(--warn)">${range}</span></div>
+            <div class="stat-row"><span class="sl">Early Access</span><span class="sv">${det.ea}%</span></div>
+            <div class="stat-row"><span class="sl">Présence Twitch</span><span class="sv" style="color:var(--cyan)">${det.twitch}%</span></div>
+            <div class="stat-row"><span class="sl">Avec DLC</span><span class="sv" style="color:var(--pink)">${det.dlc}%</span></div>
+          </div>
+          <div class="insight-box" style="margin-top:14px">
+            <p class="label">// Insight</p>
+            <p style="font-size:.8rem">${det.insight}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  setTimeout(()=>{
+    const gd = det.topGenres;
+    CHARTS.c1 = new Chart(document.getElementById('c1'),{
+      type:'bar',
+      data:{
+        labels:gd.map(g=>g.g),
+        datasets:[{
+          label:'Taux de succès (%)', data:gd.map(g=>g.r),
+          backgroundColor:gd.map(g=>g.r>=35?a(SUCCESS,.55):g.r>=25?a(CYAN,.55):a(PINK,.55)),
+          borderColor:gd.map(g=>g.r>=35?SUCCESS:g.r>=25?CYAN:PINK),
+          borderWidth:1, borderRadius:4
+        }]
+      },
+      options:{
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{afterLabel:ctx=>`  Nb jeux : ${gd[ctx.dataIndex].n}`}} },
+        scales:{ x:{grid:{color:GRID},border:{color:GRID},ticks:{callback:v=>v+'%'},max:65}, y:{grid:{display:false},border:{color:GRID}} },
+        onHover:(e,el)=>{ e.native.target.style.cursor=el.length?'pointer':'default'; },
+        onClick:(_,el)=>{ if(el.length) drillL3(gd[el[0].index].g); }
+      }
+    });
+  },50);
+}
+
+// ============================================================
+// L3 — PRIX > range > genre
+// ============================================================
+function renderL3_prix(range, genre) {
+  const tags = DATA.prix.genreTags[genre] || ['Indie','2D','Singleplayer','PC','Steam','Casual'];
+  const det  = DATA.prix.detail[range];
+  const genreInfo = det?.topGenres.find(g=>g.g===genre);
+  document.getElementById('app').innerHTML = `
+    <div class="level-container">
+      ${levelTop('03',`${genre} · ${range}`,'Analyse au niveau micro — tags et positionnement','goBreadcrumb(2)')}
+      <div class="charts-row">
+        <div class="chart-card col-7">
+          <div class="card-head">
+            <div><p class="card-title">Tags caractéristiques</p>
+            <p class="card-sub">Pour les jeux ${genre} dans la tranche ${range}</p></div>
+            <span class="ctag ctag-cyan">TAGS</span>
+          </div>
+          <div style="height:220px"><canvas id="c1"></canvas></div>
+        </div>
+        <div class="stat-card col-5">
+          <p class="card-title" style="font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;color:var(--ink)">Synthèse</p>
+          <div class="stat-rows">
+            <div class="stat-row"><span class="sl">Genre</span><span class="sv" style="color:var(--pink)">${genre}</span></div>
+            <div class="stat-row"><span class="sl">Tranche</span><span class="sv" style="color:var(--warn)">${range}</span></div>
+            <div class="stat-row"><span class="sl">Taux de succès</span><span class="sv">${genreInfo?.r||'–'}%</span></div>
+          </div>
+          <div class="insight-box" style="margin-top:12px">
+            <p class="label">// Positionnement</p>
+            <p style="font-size:.78rem">Un jeu <strong>${genre}</strong> vendu <strong>${range}</strong> doit miser sur des tags comme <em>${tags.slice(0,3).join(', ')}</em> pour maximiser sa visibilité dans ce segment.</p>
+          </div>
+        </div>
+      </div>
+      ${endCard()}
+    </div>
+  `;
+  setTimeout(()=>{
+    const vals = tags.map((_,i)=>[90,78,68,58,50,42][i]||35);
+    CHARTS.c1 = new Chart(document.getElementById('c1'),{
+      type:'bar',
+      data:{
+        labels:tags,
+        datasets:[{ label:'Pertinence', data:vals,
+          backgroundColor:tags.map((_,i)=>i<2?a(PINK,.55):i<4?a(CYAN,.55):a(SUCCESS,.45)),
+          borderColor:tags.map((_,i)=>i<2?PINK:i<4?CYAN:SUCCESS),
+          borderWidth:1, borderRadius:3 }]
+      },
+      options:{
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false} },
+        scales:{ x:{grid:{color:GRID},border:{color:GRID}}, y:{grid:{display:false},border:{color:GRID}} }
+      }
+    });
+  },50);
+}
+
+// ============================================================
+// L1 — DÉCENNIES
+// ============================================================
+function renderL1_decennies() {
+  const d = DATA.decennies.overview;
+  document.getElementById('app').innerHTML = `
+    <div class="level-container">
+      ${levelTop('01','Vue d\'ensemble — Années','Évolution du marché indie Steam de 2015 à 2025','goHome()')}
+      <div class="charts-row">
+        <div class="chart-card clickable col-12">
+          <div class="card-head">
+            <div><p class="card-title">Sorties et taux de succès par année</p>
+            <p class="card-sub">Barres = volume de sorties · Ligne = taux de succès annuel · cliquez sur une année</p></div>
+            <span class="ctag ctag-cyan">TIMELINE</span>
+          </div>
+          <div style="height:300px"><canvas id="c1"></canvas></div>
+          <p class="chart-hint">👆 Cliquez sur une barre pour explorer cette année en détail</p>
+        </div>
+      </div>
+    </div>
+  `;
+  setTimeout(()=>{
+    CHARTS.c1 = new Chart(document.getElementById('c1'),{
+      type:'bar',
+      data:{
+        labels:d.map(y=>y.year),
+        datasets:[
+          { label:'Sorties', data:d.map(y=>y.n),
+            backgroundColor:a(CYAN,.35), borderColor:CYAN, borderWidth:1, borderRadius:4, yAxisID:'y' },
+          { label:'Taux de succès (%)', data:d.map(y=>y.rate), type:'line',
+            borderColor:PINK, backgroundColor:a(PINK,.07),
+            borderWidth:2, pointRadius:6, pointBackgroundColor:PINK,
+            fill:true, tension:.35, yAxisID:'y2' }
+        ]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{position:'bottom',labels:{padding:14,boxWidth:10}} },
+        scales:{
+          x:{grid:{color:GRID},border:{color:GRID}},
+          y:{ position:'left',grid:{color:GRID},border:{color:GRID} },
+          y2:{ position:'right',grid:{display:false},border:{color:GRID}, ticks:{callback:v=>v+'%',color:PINK},max:40 }
+        },
+        onHover:(e,el)=>{ e.native.target.style.cursor=el.length?'pointer':'default'; },
+        onClick:(_,el)=>{ if(el.length&&el[0].datasetIndex===0) drillL2(String(d[el[0].index].year)); }
+      }
+    });
+  },50);
+}
+
+// ============================================================
+// L2 — DÉCENNIES > [year]
+// ============================================================
+function renderL2_decennies(year) {
+  const det = DATA.decennies.detail[parseInt(year)];
+  if (!det) return;
+  document.getElementById('app').innerHTML = `
+    <div class="level-container">
+      ${levelTop('02',`Année ${year}`,`${DATA.decennies.overview.find(y=>y.year===parseInt(year))?.n||'–'} jeux sortis · cliquez sur un genre pour explorer`,'goBreadcrumb(1)')}
+      <div class="charts-row">
+        <div class="chart-card clickable col-7">
+          <div class="card-head">
+            <div><p class="card-title">Top genres en ${year}</p>
+            <p class="card-sub">Taux de succès par genre cette année-là</p></div>
+            <span class="ctag ctag-pink">GENRES</span>
+          </div>
+          <div style="height:240px"><canvas id="c1"></canvas></div>
+          <p class="chart-hint">👆 Cliquez sur un genre pour l'analyse détaillée</p>
+        </div>
+        <div class="stat-card col-5">
+          <p class="card-title" style="font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;color:var(--ink)">Contexte ${year}</p>
+          <div class="stat-rows">
+            <div class="stat-row"><span class="sl">Sorties totales</span><span class="sv" style="color:var(--cyan)">${DATA.decennies.overview.find(y=>y.year===parseInt(year))?.n}</span></div>
+            <div class="stat-row"><span class="sl">Taux de succès</span><span class="sv" style="color:var(--pink)">${DATA.decennies.overview.find(y=>y.year===parseInt(year))?.rate}%</span></div>
+            <div class="stat-row"><span class="sl">Prix moyen</span><span class="sv" style="color:var(--warn)">€${det.avgPrice}</span></div>
+            <div class="stat-row"><span class="sl">F2P</span><span class="sv">${det.free}%</span></div>
+            <div class="stat-row"><span class="sl">Early Access</span><span class="sv">${det.ea}%</span></div>
+          </div>
+          <div class="insight-box" style="margin-top:14px">
+            <p class="label">// Note historique</p>
+            <p style="font-size:.78rem">${det.note}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  setTimeout(()=>{
+    const gd = det.topGenres;
+    CHARTS.c1 = new Chart(document.getElementById('c1'),{
+      type:'bar',
+      data:{
+        labels:gd.map(g=>g.g),
+        datasets:[{
+          label:'Taux de succès (%)', data:gd.map(g=>g.r),
+          backgroundColor:gd.map(g=>g.r>=38?a(SUCCESS,.55):g.r>=28?a(CYAN,.55):a(PINK,.55)),
+          borderColor:gd.map(g=>g.r>=38?SUCCESS:g.r>=28?CYAN:PINK),
+          borderWidth:1, borderRadius:4
+        }]
+      },
+      options:{
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{afterLabel:ctx=>`  Nb jeux : ${gd[ctx.dataIndex].n}`}} },
+        scales:{ x:{grid:{color:GRID},border:{color:GRID},ticks:{callback:v=>v+'%'},max:60}, y:{grid:{display:false},border:{color:GRID}} },
+        onHover:(e,el)=>{ e.native.target.style.cursor=el.length?'pointer':'default'; },
+        onClick:(_,el)=>{ if(el.length) drillL3(gd[el[0].index].g); }
+      }
+    });
+  },50);
+}
+
+// ============================================================
+// L3 — DÉCENNIES > year > genre
+// ============================================================
+function renderL3_decennies(year, genre) {
+  const yearDet  = DATA.decennies.detail[parseInt(year)];
+  const genreInfo = yearDet?.topGenres.find(g=>g.g===genre);
+  const tags = DATA.genres.detail[genre]?.topTags || ['Indie','2D','Singleplayer','PC'];
+  const genreInsight = DATA.genres.insights[genre] || '';
+  document.getElementById('app').innerHTML = `
+    <div class="level-container">
+      ${levelTop('03',`${genre} en ${year}`,'Analyse de niche · niveau de granularité maximum','goBreadcrumb(2)')}
+      <div class="charts-row">
+        <div class="chart-card col-7">
+          <div class="card-head">
+            <div><p class="card-title">Tags caractéristiques du genre</p>
+            <p class="card-sub">Tags les plus fréquents pour les jeux ${genre}</p></div>
+            <span class="ctag ctag-cyan">TAGS</span>
+          </div>
+          <div style="height:220px"><canvas id="c1"></canvas></div>
+        </div>
+        <div class="stat-card col-5">
+          <p class="card-title" style="font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;color:var(--ink)">Synthèse</p>
+          <div class="stat-rows">
+            <div class="stat-row"><span class="sl">Genre</span><span class="sv" style="color:var(--pink)">${genre}</span></div>
+            <div class="stat-row"><span class="sl">Année</span><span class="sv" style="color:var(--cyan)">${year}</span></div>
+            <div class="stat-row"><span class="sl">Taux de succès (année)</span><span class="sv">${genreInfo?.r||'–'}%</span></div>
+            <div class="stat-row"><span class="sl">Nb jeux analysés</span><span class="sv">${genreInfo?.n||'–'}</span></div>
+          </div>
+          <div class="insight-box" style="margin-top:12px">
+            <p class="label">// Insight genre</p>
+            <p style="font-size:.78rem">${genreInsight}</p>
+          </div>
+        </div>
+      </div>
+      ${endCard()}
+    </div>
+  `;
+  setTimeout(()=>{
+    const vals = tags.map((_,i)=>[90,78,68,58,50,44][i]||35);
+    CHARTS.c1 = new Chart(document.getElementById('c1'),{
+      type:'bar',
+      data:{
+        labels:tags,
+        datasets:[{ label:'Fréquence', data:vals,
+          backgroundColor:tags.map((_,i)=>i<2?a(PINK,.55):i<4?a(CYAN,.55):a(SUCCESS,.45)),
+          borderColor:tags.map((_,i)=>i<2?PINK:i<4?CYAN:SUCCESS),
+          borderWidth:1, borderRadius:3 }]
+      },
+      options:{
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false} },
+        scales:{ x:{grid:{color:GRID},border:{color:GRID}}, y:{grid:{display:false},border:{color:GRID}} }
+      }
+    });
+  },50);
+}
+
+// ============================================================
+// L1 — SUCCÈS
+// ============================================================
+function renderL1_succes() {
+  const d = DATA.succes.factors;
+  document.getElementById('app').innerHTML = `
+    <div class="level-container">
+      ${levelTop('01','Facteurs de succès','Corrélation entre chaque levier et le taux de succès · de 0 (aucun impact) à 1 (corrélation forte)','goHome()')}
+      <div class="charts-row">
+        <div class="chart-card clickable col-12">
+          <div class="card-head">
+            <div><p class="card-title">Corrélation avec le succès commercial</p>
+            <p class="card-sub">Score de corrélation calculé sur ${DATA.genres.overview.reduce((s,g)=>s+g.n,0)} jeux · cliquez pour explorer un facteur</p></div>
+            <span class="ctag ctag-green">ANALYSE</span>
+          </div>
+          <div style="height:280px"><canvas id="c1"></canvas></div>
+          <p class="chart-hint">👆 Cliquez sur un facteur pour voir son impact en détail</p>
+        </div>
+      </div>
+    </div>
+  `;
+  setTimeout(()=>{
+    CHARTS.c1 = new Chart(document.getElementById('c1'),{
+      type:'bar',
+      data:{
+        labels: d.map(f=>`${f.icon} ${f.label}`),
+        datasets:[{
+          label:'Corrélation avec le succès',
+          data: d.map(f=>f.corr),
+          backgroundColor: d.map(f=>f.corr>=.6?a(SUCCESS,.6):f.corr>=.4?a(CYAN,.6):a(WARN,.6)),
+          borderColor:     d.map(f=>f.corr>=.6?SUCCESS:f.corr>=.4?CYAN:WARN),
+          borderWidth:1, borderRadius:4
+        }]
+      },
+      options:{
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false} },
+        scales:{
+          x:{grid:{color:GRID},border:{color:GRID},min:0,max:1,ticks:{callback:v=>v.toFixed(1)}},
+          y:{grid:{display:false},border:{color:GRID}}
+        },
+        onHover:(e,el)=>{ e.native.target.style.cursor=el.length?'pointer':'default'; },
+        onClick:(_,el)=>{ if(el.length) drillL2(d[el[0].index].label); }
+      }
+    });
+  },50);
+}
+
+// ============================================================
+// L2 — SUCCÈS > [factor]
+// ============================================================
+function renderL2_succes(factor) {
+  const det = DATA.succes.detail[factor];
+  const fac = DATA.succes.factors.find(f=>f.label===factor);
+  if (!det) return;
+  document.getElementById('app').innerHTML = `
+    <div class="level-container">
+      ${levelTop('02',`Facteur : ${factor}`,`Analyse comparative succès vs non-succès · cliquez sur "Zone optimale" pour approfondir`,'goBreadcrumb(1)')}
+      <div class="charts-row">
+        <div class="chart-card clickable col-8">
+          <div class="card-head">
+            <div><p class="card-title">Taux de succès selon ${factor}</p>
+            <p class="card-sub">${det.xLabel} · comparaison succès vs ensemble du catalogue</p></div>
+            <span class="ctag ctag-pink">COMPARAISON</span>
+          </div>
+          <div style="height:250px"><canvas id="c1"></canvas></div>
+          <p class="chart-hint">👆 Cliquez sur la zone optimale pour voir la recommandation</p>
+        </div>
+        <div class="stat-card col-4">
+          <p class="card-title" style="font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;color:var(--ink)">${fac?.icon} Impact du facteur</p>
+          <div class="stat-rows">
+            <div class="stat-row"><span class="sl">Corrélation</span><span class="sv" style="color:var(--success)">${fac?.corr}</span></div>
+            <div class="stat-row"><span class="sl">Avec ce facteur</span><span class="sv" style="color:var(--pink)">${det.successTrue}%</span></div>
+            <div class="stat-row"><span class="sl">Sans ce facteur</span><span class="sv">${det.successFalse}%</span></div>
+            <div class="stat-row"><span class="sl">Gain relatif</span><span class="sv" style="color:var(--success)">+${det.successTrue-det.successFalse}pts</span></div>
+          </div>
+          <div class="insight-box" style="margin-top:14px">
+            <p class="label">// Pourquoi ?</p>
+            <p style="font-size:.78rem">${fac?.desc}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  setTimeout(()=>{
+    CHARTS.c1 = new Chart(document.getElementById('c1'),{
+      type:'bar',
+      data:{
+        labels: det.labels,
+        datasets:[
+          { label:'Jeux "succès" (%)', data:det.successData,
+            backgroundColor:a(SUCCESS,.55), borderColor:SUCCESS, borderWidth:1, borderRadius:3 },
+          { label:'Tous les jeux (%)', data:det.failData,
+            backgroundColor:a(WARN,.45), borderColor:WARN, borderWidth:1, borderRadius:3 }
+        ]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{position:'bottom',labels:{padding:12,boxWidth:10}} },
+        scales:{
+          x:{grid:{color:GRID},border:{color:GRID}},
+          y:{grid:{color:GRID},border:{color:GRID},ticks:{callback:v=>v+'%'}}
+        },
+        onHover:(e,el)=>{ e.native.target.style.cursor=el.length?'pointer':'default'; },
+        onClick:(_,el)=>{ if(el.length) drillL3(det.labels[el[0].index]); }
+      }
+    });
+  },50);
+}
+
+// ============================================================
+// L3 — SUCCÈS > factor > zone
+// ============================================================
+function renderL3_succes(factor, zone) {
+  const det = DATA.succes.detail[factor];
+  const fac = DATA.succes.factors.find(f=>f.label===factor);
+  document.getElementById('app').innerHTML = `
+    <div class="level-container">
+      ${levelTop('03',`Zone analysée : ${zone}`,'Recommandation finale pour ce facteur','goBreadcrumb(2)')}
+      <div class="charts-row">
+        <div class="chart-card col-12">
+          <div class="card-head">
+            <div><p class="card-title">${fac?.icon} Recommandation — ${factor}</p></div>
+            <span class="ctag ctag-green">RECOMMANDATION</span>
+          </div>
+          <div class="insight-box">
+            <p class="label">// Zone optimale</p>
+            <p style="font-size:.88rem; line-height:1.7">${det?.optimal||'–'}</p>
+          </div>
+          <div class="insight-box" style="margin-top:12px; border-color: rgba(232,0,90,.25); border-left-color: var(--pink)">
+            <p class="label" style="color:var(--pink)">// À faire</p>
+            <p style="font-size:.88rem; line-height:1.7">${det?.recommendation||'–'}</p>
+          </div>
+          <div class="stat-rows" style="margin-top:16px">
+            <div class="stat-row"><span class="sl">Facteur analysé</span><span class="sv" style="color:var(--pink)">${factor}</span></div>
+            <div class="stat-row"><span class="sl">Zone sélectionnée</span><span class="sv" style="color:var(--cyan)">${zone}</span></div>
+            <div class="stat-row"><span class="sl">Taux de succès avec ce facteur</span><span class="sv" style="color:var(--success)">${det?.successTrue||'–'}%</span></div>
+            <div class="stat-row"><span class="sl">Sans ce facteur</span><span class="sv">${det?.successFalse||'–'}%</span></div>
+          </div>
+        </div>
+      </div>
+      ${endCard()}
+    </div>
+  `;
+}
+
+// ============================================================
+// ROUTERS
+// ============================================================
+function renderL1(theme) {
+  updateBreadcrumb();
+  if      (theme==='genres')    renderL1_genres();
+  else if (theme==='prix')      renderL1_prix();
+  else if (theme==='decennies') renderL1_decennies();
+  else if (theme==='succes')    renderL1_succes();
+}
+
+function renderL2(theme, sel) {
+  updateBreadcrumb();
+  if      (theme==='genres')    renderL2_genres(sel);
+  else if (theme==='prix')      renderL2_prix(sel);
+  else if (theme==='decennies') renderL2_decennies(sel);
+  else if (theme==='succes')    renderL2_succes(sel);
+}
+
+function renderL3(theme, sel1, sel2) {
+  updateBreadcrumb();
+  if      (theme==='genres')    renderL3_genres(sel1, sel2);
+  else if (theme==='prix')      renderL3_prix(sel1, sel2);
+  else if (theme==='decennies') renderL3_decennies(sel1, sel2);
+  else if (theme==='succes')    renderL3_succes(sel1, sel2);
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+renderHome();
+</script>
+</body>
+</html>

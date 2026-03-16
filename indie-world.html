@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WillItFlop — Le Monde du Jeu Indé</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Space+Mono:wght@400;700&family=Exo+2:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+
+/* ============================================================
+   TOKENS — identiques à index.html
+   ============================================================ */
+:root {
+  --bg:      #F4F2EE;
+  --bg2:     #EDEAE4;
+  --bg3:     #E3E0D8;
+  --border:  #D4D0C8;
+  --pink:    #E8005A;
+  --cyan:    #007A8C;
+  --cyan-b:  #00C8B4;
+  --ink:     #0D0D1A;
+  --ink2:    #2A2A3A;
+  --gray:    #7A7A8C;
+  --success: #007A4C;
+  --warn:    #8C6A00;
+  --white:   #FFFFFF;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Exo 2', sans-serif;
+  line-height: 1.65;
+}
+
+/* Noise texture — même que index.html */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 9999; opacity: 0.5;
+}
+
+/* ============================================================
+   NAV — copie fidèle de index.html
+   ============================================================ */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(244,242,238,0.94);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 48px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+}
+.nav-brand { font-family: 'Orbitron', sans-serif; font-size: 0.95rem; font-weight: 900; color: var(--ink); letter-spacing: 0.08em; text-decoration: none; }
+.nav-brand .hl { color: var(--pink); }
+.nav-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.nav-tag {
+  font-family: 'Space Mono', monospace; font-size: 0.6rem;
+  color: var(--cyan); background: rgba(0,122,140,0.1);
+  border: 1px solid rgba(0,122,140,0.3);
+  padding: 4px 14px; border-radius: 20px; letter-spacing: 0.15em;
+}
+.btn-back {
+  font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em;
+  background: transparent; color: var(--ink2); text-decoration: none;
+  border: 1px solid var(--border); border-radius: 4px;
+  padding: 5px 14px; transition: border-color 0.2s, color 0.2s;
+}
+.btn-back:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* ============================================================
+   HERO — reprend la structure de index.html
+   ============================================================ */
+.hero {
+  min-height: 44vh;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 18px; text-align: center;
+  padding: 72px 48px 56px; position: relative; overflow: hidden;
+}
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(232,0,90,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(232,0,90,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 0%, transparent 100%);
+}
+.hero::before {
+  content: '';
+  position: absolute; width: 500px; height: 500px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(232,0,90,0.05) 0%, rgba(0,122,140,0.03) 50%, transparent 70%);
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+  animation: pulse 7s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-50%) scale(1.12)} }
+
+.hero-eyebrow {
+  font-family: 'Space Mono', monospace; font-size: 0.65rem;
+  letter-spacing: 0.4em; color: var(--cyan); text-transform: uppercase;
+  opacity: 0; animation: fadeUp 0.6s 0.1s forwards; position: relative; z-index: 1;
+}
+.hero-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(2.2rem, 8vw, 5rem);
+  font-weight: 900; letter-spacing: 0.04em; line-height: 1;
+  color: var(--ink); position: relative; z-index: 1;
+  opacity: 0; animation: fadeUp 0.6s 0.3s forwards;
+}
+.hero-title .hl { color: var(--pink); }
+/* Glitch — identique */
+.hero-title::before, .hero-title::after {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+}
+.hero-title::before {
+  content: attr(data-text);
+  color: var(--cyan-b); clip-path: polygon(0 20%,100% 20%,100% 32%,0 32%);
+  transform: translateX(-2px); animation: g1 6s infinite; opacity: 0.3;
+}
+.hero-title::after {
+  content: attr(data-text);
+  color: var(--pink); clip-path: polygon(0 68%,100% 68%,100% 78%,0 78%);
+  transform: translateX(2px); animation: g2 6s infinite; opacity: 0.3;
+}
+@keyframes g1 { 0%,88%,100%{opacity:0} 89%{opacity:0.3;transform:translateX(-3px)} 91%{transform:translateX(3px)} 93%{opacity:0} }
+@keyframes g2 { 0%,91%,100%{opacity:0} 92%{opacity:0.3;transform:translateX(3px)} 94%{transform:translateX(-3px)} 96%{opacity:0} }
+
+.hero-sub {
+  font-family: 'Space Mono', monospace; font-size: 0.78rem;
+  color: var(--gray); letter-spacing: 0.15em; text-transform: uppercase;
+  opacity: 0; animation: fadeUp 0.6s 0.5s forwards; position: relative; z-index: 1;
+}
+.hero-sub span { color: var(--pink); }
+
+.hero-badges {
+  display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+  opacity: 0; animation: fadeUp 0.6s 0.7s forwards; position: relative; z-index: 1;
+}
+.badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 16px; border-radius: 30px;
+  font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em;
+}
+.badge-pink  { color: var(--pink);  background: rgba(232,0,90,0.08);  border: 1px solid rgba(232,0,90,0.25); }
+.badge-cyan  { color: var(--cyan);  background: rgba(0,122,140,0.08); border: 1px solid rgba(0,122,140,0.25); }
+.badge-ink   { color: var(--ink2);  background: rgba(13,13,26,0.06);  border: 1px solid rgba(13,13,26,0.15); }
+.badge-warn  { color: var(--warn);  background: rgba(140,106,0,0.07); border: 1px solid rgba(140,106,0,0.25); }
+.dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; animation: blink 1.2s step-end infinite; }
+@keyframes blink { 50%{opacity:0} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.container { max-width: 1200px; margin: 0 auto; padding: 56px 48px; }
+.divider { height: 1px; margin: 0 48px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
+
+/* Section label — IDENTIQUE à index.html */
+.section-label {
+  font-family: 'Space Mono', monospace; font-size: 0.6rem;
+  letter-spacing: 0.4em; color: var(--pink); text-transform: uppercase;
+  margin-bottom: 6px; display: flex; align-items: center; gap: 12px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(232,0,90,0.3), transparent); }
+
+.section-h2 {
+  font-family: 'Orbitron', sans-serif; font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+  font-weight: 700; color: var(--ink); letter-spacing: 0.04em; margin-bottom: 32px;
+}
+
+/* ============================================================
+   KPI CARDS
+   ============================================================ */
+.kpis-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 16px; margin-bottom: 0;
+}
+.kpi-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: 12px;
+  padding: 24px 24px 20px; position: relative; overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  opacity: 0; animation: fadeUp 0.5s ease forwards;
+}
+.kpi-card:nth-child(1) { animation-delay: .05s; }
+.kpi-card:nth-child(2) { animation-delay: .12s; }
+.kpi-card:nth-child(3) { animation-delay: .19s; }
+.kpi-card:nth-child(4) { animation-delay: .26s; }
+.kpi-card:nth-child(5) { animation-delay: .33s; }
+.kpi-card:hover { border-color: var(--pink); box-shadow: 0 4px 24px rgba(232,0,90,0.1); transform: translateY(-2px); }
+
+/* Barre colorée en haut */
+.kpi-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--pink);
+}
+.kpi-card:nth-child(2)::before { background: var(--cyan); }
+.kpi-card:nth-child(3)::before { background: var(--warn); }
+.kpi-card:nth-child(4)::before { background: linear-gradient(90deg, var(--pink), var(--cyan)); }
+.kpi-card:nth-child(5)::before { background: var(--success); }
+
+.kpi-icon { font-size: 1.5rem; margin-bottom: 10px; display: block; }
+.kpi-label {
+  font-family: 'Space Mono', monospace; font-size: 0.55rem;
+  letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray);
+  margin-bottom: 6px;
+}
+.kpi-value {
+  font-family: 'Orbitron', sans-serif; font-weight: 900;
+  font-size: 1.85rem; line-height: 1; color: var(--ink);
+}
+.kpi-value.c-pink    { color: var(--pink); }
+.kpi-value.c-cyan    { color: var(--cyan); }
+.kpi-value.c-warn    { color: var(--warn); }
+.kpi-value.c-success { color: var(--success); }
+.kpi-sub {
+  font-family: 'Space Mono', monospace; font-size: 0.55rem;
+  color: var(--gray); margin-top: 6px; line-height: 1.5;
+}
+
+/* ============================================================
+   CHART GRID & CARDS
+   ============================================================ */
+.charts-grid {
+  display: grid; grid-template-columns: repeat(12, 1fr);
+  gap: 16px;
+}
+@media (max-width: 1000px) {
+  .col-8, .col-4, .col-6, .col-5, .col-7 { grid-column: span 12 !important; }
+}
+.col-4  { grid-column: span 4; }
+.col-5  { grid-column: span 5; }
+.col-6  { grid-column: span 6; }
+.col-7  { grid-column: span 7; }
+.col-8  { grid-column: span 8; }
+.col-12 { grid-column: span 12; }
+
+/* Chart card — même style que concept-card / stack-card de index.html */
+.chart-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: 12px;
+  padding: 24px; transition: border-color 0.2s, box-shadow 0.2s;
+  opacity: 0; animation: fadeUp 0.5s 0.25s ease forwards;
+}
+.chart-card:hover { border-color: var(--cyan); box-shadow: 0 4px 20px rgba(0,122,140,0.08); }
+
+.card-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 16px; gap: 12px;
+}
+.card-title {
+  font-family: 'Orbitron', sans-serif; font-size: 0.82rem; font-weight: 700;
+  color: var(--ink); letter-spacing: 0.04em;
+}
+.card-sub {
+  font-family: 'Space Mono', monospace; font-size: 0.58rem;
+  color: var(--gray); margin-top: 4px; line-height: 1.55;
+}
+/* Small tag pills — identiques aux stack-tag de index.html */
+.tag {
+  display: inline-block; padding: 2px 9px; border-radius: 3px;
+  font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 0.1em;
+  flex-shrink: 0; white-space: nowrap;
+}
+.tag-pink    { background: rgba(232,0,90,0.08);  color: var(--pink);    border: 1px solid rgba(232,0,90,0.2); }
+.tag-cyan    { background: rgba(0,122,140,0.08); color: var(--cyan);    border: 1px solid rgba(0,122,140,0.2); }
+.tag-green   { background: rgba(0,122,76,0.08);  color: var(--success); border: 1px solid rgba(0,122,76,0.2); }
+.tag-warn    { background: rgba(140,106,0,0.08); color: var(--warn);    border: 1px solid rgba(140,106,0,0.25); }
+.tag-gray    { background: rgba(13,13,26,0.06);  color: var(--ink2);    border: 1px solid rgba(13,13,26,0.12); }
+
+.chart-wrap { position: relative; }
+
+/* ============================================================
+   FILTER TABS
+   ============================================================ */
+.tabs { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.tab {
+  font-family: 'Space Mono', monospace; font-size: 0.58rem;
+  padding: 4px 12px; border-radius: 20px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--gray); cursor: pointer; letter-spacing: 0.1em;
+  text-transform: uppercase; transition: all 0.18s;
+}
+.tab:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0,122,140,0.06); }
+.tab.active { border-color: var(--pink); color: var(--pink); background: rgba(232,0,90,0.06); }
+
+/* ============================================================
+   STAT ROW (inside cards)
+   ============================================================ */
+.stat-rows { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
+.stat-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: 'Space Mono', monospace; font-size: 0.62rem;
+  padding: 6px 10px; border-radius: 6px; background: var(--bg2);
+}
+.stat-row .label { color: var(--gray); }
+.stat-row .val   { font-weight: 700; }
+
+/* ============================================================
+   TAG CLOUD
+   ============================================================ */
+.tag-cloud { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0; }
+.tag-pill {
+  font-family: 'Space Mono', monospace;
+  padding: 4px 10px; border-radius: 20px; border: 1px solid;
+  cursor: default; transition: transform 0.15s, box-shadow 0.15s;
+  line-height: 1.3;
+}
+.tag-pill:hover { transform: scale(1.06); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+/* ============================================================
+   API NOTE
+   ============================================================ */
+.api-note {
+  background: rgba(0,122,140,0.05); border: 1px solid rgba(0,122,140,0.2);
+  border-left: 3px solid var(--cyan); border-radius: 8px;
+  padding: 14px 20px; margin-bottom: 0;
+  font-family: 'Space Mono', monospace; font-size: 0.65rem;
+  color: var(--gray); line-height: 1.8;
+}
+.api-note strong { color: var(--cyan); }
+.api-note code {
+  background: rgba(0,122,140,0.08); padding: 1px 5px;
+  border-radius: 3px; color: var(--cyan);
+}
+
+/* ============================================================
+   FOOTER — identique à index.html
+   ============================================================ */
+.footer {
+  border-top: 1px solid var(--border); padding: 36px 48px; background: var(--bg2);
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+}
+.footer-brand { font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 900; color: var(--ink); letter-spacing: 0.08em; }
+.footer-brand .hl { color: var(--pink); }
+.footer-copy  { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--gray); letter-spacing: 0.15em; }
+.footer-tags  { display: flex; gap: 8px; flex-wrap: wrap; }
+
+</style>
+</head>
+<body>
+
+<!-- NAV — même structure que index.html -->
+<nav class="nav">
+  <a href="index.html" class="nav-brand">WILL<span class="hl">IT</span>FLOP</a>
+  <div class="nav-right">
+    <div class="nav-tag">LE MONDE DU JEU INDÉ</div>
+    <a href="index.html" class="btn-back">← Présentation</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-eyebrow">// exploration de données · Steam &amp; SteamSpy</div>
+  <h1 class="hero-title" data-text="INDIE WORLD">Le Monde du<br><span class="hl">Jeu Indé</span></h1>
+  <p class="hero-sub">Patterns de succès · Tendances de prix · <span>Dynamiques du marché Steam</span></p>
+  <div class="hero-badges">
+    <span class="badge badge-pink"><span class="dot"></span>Données live (bientôt)</span>
+    <span class="badge badge-cyan">Steam · SteamSpy · Twitch</span>
+    <span class="badge badge-warn">Mock — API à venir</span>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ============================================================
+     01 — MÉTRIQUES GLOBALES
+     ============================================================ -->
+<section class="container">
+  <div class="section-label">01 — Vue d'ensemble</div>
+  <h2 class="section-h2">Métriques globales du catalogue</h2>
+  <div class="kpis-grid">
+
+    <div class="kpi-card">
+      <span class="kpi-icon">🎮</span>
+      <p class="kpi-label">Jeux analysés</p>
+      <p class="kpi-value c-pink" data-target="4872">0</p>
+      <p class="kpi-sub">↑ +312 ce mois · pipeline mensuel</p>
+    </div>
+
+    <div class="kpi-card">
+      <span class="kpi-icon">🏆</span>
+      <p class="kpi-label">Taux de succès global</p>
+      <p class="kpi-value c-cyan" data-target="28" data-suffix="%">0</p>
+      <p class="kpi-sub">Owners ≥ 100 k &amp; Wilson ≥ 0.75</p>
+    </div>
+
+    <div class="kpi-card">
+      <span class="kpi-icon">💶</span>
+      <p class="kpi-label">Prix moyen</p>
+      <p class="kpi-value c-warn" data-target="9" data-prefix="€">0</p>
+      <p class="kpi-sub">Médiane : €6.99 · Free : 16%</p>
+    </div>
+
+    <div class="kpi-card">
+      <span class="kpi-icon">📺</span>
+      <p class="kpi-label">Présence Twitch</p>
+      <p class="kpi-value" data-target="38" data-suffix="%">0</p>
+      <p class="kpi-sub">des jeux streamés activement</p>
+    </div>
+
+    <div class="kpi-card">
+      <span class="kpi-icon">🎯</span>
+      <p class="kpi-label">Genre dominant</p>
+      <p class="kpi-value c-success" style="font-size:1rem; padding-top:6px; line-height:1.6">Action</p>
+      <p class="kpi-sub">34% du catalogue · Succès : 24%</p>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ============================================================
+     02 — GENRES & DISTRIBUTION
+     ============================================================ -->
+<section class="container">
+  <div class="section-label">02 — Genres &amp; distribution</div>
+  <h2 class="section-h2">Succès par genre · Free vs Payant</h2>
+  <div class="charts-grid">
+
+    <!-- Genre success rate -->
+    <div class="chart-card col-7">
+      <div class="card-header">
+        <div>
+          <p class="card-title">Taux de succès par genre</p>
+          <p class="card-sub">% de jeux considérés "succès" (owners ≥ 100 k &amp; Wilson ≥ 0.75)</p>
+        </div>
+        <span class="tag tag-pink">GENRES</span>
+      </div>
+      <div class="chart-wrap" style="height:280px">
+        <canvas id="chartGenres"></canvas>
+      </div>
+    </div>
+
+    <!-- Free vs Paid -->
+    <div class="chart-card col-5">
+      <div class="card-header">
+        <div>
+          <p class="card-title">Free-to-play vs Payant</p>
+          <p class="card-sub">Répartition du catalogue analysé</p>
+        </div>
+        <span class="tag tag-cyan">PRIX</span>
+      </div>
+      <div class="chart-wrap" style="height:185px">
+        <canvas id="chartFreePaid"></canvas>
+      </div>
+      <div class="stat-rows">
+        <div class="stat-row">
+          <span class="label">Free-to-play &nbsp;(782 jeux)</span>
+          <span class="val" style="color:var(--cyan)">Succès : 31%</span>
+        </div>
+        <div class="stat-row">
+          <span class="label">Payant &nbsp;(4 090 jeux)</span>
+          <span class="val" style="color:var(--pink)">Succès : 27%</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ============================================================
+     03 — PRIX & PROFIL
+     ============================================================ -->
+<section class="container">
+  <div class="section-label">03 — Prix &amp; profil de succès</div>
+  <h2 class="section-h2">Distribution des prix · Profil type d'un succès</h2>
+  <div class="charts-grid">
+
+    <!-- Price distribution -->
+    <div class="chart-card col-6">
+      <div class="card-header">
+        <div>
+          <p class="card-title">Distribution des prix (€)</p>
+          <p class="card-sub">Volume par tranche · Taux de succès superposé</p>
+        </div>
+        <span class="tag tag-warn">PRIX</span>
+      </div>
+      <div class="chart-wrap" style="height:250px">
+        <canvas id="chartPriceDist"></canvas>
+      </div>
+    </div>
+
+    <!-- Radar -->
+    <div class="chart-card col-6">
+      <div class="card-header">
+        <div>
+          <p class="card-title">Profil type d'un succès</p>
+          <p class="card-sub">Score moyen normalisé (0–10) — jeux succès vs échecs</p>
+        </div>
+        <span class="tag tag-green">ANALYSE</span>
+      </div>
+      <div class="chart-wrap" style="height:250px">
+        <canvas id="chartRadar"></canvas>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ============================================================
+     04 — TAGS & TIMELINE
+     ============================================================ -->
+<section class="container">
+  <div class="section-label">04 — Tags &amp; tendances temporelles</div>
+  <h2 class="section-h2">Top tags · Sorties par année</h2>
+  <div class="charts-grid">
+
+    <!-- Tags -->
+    <div class="chart-card col-6">
+      <div class="card-header">
+        <div>
+          <p class="card-title">Top 12 tags les plus présents</p>
+          <p class="card-sub">Volume de votes SteamSpy · Couleur = taux de succès</p>
+        </div>
+        <span class="tag tag-pink">TAGS</span>
+      </div>
+      <div class="tabs">
+        <button class="tab active" onclick="switchTags('votes',this)">Par volume</button>
+        <button class="tab" onclick="switchTags('success',this)">Par succès</button>
+      </div>
+      <div class="chart-wrap" style="height:255px">
+        <canvas id="chartTags"></canvas>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="chart-card col-6">
+      <div class="card-header">
+        <div>
+          <p class="card-title">Sorties de jeux indés par an</p>
+          <p class="card-sub">Volume de sorties + taux de succès annuel moyen</p>
+        </div>
+        <span class="tag tag-cyan">TIMELINE</span>
+      </div>
+      <div class="chart-wrap" style="height:285px">
+        <canvas id="chartTimeline"></canvas>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ============================================================
+     05 — FACTEURS BINAIRES
+     ============================================================ -->
+<section class="container">
+  <div class="section-label">05 — Facteurs spécifiques</div>
+  <h2 class="section-h2">Early Access · Twitch · DLC</h2>
+  <div class="charts-grid">
+
+    <div class="chart-card col-4">
+      <div class="card-header">
+        <div>
+          <p class="card-title">Early Access</p>
+          <p class="card-sub">Impact sur le taux de succès final</p>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:175px">
+        <canvas id="chartEA"></canvas>
+      </div>
+      <p class="kpi-sub" style="text-align:center; margin-top:10px">
+        EA légèrement pénalisé — moins de reviews au lancement
+      </p>
+    </div>
+
+    <div class="chart-card col-4">
+      <div class="card-header">
+        <div>
+          <p class="card-title">Présence Twitch</p>
+          <p class="card-sub">Streaming actif vs succès commercial</p>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:175px">
+        <canvas id="chartTwitch"></canvas>
+      </div>
+      <p class="kpi-sub" style="text-align:center; margin-top:10px">
+        Forte corrélation — visibilité = levier majeur
+      </p>
+    </div>
+
+    <div class="chart-card col-4">
+      <div class="card-header">
+        <div>
+          <p class="card-title">Disponibilité DLC</p>
+          <p class="card-sub">Présence de DLC comme signal de succès</p>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:175px">
+        <canvas id="chartDLC"></canvas>
+      </div>
+      <p class="kpi-sub" style="text-align:center; margin-top:10px">
+        DLC = indicateur fort d'une base de joueurs fidèle
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ============================================================
+     06 — TAG CLOUD
+     ============================================================ -->
+<section class="container">
+  <div class="section-label">06 — Nuage de tags interactif</div>
+  <h2 class="section-h2">Tags du catalogue indie</h2>
+  <div class="chart-card col-12" style="margin-bottom:0; animation-delay:.1s">
+    <div class="card-header">
+      <div>
+        <p class="card-title">Popularité &amp; taux de succès associé</p>
+        <p class="card-sub">
+          Taille ∝ volume de votes ·
+          <span style="color:var(--success)">■</span> Succès ≥ 40% &nbsp;
+          <span style="color:var(--cyan)">■</span> 30–40% &nbsp;
+          <span style="color:var(--warn)">■</span> 20–30% &nbsp;
+          <span style="color:var(--pink)">■</span> &lt; 20%
+        </p>
+      </div>
+    </div>
+    <div class="tag-cloud" id="tagCloud"></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ============================================================
+     07 — ARCHITECTURE
+     ============================================================ -->
+<section class="container">
+  <div class="section-label">07 — Architecture données</div>
+  <h2 class="section-h2">Comment ces données seront récupérées</h2>
+  <div class="api-note">
+    <strong>// Flux :</strong> Supabase (PostgreSQL) → Backend Flask/FastAPI (Render) →
+    Endpoints <code>GET /api/dashboard/*</code> → Frontend (React + axios)<br>
+    <strong>// Endpoints prévus :</strong>
+    <code>/overview</code> · <code>/genres</code> · <code>/tags</code> ·
+    <code>/price-distribution</code> · <code>/timeline</code> · <code>/success-factors</code><br>
+    <strong>// Pourquoi un backend intermédiaire ?</strong>
+    Les credentials DB restent côté serveur · Les agrégations SQL tournent côté Postgres ·
+    Possibilité de cache (Redis) et rate-limiting côté Render.
+    Les mocks affichés ici reproduisent exactement le format JSON retourné par ces endpoints.
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-brand">WILL<span class="hl">IT</span>FLOP</div>
+  <div class="footer-copy">Le Monde du Jeu Indé — Bootcamp Data Analyst 2026 — Anthony &amp; Pierre</div>
+  <div class="footer-tags">
+    <span class="tag tag-cyan">Steam</span>
+    <span class="tag tag-cyan">SteamSpy</span>
+    <span class="tag tag-pink">Twitch</span>
+    <span class="tag tag-green">PostgreSQL</span>
+    <span class="tag tag-warn">Mock data</span>
+  </div>
+</footer>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+
+// ====================================================================
+// MOCK DATA — structure miroir des endpoints API
+// ====================================================================
+
+const genres = [
+  { genre: 'Puzzle',     count: 312,  success_rate: 44 },
+  { genre: 'Roguelite',  count: 187,  success_rate: 42 },
+  { genre: 'RPG',        count: 487,  success_rate: 38 },
+  { genre: 'Strategy',   count: 423,  success_rate: 35 },
+  { genre: 'Simulation', count: 398,  success_rate: 32 },
+  { genre: 'Adventure',  count: 654,  success_rate: 29 },
+  { genre: 'Casual',     count: 521,  success_rate: 26 },
+  { genre: 'Action',     count: 1248, success_rate: 24 },
+  { genre: 'Platformer', count: 287,  success_rate: 22 },
+  { genre: 'Horror',     count: 198,  success_rate: 19 },
+].sort((a,b) => b.success_rate - a.success_rate);
+
+const priceDist = [
+  { range: 'Gratuit',  count: 782,  success_rate: 31 },
+  { range: '< 2 €',   count: 234,  success_rate: 12 },
+  { range: '2–5 €',   count: 687,  success_rate: 18 },
+  { range: '5–10 €',  count: 1124, success_rate: 26 },
+  { range: '10–15 €', count: 892,  success_rate: 33 },
+  { range: '15–20 €', count: 543,  success_rate: 38 },
+  { range: '20–30 €', count: 312,  success_rate: 42 },
+  { range: '> 30 €',  count: 98,   success_rate: 45 },
+];
+
+const tags = [
+  { tag: 'Singleplayer',   votes: 94200, success_rate: 29 },
+  { tag: '2D',             votes: 78300, success_rate: 24 },
+  { tag: 'Casual',         votes: 67100, success_rate: 22 },
+  { tag: 'Indie',          votes: 61800, success_rate: 28 },
+  { tag: 'Action',         votes: 58900, success_rate: 27 },
+  { tag: 'RPG',            votes: 54200, success_rate: 38 },
+  { tag: 'Strategy',       votes: 48700, success_rate: 34 },
+  { tag: 'Adventure',      votes: 44300, success_rate: 30 },
+  { tag: 'Multiplayer',    votes: 38200, success_rate: 41 },
+  { tag: 'Puzzle',         votes: 34600, success_rate: 44 },
+  { tag: 'Pixel Graphics', votes: 29100, success_rate: 21 },
+  { tag: 'Horror',         votes: 22800, success_rate: 18 },
+];
+
+const timeline = [
+  { year: 2015, count: 182, success_rate: 32 },
+  { year: 2016, count: 247, success_rate: 30 },
+  { year: 2017, count: 389, success_rate: 28 },
+  { year: 2018, count: 512, success_rate: 27 },
+  { year: 2019, count: 624, success_rate: 29 },
+  { year: 2020, count: 718, success_rate: 31 },
+  { year: 2021, count: 687, success_rate: 30 },
+  { year: 2022, count: 742, success_rate: 27 },
+  { year: 2023, count: 831, success_rate: 25 },
+  { year: 2024, count: 912, success_rate: 23 },
+  { year: 2025, count: 748, success_rate: 24 },
+];
+
+const radarLabels  = ['Review Score', 'Nb Languages', 'Playtime', 'Price Value', 'Twitch', 'Achievements'];
+const radarSuccess = [8.4, 7.2, 7.8, 6.5, 8.1, 7.6];
+const radarFail    = [4.1, 3.8, 4.4, 5.2, 2.9, 3.6];
+
+// ====================================================================
+// CHART.JS GLOBALS — adapté fond clair
+// ====================================================================
+Chart.defaults.color       = '#7A7A8C';
+Chart.defaults.font.family = "'Space Mono', monospace";
+Chart.defaults.font.size   = 10;
+
+// Palette calquée sur la charte graphique
+const PINK    = '#E8005A';
+const CYAN    = '#007A8C';
+const CYAN_B  = '#00C8B4';
+const WARN    = '#8C6A00';
+const SUCCESS = '#007A4C';
+const GRID    = 'rgba(212,208,200,0.8)';
+
+function a(hex, op) {
+  const [r,g,b] = [hex.slice(1,3),hex.slice(3,5),hex.slice(5,7)].map(h=>parseInt(h,16));
+  return `rgba(${r},${g},${b},${op})`;
+}
+
+// ====================================================================
+// 1. GENRES
+// ====================================================================
+new Chart(document.getElementById('chartGenres'), {
+  type: 'bar',
+  data: {
+    labels: genres.map(g => g.genre),
+    datasets: [{
+      label: 'Taux de succès (%)',
+      data: genres.map(g => g.success_rate),
+      backgroundColor: genres.map(g =>
+        g.success_rate >= 38 ? a(SUCCESS,0.6) :
+        g.success_rate >= 28 ? a(CYAN,0.6)    : a(PINK,0.6)
+      ),
+      borderColor: genres.map(g =>
+        g.success_rate >= 38 ? SUCCESS :
+        g.success_rate >= 28 ? CYAN    : PINK
+      ),
+      borderWidth: 1, borderRadius: 4,
+    }]
+  },
+  options: {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { afterLabel: ctx => `  Nb jeux : ${genres[ctx.dataIndex].count}` } }
+    },
+    scales: {
+      x: { grid: { color: GRID }, border: { color: GRID }, ticks: { callback: v => v + '%' }, max: 55 },
+      y: { grid: { display: false }, border: { color: GRID } }
+    }
+  }
+});
+
+// ====================================================================
+// 2. FREE VS PAID
+// ====================================================================
+new Chart(document.getElementById('chartFreePaid'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Free-to-play', 'Payant'],
+    datasets: [{
+      data: [782, 4090],
+      backgroundColor: [a(CYAN,0.65), a(PINK,0.65)],
+      borderColor: [CYAN, PINK],
+      borderWidth: 2, hoverOffset: 8,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, cutout: '62%',
+    plugins: { legend: { position: 'bottom', labels: { padding: 14, boxWidth: 10 } } }
+  }
+});
+
+// ====================================================================
+// 3. PRICE DISTRIBUTION
+// ====================================================================
+new Chart(document.getElementById('chartPriceDist'), {
+  type: 'bar',
+  data: {
+    labels: priceDist.map(p => p.range),
+    datasets: [
+      {
+        label: 'Nombre de jeux',
+        data: priceDist.map(p => p.count),
+        backgroundColor: a(WARN, 0.45), borderColor: WARN,
+        borderWidth: 1, borderRadius: 4, yAxisID: 'y',
+      },
+      {
+        label: 'Taux de succès (%)',
+        data: priceDist.map(p => p.success_rate),
+        type: 'line',
+        borderColor: SUCCESS, backgroundColor: a(SUCCESS, 0.07),
+        borderWidth: 2, pointRadius: 4, pointBackgroundColor: SUCCESS,
+        fill: true, tension: 0.35, yAxisID: 'y2',
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { padding: 12, boxWidth: 10 } } },
+    scales: {
+      x: { grid: { color: GRID }, border: { color: GRID } },
+      y:  { position: 'left',  grid: { color: GRID }, border: { color: GRID } },
+      y2: { position: 'right', grid: { display: false }, border: { color: GRID },
+            ticks: { callback: v => v + '%', color: SUCCESS }, max: 60 }
+    }
+  }
+});
+
+// ====================================================================
+// 4. RADAR
+// ====================================================================
+new Chart(document.getElementById('chartRadar'), {
+  type: 'radar',
+  data: {
+    labels: radarLabels,
+    datasets: [
+      {
+        label: 'Succès',
+        data: radarSuccess,
+        backgroundColor: a(SUCCESS,0.12), borderColor: SUCCESS,
+        borderWidth: 2, pointBackgroundColor: SUCCESS, pointRadius: 3,
+      },
+      {
+        label: 'Échec',
+        data: radarFail,
+        backgroundColor: a(PINK,0.08), borderColor: PINK,
+        borderWidth: 2, pointBackgroundColor: PINK, pointRadius: 3,
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { padding: 10, boxWidth: 10 } } },
+    scales: {
+      r: {
+        min: 0, max: 10,
+        grid: { color: GRID }, angleLines: { color: GRID },
+        pointLabels: { font: { size: 9 }, color: '#7A7A8C' },
+        ticks: { display: false }
+      }
+    }
+  }
+});
+
+// ====================================================================
+// 5. TAGS
+// ====================================================================
+let tagChart = null;
+
+function buildTagChart(sortKey) {
+  const sorted = [...tags].sort((a,b) =>
+    sortKey === 'success' ? b.success_rate - a.success_rate : b.votes - a.votes
+  );
+  const ctx = document.getElementById('chartTags');
+  if (tagChart) tagChart.destroy();
+  tagChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sorted.map(t => t.tag),
+      datasets: [{
+        label: sortKey === 'success' ? 'Taux de succès (%)' : 'Votes SteamSpy',
+        data: sorted.map(t => sortKey === 'success' ? t.success_rate : t.votes),
+        backgroundColor: sorted.map(t =>
+          t.success_rate >= 38 ? a(SUCCESS,0.6) :
+          t.success_rate >= 28 ? a(CYAN,0.6)    : a(PINK,0.6)
+        ),
+        borderColor: sorted.map(t =>
+          t.success_rate >= 38 ? SUCCESS :
+          t.success_rate >= 28 ? CYAN    : PINK
+        ),
+        borderWidth: 1, borderRadius: 4,
+      }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { afterLabel: ctx => `  Succès : ${sorted[ctx.dataIndex].success_rate}%` } }
+      },
+      scales: {
+        x: { grid: { color: GRID }, border: { color: GRID } },
+        y: { grid: { display: false }, border: { color: GRID } }
+      }
+    }
+  });
+}
+buildTagChart('votes');
+
+function switchTags(key, btn) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  buildTagChart(key);
+}
+
+// ====================================================================
+// 6. TIMELINE
+// ====================================================================
+new Chart(document.getElementById('chartTimeline'), {
+  type: 'bar',
+  data: {
+    labels: timeline.map(t => t.year),
+    datasets: [
+      {
+        label: 'Sorties',
+        data: timeline.map(t => t.count),
+        backgroundColor: a(CYAN, 0.35), borderColor: CYAN,
+        borderWidth: 1, borderRadius: 4, yAxisID: 'y',
+      },
+      {
+        label: 'Taux de succès (%)',
+        data: timeline.map(t => t.success_rate),
+        type: 'line',
+        borderColor: PINK, backgroundColor: a(PINK, 0.06),
+        borderWidth: 2, pointRadius: 4, pointBackgroundColor: PINK,
+        fill: true, tension: 0.35, yAxisID: 'y2',
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { padding: 10, boxWidth: 10 } } },
+    scales: {
+      x: { grid: { color: GRID }, border: { color: GRID } },
+      y:  { position: 'left',  grid: { color: GRID }, border: { color: GRID } },
+      y2: { position: 'right', grid: { display: false }, border: { color: GRID },
+            ticks: { callback: v => v + '%', color: PINK } }
+    }
+  }
+});
+
+// ====================================================================
+// 7. EARLY ACCESS
+// ====================================================================
+new Chart(document.getElementById('chartEA'), {
+  type: 'bar',
+  data: {
+    labels: ['Early Access', 'Sortie finale'],
+    datasets: [{
+      data: [22, 30],
+      backgroundColor: [a(WARN,0.55), a(SUCCESS,0.55)],
+      borderColor: [WARN, SUCCESS], borderWidth: 1, borderRadius: 5,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, border: { color: GRID } },
+      y: { grid: { color: GRID }, border: { color: GRID }, ticks: { callback: v => v + '%' }, max: 45 }
+    }
+  }
+});
+
+// ====================================================================
+// 8. TWITCH
+// ====================================================================
+new Chart(document.getElementById('chartTwitch'), {
+  type: 'bar',
+  data: {
+    labels: ['Sur Twitch', 'Pas sur Twitch'],
+    datasets: [{
+      data: [52, 18],
+      backgroundColor: [a(CYAN,0.55), a(WARN,0.3)],
+      borderColor: [CYAN, GRID], borderWidth: 1, borderRadius: 5,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, border: { color: GRID } },
+      y: { grid: { color: GRID }, border: { color: GRID }, ticks: { callback: v => v + '%' }, max: 65 }
+    }
+  }
+});
+
+// ====================================================================
+// 9. DLC
+// ====================================================================
+new Chart(document.getElementById('chartDLC'), {
+  type: 'bar',
+  data: {
+    labels: ['Avec DLC', 'Sans DLC'],
+    datasets: [{
+      data: [58, 21],
+      backgroundColor: [a(PINK,0.55), a(WARN,0.3)],
+      borderColor: [PINK, GRID], borderWidth: 1, borderRadius: 5,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, border: { color: GRID } },
+      y: { grid: { color: GRID }, border: { color: GRID }, ticks: { callback: v => v + '%' }, max: 65 }
+    }
+  }
+});
+
+// ====================================================================
+// 10. TAG CLOUD
+// ====================================================================
+const cloudTags = [
+  { tag: 'Singleplayer',   votes: 94200, success: 29 },
+  { tag: '2D',             votes: 78300, success: 24 },
+  { tag: 'Casual',         votes: 67100, success: 22 },
+  { tag: 'Indie',          votes: 61800, success: 28 },
+  { tag: 'Action',         votes: 58900, success: 27 },
+  { tag: 'RPG',            votes: 54200, success: 38 },
+  { tag: 'Strategy',       votes: 48700, success: 34 },
+  { tag: 'Adventure',      votes: 44300, success: 30 },
+  { tag: 'Multiplayer',    votes: 38200, success: 41 },
+  { tag: 'Puzzle',         votes: 34600, success: 44 },
+  { tag: 'Pixel Graphics', votes: 29100, success: 21 },
+  { tag: 'Horror',         votes: 22800, success: 18 },
+  { tag: 'Platformer',     votes: 21400, success: 22 },
+  { tag: 'Simulation',     votes: 19800, success: 32 },
+  { tag: 'Open World',     votes: 17200, success: 39 },
+  { tag: 'Roguelite',      votes: 15600, success: 47 },
+  { tag: 'Metroidvania',   votes: 12400, success: 43 },
+  { tag: 'Bullet Hell',    votes:  9800, success: 36 },
+  { tag: 'Visual Novel',   votes:  8700, success: 19 },
+  { tag: 'Tower Defense',  votes:  7300, success: 28 },
+  { tag: 'Souls-like',     votes:  6200, success: 51 },
+  { tag: 'Cozy',           votes:  5400, success: 42 },
+  { tag: 'Survival',       votes:  4900, success: 35 },
+  { tag: 'Card Game',      votes:  4200, success: 31 },
+];
+
+const maxV  = Math.max(...cloudTags.map(t => t.votes));
+const cloud = document.getElementById('tagCloud');
+
+cloudTags.forEach(t => {
+  const size  = 0.6 + (t.votes / maxV) * 0.95;
+  const color = t.success >= 40 ? SUCCESS :
+                t.success >= 30 ? CYAN    :
+                t.success >= 20 ? WARN    : PINK;
+
+  const el    = document.createElement('span');
+  el.className = 'tag-pill';
+  el.textContent = `${t.tag}  ${t.success}%`;
+  el.style.cssText = `font-size:${size}rem; color:${color}; border-color:${color}; background:${a(color,0.07)};`;
+  el.title = `${t.tag} — Succès : ${t.success}% — Votes : ${t.votes.toLocaleString('fr-FR')}`;
+  cloud.appendChild(el);
+});
+
+// ====================================================================
+// KPI ANIMATED COUNTERS
+// ====================================================================
+function animateKPI(el) {
+  const target = parseInt(el.dataset.target);
+  const prefix = el.dataset.prefix || '';
+  const suffix = el.dataset.suffix || '';
+  let current = 0;
+  const step  = target / (1400 / 16);
+
+  const timer = setInterval(() => {
+    current += step;
+    if (current >= target) { current = target; clearInterval(timer); }
+    el.textContent = prefix + Math.floor(current).toLocaleString('fr-FR') + suffix;
+  }, 16);
+}
+
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { animateKPI(e.target); io.unobserve(e.target); } });
+}, { threshold: 0.6 });
+
+document.querySelectorAll('[data-target]').forEach(el => io.observe(el));
+
+</script>
+</body>
+</html>
