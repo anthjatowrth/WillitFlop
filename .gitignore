@@ -7,10 +7,19 @@ __pycache__/
 *.pyo
 .venv/
 
-# Data
-*.json
+# Data (fichiers de données brutes uniquement)
 *.csv
+data/*.json
+# Exceptions : configs npm (doivent être versionnées)
+!package.json
+!package-lock.json
 
 # IDE
 .vscode/
 .idea/
+
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
