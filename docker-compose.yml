@@ -12,7 +12,7 @@ x-airflow-common: &airflow-common
   build: . 
   environment:
     # Connexion d'Airflow à SA propre base de métadonnées
-    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@postgres/airflow
     # Pas d'exemples de DAGs pour garder l'UI propre
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     # LocalExecutor — parfait pour un projet solo/duo
@@ -42,12 +42,12 @@ x-airflow-common: &airflow-common
 services:
 
   # ── Base de données ──────────────────────────────────────────
-  postgres:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: root
-      POSTGRES_DB: willitflop
+postgres:
+  image: postgres:15
+  environment:
+    POSTGRES_USER: ${POSTGRES_USER}
+    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    POSTGRES_DB: ${DB_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       # Les scripts init sont exécutés dans l'ordre alphabétique
