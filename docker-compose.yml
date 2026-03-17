@@ -9,7 +9,7 @@
 # ============================================================
 
 x-airflow-common: &airflow-common
-  image: apache/airflow:2.9.1
+  build: . 
   environment:
     # Connexion d'Airflow à SA propre base de métadonnées
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
@@ -17,17 +17,7 @@ x-airflow-common: &airflow-common
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     # LocalExecutor — parfait pour un projet solo/duo
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
-    PYTHONPATH: /opt/airflow 
-
-    # ← Installe automatiquement les dépendances au démarrage
-    _PIP_ADDITIONAL_REQUIREMENTS: >-
-      currency_converter
-      requests
-      psycopg2-binary
-      python-dotenv
-      beautifulsoup4
-      scrapy
-      playwright
+    PYTHONPATH: /opt/airflow
 
     # ── Variables de ton projet (lues depuis ton .env) ───────
     STEAM_API_KEY: ${STEAM_API_KEY}
