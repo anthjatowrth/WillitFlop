@@ -19,6 +19,16 @@ x-airflow-common: &airflow-common
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     PYTHONPATH: /opt/airflow 
 
+    # ← Installe automatiquement les dépendances au démarrage
+    _PIP_ADDITIONAL_REQUIREMENTS: >-
+      currency_converter
+      requests
+      psycopg2-binary
+      python-dotenv
+      beautifulsoup4
+      scrapy
+      playwright
+
     # ── Variables de ton projet (lues depuis ton .env) ───────
     STEAM_API_KEY: ${STEAM_API_KEY}
     TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
