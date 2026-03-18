@@ -6,12 +6,19 @@ load_dotenv()
 
 
 def get_connection():
+    host = os.getenv("DB_HOST")
+    if not host:
+        raise EnvironmentError(
+            "DB_HOST n'est pas défini. "
+            "Vérifiez vos secrets GitHub (ou votre .env en local)."
+        )
     return psycopg2.connect(
-        host=os.getenv("DB_HOST", "localhost"),
-        port=os.getenv("DB_PORT", 5432),
-        dbname=os.getenv("DB_NAME", "willitflop"),
-        user=os.getenv("DB_USER", "postgres"),
-        password=os.getenv("DB_PASSWORD", ""),
+        host=host,
+        port=int(os.getenv("DB_PORT", 5432)),
+        dbname=os.getenv("DB_NAME", "postgres"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        sslmode="require",  # requis pour Supabase
     )
 
 
