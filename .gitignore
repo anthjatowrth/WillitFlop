@@ -18,9 +18,8 @@ __pycache__/
 # Docker
 postgres_data/
 
-# Airflow
-airflow/logs/
-airflow/plugins/
+# Prefect
+.prefect/
 
 # DBT
 dbt/target/
