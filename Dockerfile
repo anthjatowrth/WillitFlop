@@ -1,4 +1,4 @@
-FROM apache/airflow:2.9.1
+FROM apache/airflow:3.0.0
 
 USER airflow
 RUN pip install --no-cache-dir \

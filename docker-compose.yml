@@ -1,67 +1,104 @@
 # ============================================================
 # docker-compose.yml — WillItFlop
 # ============================================================
-# Services lancés :
+# Services :
+#   - postgres          : PostgreSQL local pour les métadonnées Airflow UNIQUEMENT
 #   - airflow-init      : initialise Airflow au premier lancement
 #   - airflow-webserver : l'interface web Airflow (port 8080)
 #   - airflow-scheduler : le moteur qui exécute les DAGs
 #
-# Base de données : Supabase (cloud)
-#   - schéma "public"  → données WillItFlop
-#   - schéma "airflow" → métadonnées internes Airflow
+# Architecture DB :
+#   - postgres (local Docker) → métadonnées internes Airflow
+#   - Supabase (cloud)        → données métier WillItFlop (games, tags, etc.)
+#
+# POURQUOI pas Supabase pour Airflow ?
+#   Supabase utilise PgBouncer comme pooler. PgBouncer est incompatible avec
+#   Airflow car : format de username spécial, session state non maintenu,
+#   connexion directe inaccessible depuis Docker. Solution standard Apache :
+#   un postgres local dédié aux métadonnées.
 # ============================================================
 
 x-airflow-common: &airflow-common
   build: .
   environment:
-    # Connexion Airflow → Supabase (schéma "airflow" via config séparée)
-    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
-    AIRFLOW__DATABASE__SQL_ALCHEMY_SCHEMA: airflow
-    # Pas d'exemples de DAGs pour garder l'UI propre
+    # ── Connexion Airflow → PostgreSQL LOCAL (métadonnées internes) ───────────
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-    # LocalExecutor — parfait pour un projet solo/duo
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     PYTHONPATH: /opt/airflow
 
-    # ── Variables de ton projet (lues depuis ton .env) ───────
-    STEAM_API_KEY: ${STEAM_API_KEY}
-    TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
-    TWITCH_CLIENT_SECRET: ${TWITCH_CLIENT_SECRET}
+    # ── Connexion pipeline → Supabase (données métier WillItFlop) ────────────
     DB_HOST: ${DB_HOST}
     DB_PORT: ${DB_PORT}
     DB_NAME: ${DB_NAME}
     DB_USER: ${DB_USER}
     DB_PASSWORD: ${DB_PASSWORD}
 
+    # ── APIs externes ─────────────────────────────────────────────────────────
+    STEAM_API_KEY: ${STEAM_API_KEY}
+    TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
+    TWITCH_CLIENT_SECRET: ${TWITCH_CLIENT_SECRET}
+
   volumes:
     - ./dags:/opt/airflow/dags
     - ./pipeline:/opt/airflow/pipeline
     - ./airflow/logs:/opt/airflow/logs
     - ./airflow/plugins:/opt/airflow/plugins
+    - ./scripts:/opt/airflow/scripts
   dns:
     - 8.8.8.8
     - 8.8.4.4
   user: "${AIRFLOW_UID:-50000}:0"
+  depends_on:
+    postgres:
+      condition: service_healthy
 
 services:
 
-  # ── Initialisation Airflow (ne tourne qu'une seule fois) ─────
+  # ── PostgreSQL local — uniquement pour les métadonnées Airflow ────────────
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
+    restart: always
+
+  # ── Initialisation Airflow (ne tourne qu'une seule fois) ─────────────────
   airflow-init:
     <<: *airflow-common
-    command: >-
-      bash -c "airflow db migrate && airflow users create --username admin --password admin --firstname Pierre --lastname Admin --role Admin --email admin@willitflop.com"
+    command: bash /opt/airflow/scripts/init_airflow.sh
     restart: "no"
 
-  # ── Interface web (localhost:8080) ───────────────────────────
+  # ── Interface web (localhost:8080) ────────────────────────────────────────
   airflow-webserver:
     <<: *airflow-common
     command: webserver
     ports:
       - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
     restart: always
 
-  # ── Scheduler (exécute les DAGs) ─────────────────────────────
+  # ── Scheduler (exécute les DAGs) ──────────────────────────────────────────
   airflow-scheduler:
     <<: *airflow-common
     command: scheduler
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
     restart: always
+
+volumes:
+  postgres_data:
