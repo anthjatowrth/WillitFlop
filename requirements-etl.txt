@@ -1,0 +1,9 @@
+# Dépendances minimales pour la pipeline ETL en CI (GitHub Actions)
+prefect>=3.0
+psycopg2-binary
+requests
+python-dotenv
+CurrencyConverter
+dbt-core
+dbt-postgres
+beautifulsoup4
