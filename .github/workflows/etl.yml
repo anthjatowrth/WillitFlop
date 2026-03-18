@@ -36,4 +36,4 @@ jobs:
         run: pip install -r requirements-etl.txt
 
       - name: Run ETL flow
-        run: python pipeline/flow.py
+        run: PYTHONPATH=. python pipeline/flow.py
