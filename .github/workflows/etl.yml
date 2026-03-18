@@ -35,8 +35,5 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements-etl.txt
 
-      - name: Authenticate with Prefect Cloud
-        run: prefect cloud login --key ${{ secrets.PREFECT_API_KEY }}
-
       - name: Run ETL flow
         run: python pipeline/flow.py
