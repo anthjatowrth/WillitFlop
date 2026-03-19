@@ -10,7 +10,7 @@ load_dotenv()
 def fetch_indie_app_ids() -> list[int]:
     """Récupère tous les app_id de jeux Indie via SteamSpy (toutes les pages)."""
     print("Récupération des IDs jeux Indie via SteamSpy...")
-    all_ids = []
+    all_ids_set: set[int] = set()
     page = 0
     while True:
         resp = requests.get(
@@ -23,14 +23,17 @@ def fetch_indie_app_ids() -> list[int]:
         if not data:
             break
         ids = [int(k) for k in data.keys()]
-        all_ids.extend(ids)
-        print(f"  Page {page} : {len(ids)} IDs (total : {len(all_ids)})")
+        new_ids = [i for i in ids if i not in all_ids_set]
+        if not new_ids:
+            break  # plus aucun nouvel ID = API a renvoyé les mêmes données
+        all_ids_set.update(ids)
+        print(f"  Page {page} : {len(ids)} IDs ({len(new_ids)} nouveaux, total : {len(all_ids_set)})")
         if len(ids) < 1000:  # SteamSpy retourne au plus 1000 entrées par page
             break
         page += 1
         time.sleep(1.5)  # respecter le rate limit SteamSpy
-    print(f"{len(all_ids)} IDs récupérés au total.")
-    return all_ids
+    print(f"{len(all_ids_set)} IDs récupérés au total.")
+    return list(all_ids_set)
 
 
 def fetch_app_details(app_id: int) -> dict | None:
