@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom'
 import Home from './pages/Home'
 import Market from './pages/Market'
 import Price from './pages/Price'
+import MiniGame from './pages/MiniGame'
 
 export default function App() {
   return (
@@ -9,6 +10,7 @@ export default function App() {
       <Route path="/" element={<Home />} />
       <Route path="/market" element={<Market />} />
       <Route path="/price" element={<Price />} />
+      <Route path="/minigame" element={<MiniGame />} />
     </Routes>
   )
 }
