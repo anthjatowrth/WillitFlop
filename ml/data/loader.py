@@ -15,7 +15,6 @@ from ml.config import (
     BOOL_FEATURES,
     MULTILABEL_FEATURES,
     NUMERIC_FEATURES,
-    REVIEW_FEATURES,
     TARGET,
     TEXT_FEATURE,
 )
@@ -29,7 +28,6 @@ _COLUMNS = (
     + BOOL_FEATURES
     + MULTILABEL_FEATURES
     + [TEXT_FEATURE]
-    + REVIEW_FEATURES
     + [TARGET]
 )
 
@@ -76,10 +74,6 @@ def load_features() -> pd.DataFrame:
 
     # Remplace le texte NULL par chaîne vide (TF-IDF l'accepte)
     df[TEXT_FEATURE] = df[TEXT_FEATURE].fillna("")
-
-    # Idem pour les textes de sentiment (jeux sans avis)
-    for col in REVIEW_FEATURES:
-        df[col] = df[col].fillna("")
 
     # Les booléens peuvent arriver comme object en cas de NULL — on force bool
     for col in BOOL_FEATURES:

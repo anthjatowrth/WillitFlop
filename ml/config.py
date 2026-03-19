@@ -39,12 +39,6 @@ MULTILABEL_FEATURES = [
 # Colonne texte libre : TF-IDF
 TEXT_FEATURE = "short_description_clean"
 
-# Colonnes texte sentiment (avis joueurs) : TF-IDF indépendants
-REVIEW_FEATURES = [
-    "top_positive_reviews_text",
-    "top_negative_reviews_text",
-]
-
 # Colonne cible
 TARGET = "is_successful"
 
@@ -57,17 +51,13 @@ RANDOM_STATE = 42    # reproductibilité
 # ---------------------------------------------------------------------------
 # Hyperparamètres XGBoost (point de départ — tuning ultérieur si besoin)
 # ---------------------------------------------------------------------------
-# scale_pos_weight compense le déséquilibre : ~83 % négatifs / ~17 % positifs
-# Formule : nb_négatifs / nb_positifs ≈ 83 / 17 ≈ 4.9
-SCALE_POS_WEIGHT = 4.9
-
 XGBOOST_PARAMS = {
     "n_estimators":     400,
     "max_depth":        6,
     "learning_rate":    0.05,
     "subsample":        0.8,
     "colsample_bytree": 0.8,
-    "scale_pos_weight": SCALE_POS_WEIGHT,
+    # scale_pos_weight est calculé dynamiquement dans train.py depuis y_train
     "eval_metric":      "auc",
     "random_state":     RANDOM_STATE,
     "n_jobs":           -1,
@@ -75,3 +65,16 @@ XGBOOST_PARAMS = {
 
 # Nombre de folds pour la validation croisée stratifiée
 CV_FOLDS = 5
+
+# ---------------------------------------------------------------------------
+# Inférence
+# ---------------------------------------------------------------------------
+
+# Seuil de décision Top / Flop (F1-optimal sur le test set)
+DECISION_THRESHOLD = 0.57
+
+# Mapping probabilité → note Metacritic fictive
+# score = METACRITIC_BASE + METACRITIC_RANGE * proba
+# proba=0.0 → 40  |  proba=0.57 → 71  |  proba=1.0 → 95
+METACRITIC_BASE  = 40
+METACRITIC_RANGE = 55
