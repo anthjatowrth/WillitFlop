@@ -28,7 +28,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import MultiLabelBinarizer
 
-from ml.config import BOOL_FEATURES, MULTILABEL_FEATURES, NUMERIC_FEATURES, REVIEW_FEATURES, TEXT_FEATURE
+from ml.config import BOOL_FEATURES, MULTILABEL_FEATURES, NUMERIC_FEATURES, TEXT_FEATURE
 
 
 class MultiLabelEncoder(BaseEstimator, TransformerMixin):
@@ -105,33 +105,11 @@ def build_preprocessor() -> ColumnTransformer:
                 max_features=300,
                 ngram_range=(1, 2),
                 sublinear_tf=True,
+                stop_words="english",
             ),
             TEXT_FEATURE,  # chaîne simple → Series 1D
         ),
 
-        # --- Texte : TF-IDF avis positifs ------------------------------------
-        # max_features=100 : les avis sont plus bruités, vocabulaire réduit.
-        # Les jeux sans avis ont une chaîne vide → vecteur zéro, pas d'erreur.
-        (
-            "positive_reviews",
-            TfidfVectorizer(
-                max_features=100,
-                ngram_range=(1, 2),
-                sublinear_tf=True,
-            ),
-            REVIEW_FEATURES[0],  # "top_positive_reviews_text"
-        ),
-
-        # --- Texte : TF-IDF avis négatifs ------------------------------------
-        (
-            "negative_reviews",
-            TfidfVectorizer(
-                max_features=100,
-                ngram_range=(1, 2),
-                sublinear_tf=True,
-            ),
-            REVIEW_FEATURES[1],  # "top_negative_reviews_text"
-        ),
     ]
 
     return ColumnTransformer(
