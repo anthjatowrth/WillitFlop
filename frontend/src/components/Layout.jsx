@@ -2,12 +2,10 @@ import { NavLink, Outlet } from 'react-router-dom'
 import Logo from './Logo'
 
 const NAV_LINKS = [
-  { label: 'Home',          to: '/',             end: true },
-  { label: 'Market Stats',  to: '/market' },
-  { label: 'Price',         to: '/price' },
-  { label: 'Predictor',     to: '/minigame' },
-  { label: 'Leaderboard',   to: '/leaderboard' },
-  { label: 'Game Database', to: '/database' },
+  { label: 'Accueil',     to: '/',             end: true },
+  { label: 'Tendances',   to: '/market' },
+  { label: 'Leaderboard', to: '/leaderboard' },
+  { label: 'Catalogue',   to: '/database' },
 ]
 
 export default function Layout() {
@@ -45,7 +43,7 @@ export default function Layout() {
           {/* Right: CTA buttons */}
           <div className="flex items-center gap-4">
             <button className="px-4 py-2 text-sm font-bold text-foreground/60 hover:bg-muted transition-all duration-200 rounded-sm">
-              Sign In
+              Connexion (en développement)
             </button>
             <NavLink
               to="/minigame"

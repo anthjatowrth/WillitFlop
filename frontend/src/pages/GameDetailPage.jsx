@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import Hls from 'hls.js'
 import { supabase } from '../api/client'
 import { getScoreAccent } from '../utils/scoreColor'
 
@@ -132,6 +133,89 @@ function MetacriticBlock({ score }) {
 /** Skeleton placeholder */
 function Skeleton({ className = '' }) {
   return <div className={`bg-surface-container-high animate-pulse ${className}`} />
+}
+
+/** HLS video player for Steam trailers */
+function GameTrailer({ hlsUrl, posterUrl }) {
+  const videoRef = useRef(null)
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video || !hlsUrl) return
+
+    if (hlsUrl.endsWith('.m3u8') && Hls.isSupported()) {
+      const hls = new Hls()
+      hls.loadSource(hlsUrl)
+      hls.attachMedia(video)
+      return () => hls.destroy()
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      // Safari native HLS
+      video.src = hlsUrl
+    } else {
+      // Fallback: try direct src (webm/mp4)
+      video.src = hlsUrl
+    }
+  }, [hlsUrl])
+
+  if (!hlsUrl) return null
+
+  return (
+    <section>
+      <SectionLabel>Trailer</SectionLabel>
+      <div className="overflow-hidden border border-border" style={{ aspectRatio: '16/9' }}>
+        <video
+          ref={videoRef}
+          poster={posterUrl}
+          controls
+          muted
+          className="w-full h-full object-cover"
+        />
+      </div>
+    </section>
+  )
+}
+
+/** Screenshots gallery — thumbnails in a row, hover to enlarge */
+function ScreenshotGallery({ urls }) {
+  const [active, setActive] = useState(null)
+  if (!urls?.length) return null
+
+  return (
+    <section>
+      <SectionLabel>Screenshots</SectionLabel>
+      <div className="flex flex-col gap-3">
+        {/* Enlarged preview */}
+        {active && (
+          <div className="overflow-hidden border border-border">
+            <img
+              src={active}
+              alt="Screenshot"
+              className="w-full object-cover transition-all duration-300"
+              style={{ aspectRatio: '16/9' }}
+            />
+          </div>
+        )}
+        {/* Thumbnail strip */}
+        <div className="flex gap-2 flex-wrap">
+          {urls.map((url, i) => (
+            <div
+              key={url}
+              className="overflow-hidden border border-border cursor-pointer transition-all duration-200"
+              style={{ width: 'calc(20% - 0.4rem)', aspectRatio: '16/9' }}
+              onMouseEnter={() => setActive(url)}
+              onMouseLeave={() => setActive(null)}
+            >
+              <img
+                src={url}
+                alt={`Screenshot ${i + 1}`}
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
 }
 
 // ── Main page ─────────────────────────────────────────────────────────────
@@ -313,20 +397,8 @@ export default function GameDetailPage() {
             </section>
           )}
 
-          {/* Screenshot */}
-          {game.first_screenshot_url && (
-            <section>
-              <SectionLabel>Screenshot</SectionLabel>
-              <div className="overflow-hidden border border-border">
-                <img
-                  src={game.first_screenshot_url}
-                  alt={`${game.name} screenshot`}
-                  className="w-full object-cover hover:scale-105 transition-transform duration-700"
-                  style={{ aspectRatio: '16/9' }}
-                />
-              </div>
-            </section>
-          )}
+          {/* Trailer */}
+          <GameTrailer hlsUrl={game.trailer_hls_url} posterUrl={game.header_image} />
 
           {/* Community tags */}
           {tags.length > 0 && (
@@ -345,6 +417,9 @@ export default function GameDetailPage() {
               </div>
             </section>
           )}
+
+          {/* Screenshots gallery */}
+          <ScreenshotGallery urls={game.screenshot_urls} />
 
           {/* Supported languages */}
           {game.supported_languages?.length > 0 && (

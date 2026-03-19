@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Button } from '../components/ui/button'
+import { Badge } from '../components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card'
 import { buildImagePrompt } from '../utils/promptBuilder'
+import { saveToLeaderboard } from '../api/leaderboard'
 
 // ---------------------------------------------------------------------------
 // Définition des 13 questions du questionnaire
@@ -119,6 +121,7 @@ export default function MiniGame() {
   const [error, setError] = useState(null)
   const [imageUrl, setImageUrl] = useState(null)
   const [imageLoading, setImageLoading] = useState(false)
+  const [leaderboardAdded, setLeaderboardAdded] = useState(false)
 
   const question = QUESTIONS[currentStep]
   const totalSteps = QUESTIONS.length
@@ -126,13 +129,10 @@ export default function MiniGame() {
   // -------------------------------------------------------------------------
   // Handlers de mise à jour des réponses
   // -------------------------------------------------------------------------
-
-  // Choix unique (single / yesno)
   const handleSingleSelect = (value) => {
     setAnswers(prev => ({ ...prev, [question.key]: value }))
   }
 
-  // Multi-sélection (toggle)
   const handleMultiToggle = (value) => {
     setAnswers(prev => {
       const current = prev[question.key]
@@ -143,13 +143,12 @@ export default function MiniGame() {
     })
   }
 
-  // Champ texte libre
   const handleTextChange = (e) => {
     setAnswers(prev => ({ ...prev, [question.key]: e.target.value }))
   }
 
   // -------------------------------------------------------------------------
-  // Validation : peut-on passer à la question suivante ?
+  // Validation
   // -------------------------------------------------------------------------
   const canProceed = () => {
     const value = answers[question.key]
@@ -161,25 +160,21 @@ export default function MiniGame() {
   }
 
   // -------------------------------------------------------------------------
-  // Navigation : étape suivante ou soumission finale
+  // Navigation
   // -------------------------------------------------------------------------
   const handleNext = async () => {
     if (!canProceed()) return
-
-    // Dernière question — envoi au backend
     if (currentStep === totalSteps - 1) {
       await submitPrediction(answers)
       return
     }
-
     setCurrentStep(prev => prev + 1)
   }
 
   // -------------------------------------------------------------------------
-  // Mapping : réponses du questionnaire → champs attendus par le modèle ML
+  // Mapping réponses → payload ML
   // -------------------------------------------------------------------------
   const mapAnswersToPayload = (a) => {
-    // Prix : conversion string → float
     const priceMap = {
       'Gratuit': 0,
       'Moins de 5€': 3,
@@ -188,17 +183,7 @@ export default function MiniGame() {
       'Plus de 30€': 40,
     }
     const price_eur = priceMap[a.pricing] ?? null
-
-    // Tags : regroupe les infos qualitatives secondaires
-    const tags = [
-      a.universe,
-      a.perspective,
-      a.visualStyle,
-      a.playtime,
-      ...a.platforms,
-    ].filter(Boolean)
-
-    // Description courte : combine description + élément iconique
+    const tags = [a.universe, a.perspective, a.visualStyle, a.playtime, ...a.platforms].filter(Boolean)
     const descParts = [a.description, a.iconicElement].filter(v => v.trim())
     const short_description_clean = descParts.join(' ') || null
 
@@ -214,7 +199,7 @@ export default function MiniGame() {
   }
 
   // -------------------------------------------------------------------------
-  // Appel API — POST /predict  +  génération jaquette Pollinations (parallèle)
+  // Appel API + génération jaquette Pollinations (parallèle)
   // -------------------------------------------------------------------------
   const submitPrediction = async (rawAnswers) => {
     setIsLoading(true)
@@ -235,7 +220,6 @@ export default function MiniGame() {
       const pollinationsEndpoint = `https://gen.pollinations.ai/image/${encodedPrompt}?model=flux&width=512&height=768&enhance=true&negative_prompt=${negativePrompt}&nologo=true&key=${apiKey}`
 
       const [data, imageBlob] = await Promise.all([
-        // Appel 1 : prédiction backend (bloquant — erreur remontée)
         fetch(`${import.meta.env.VITE_API_URL}/predict`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -244,7 +228,6 @@ export default function MiniGame() {
           if (!r.ok) throw new Error(`Erreur serveur : ${r.status}`)
           return r.json()
         }),
-        // Appel 2 : génération image Pollinations (non-bloquant — null si échec)
         fetch(pollinationsEndpoint)
           .then(r => r.ok ? r.blob() : null)
           .catch(() => null),
@@ -252,6 +235,12 @@ export default function MiniGame() {
 
       setResult(data)
       if (imageBlob) setImageUrl(URL.createObjectURL(imageBlob))
+
+      // Tente d'inscrire le jeu au leaderboard du mois
+      // On passe le blob directement : il sera uploadé dans Supabase Storage si le jeu se qualifie
+      saveToLeaderboard({ verdict: data.verdict, proba: data.proba, metacritic_score: data.metacritic_score, answers: rawAnswers, coverBlob: imageBlob })
+        .then(added => setLeaderboardAdded(added))
+        .catch(console.error)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -261,7 +250,7 @@ export default function MiniGame() {
   }
 
   // -------------------------------------------------------------------------
-  // Remise à zéro
+  // Reset
   // -------------------------------------------------------------------------
   const handleReset = () => {
     setAnswers(INITIAL_ANSWERS)
@@ -270,61 +259,82 @@ export default function MiniGame() {
     setError(null)
     setImageUrl(null)
     setImageLoading(false)
+    setLeaderboardAdded(false)
   }
 
   // -------------------------------------------------------------------------
   // Rendu
   // -------------------------------------------------------------------------
   return (
-    <div className="flex flex-col items-center justify-center px-6 py-16 font-mono" style={{ minHeight: 'calc(100vh - 72px)' }}>
+    <div className="technical-grid min-h-full">
+      <div className="max-w-screen-lg mx-auto px-6 py-12">
 
-        {/* Écran de résultat */}
+        {/* ── Header — masqué sur l'écran de résultat ─────────────── */}
+        {!result && !isLoading && (
+          <section className="mb-10 text-center">
+            <span className="font-label text-[10px] tracking-[0.3em] uppercase text-primary block mb-4">
+              Game Predictor · IA 84.2%
+            </span>
+            <h1 className="font-headline text-5xl md:text-6xl font-extrabold tracking-tighter text-foreground mb-3">
+              Will It <span style={{ color: 'var(--wif-pink)' }}>Flop</span> ?
+            </h1>
+            <p className="text-muted-foreground font-label text-xs tracking-wider">
+              13 questions — notre algorithme prédit le destin de ton jeu
+            </p>
+          </section>
+        )}
+
+        {/* ── Chargement ──────────────────────────────────────────── */}
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center py-40 gap-6">
+            <div
+              className="w-14 h-14 rounded-full border-4 border-border animate-spin"
+              style={{ borderTopColor: 'var(--wif-pink)' }}
+            />
+            <p className="font-label text-[10px] tracking-[0.35em] uppercase text-muted-foreground animate-pulse">
+              Analyse en cours…
+            </p>
+          </div>
+        )}
+
+        {/* ── Erreur ──────────────────────────────────────────────── */}
+        {error && !isLoading && !result && (
+          <div className="max-w-xl mx-auto">
+            <Card className="border-destructive">
+              <CardContent className="py-10 text-center space-y-4">
+                <span className="font-label text-[10px] tracking-[0.3em] uppercase text-destructive block">
+                  Erreur système
+                </span>
+                <p className="font-semibold text-foreground">{error}</p>
+                <Button variant="outline" onClick={handleReset}>Recommencer ↺</Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* ── Résultat ────────────────────────────────────────────── */}
         {result && (
           <ResultCard
             result={result}
             answers={answers}
             imageUrl={imageUrl}
             imageLoading={imageLoading}
+            leaderboardAdded={leaderboardAdded}
             onReset={handleReset}
           />
         )}
 
-        {/* Écran de chargement */}
-        {isLoading && (
-          <Card className="w-full max-w-xl text-center">
-            <CardContent className="py-16">
-              <p className="text-lg text-muted-foreground animate-pulse">
-                Analyse en cours…
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Erreur */}
-        {error && !isLoading && !result && (
-          <Card className="w-full max-w-xl border-destructive">
-            <CardContent className="py-8 text-center space-y-4">
-              <p className="text-destructive font-semibold">Une erreur est survenue</p>
-              <p className="text-sm text-muted-foreground">{error}</p>
-              <Button variant="outline" onClick={handleReset}>Recommencer</Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Questionnaire */}
+        {/* ── Questionnaire ───────────────────────────────────────── */}
         {!result && !isLoading && !error && (
-          <div className="w-full max-w-xl space-y-6">
-
-            {/* Indicateur de progression */}
+          <div className="max-w-xl mx-auto space-y-5">
             <ProgressBar current={currentStep + 1} total={totalSteps} />
 
-            {/* Carte de la question courante */}
             <Card>
               <CardHeader>
-                <p className="text-xs text-muted-foreground uppercase tracking-widest">
+                <span className="font-label text-[10px] tracking-[0.3em] uppercase text-primary">
                   Question {currentStep + 1} / {totalSteps}
-                </p>
-                <CardTitle className="text-xl leading-snug mt-1">
+                </span>
+                <CardTitle className="font-headline text-2xl leading-snug">
                   {question.label}
                 </CardTitle>
                 {question.sublabel && (
@@ -336,7 +346,7 @@ export default function MiniGame() {
                 {/* Texte libre */}
                 {question.type === 'text' && (
                   <textarea
-                    className="w-full min-h-[100px] rounded-lg border bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full min-h-[100px] rounded-lg border bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary font-exo"
                     placeholder={question.placeholder}
                     value={answers[question.key]}
                     onChange={handleTextChange}
@@ -365,17 +375,17 @@ export default function MiniGame() {
 
                 {/* Oui / Non */}
                 {question.type === 'yesno' && (
-                  <div className="flex gap-4">
+                  <div className="flex gap-3">
                     {[{ label: 'Oui', value: true }, { label: 'Non', value: false }].map(({ label, value }) => (
                       <button
                         key={label}
                         onClick={() => handleSingleSelect(value)}
-                        className={[
-                          'flex-1 rounded-lg border-2 py-3 text-sm font-semibold transition-colors',
+                        className="flex-1 rounded-lg border-2 py-4 text-sm font-semibold transition-all font-label tracking-widest uppercase"
+                        style={
                           answers[question.key] === value
-                            ? 'border-primary bg-primary text-primary-foreground'
-                            : 'border-border bg-background hover:border-primary hover:text-primary',
-                        ].join(' ')}
+                            ? { borderColor: 'var(--wif-pink)', background: 'var(--wif-pink)', color: '#fff' }
+                            : { borderColor: 'var(--wif-border)', background: 'transparent', color: 'var(--wif-ink)' }
+                        }
                       >
                         {label}
                       </button>
@@ -383,10 +393,11 @@ export default function MiniGame() {
                   </div>
                 )}
 
-                {/* Bouton suivant / soumettre */}
+                {/* Bouton navigation */}
                 <div className="pt-2">
                   <Button
                     className="w-full"
+                    size="lg"
                     onClick={handleNext}
                     disabled={!canProceed()}
                   >
@@ -397,25 +408,30 @@ export default function MiniGame() {
             </Card>
           </div>
         )}
+      </div>
     </div>
   )
 }
 
 // ---------------------------------------------------------------------------
-// Sous-composant : barre de progression
+// Barre de progression
 // ---------------------------------------------------------------------------
 function ProgressBar({ current, total }) {
   const pct = Math.round((current / total) * 100)
   return (
-    <div className="space-y-1">
-      <div className="flex justify-between text-xs text-muted-foreground">
-        <span>Étape {current} / {total}</span>
-        <span>{pct}%</span>
+    <div className="space-y-2">
+      <div className="flex justify-between items-center">
+        <span className="font-label text-[10px] tracking-[0.3em] uppercase text-muted-foreground">
+          Progression
+        </span>
+        <span className="font-label text-[10px] tracking-[0.3em] uppercase text-primary">
+          {pct}%
+        </span>
       </div>
-      <div className="h-1.5 w-full rounded-full bg-border overflow-hidden">
+      <div className="h-1 w-full rounded-full bg-border overflow-hidden">
         <div
-          className="h-full bg-primary transition-all duration-300"
-          style={{ width: `${pct}%` }}
+          className="h-full rounded-full transition-all duration-300"
+          style={{ width: `${pct}%`, background: 'var(--wif-pink)' }}
         />
       </div>
     </div>
@@ -423,27 +439,25 @@ function ProgressBar({ current, total }) {
 }
 
 // ---------------------------------------------------------------------------
-// Sous-composant : grille d'options (single ou multi)
+// Grille d'options (single ou multi)
 // ---------------------------------------------------------------------------
 function OptionGrid({ options, selected, onSelect, multi }) {
   return (
     <div className="grid grid-cols-2 gap-2">
       {options.map(option => {
-        const isSelected = multi
-          ? selected.includes(option)
-          : selected === option
-
+        const isSelected = multi ? selected.includes(option) : selected === option
         return (
           <button
             key={option}
             onClick={() => onSelect(option)}
-            className={[
-              'rounded-lg border-2 px-3 py-2 text-sm text-left transition-colors',
+            className="rounded-lg border-2 px-3 py-3 text-sm text-left transition-all font-exo"
+            style={
               isSelected
-                ? 'border-primary bg-primary text-primary-foreground font-semibold'
-                : 'border-border bg-background hover:border-primary hover:text-primary',
-            ].join(' ')}
+                ? { borderColor: 'var(--wif-pink)', background: 'var(--wif-pink)', color: '#fff', fontWeight: 600 }
+                : { borderColor: 'var(--wif-border)', background: 'transparent', color: 'var(--wif-ink)' }
+            }
           >
+            {isSelected && <span className="mr-1.5 text-xs opacity-80">✓</span>}
             {option}
           </button>
         )
@@ -453,73 +467,151 @@ function OptionGrid({ options, selected, onSelect, multi }) {
 }
 
 // ---------------------------------------------------------------------------
-// Sous-composant : écran de résultat
+// Écran de résultat
 // ---------------------------------------------------------------------------
-function ResultCard({ result, answers, imageUrl, imageLoading, onReset }) {
-  // Le backend renvoie : { verdict: "Top!" | "Flop!", proba: float, metacritic_score: int }
+function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded, onReset }) {
   const { verdict, proba, metacritic_score } = result
   const isTop = verdict === 'Top!'
   const pct = Math.round((proba ?? 0) * 100)
 
   return (
-    <Card className="w-full max-w-xl">
-      <CardHeader className="text-center space-y-2">
-        {/* Verdict */}
-        <p className={`text-5xl font-black tracking-tight ${isTop ? 'text-green-500' : 'text-destructive'}`}>
-          {isTop ? '🎉 TOP !' : '💀 FLOP !'}
-        </p>
-        <CardDescription className="text-base">
-          Score de succès prédit : <span className="font-bold text-foreground">{pct}%</span>
+    <div className="space-y-10">
+
+      {/* ── Verdict hero ──────────────────────────────────────────── */}
+      <section className="text-center space-y-4">
+        <span className="font-label text-[10px] tracking-[0.3em] uppercase text-muted-foreground block">
+          Verdict de l'algorithme
+        </span>
+        <div
+          className="font-orbitron text-7xl md:text-8xl font-black tracking-tight leading-none"
+          style={{ color: isTop ? 'var(--wif-success)' : 'var(--wif-danger)' }}
+        >
+          {isTop ? 'TOP !' : 'FLOP !'}
+        </div>
+        <div className="flex items-center justify-center gap-3 flex-wrap">
+          <Badge variant={isTop ? 'cyan' : 'pink'}>
+            {pct}% de succès prédit
+          </Badge>
           {metacritic_score != null && (
-            <span className="ml-3 text-muted-foreground">· Metacritic estimé : {metacritic_score}</span>
+            <Badge variant="ink">
+              Metacritic estimé · {metacritic_score}
+            </Badge>
           )}
-        </CardDescription>
-      </CardHeader>
+          {leaderboardAdded && (
+            <Badge variant="ink">
+              🏆 Inscrit au Leaderboard du mois !
+            </Badge>
+          )}
+        </div>
+      </section>
 
-      <CardContent className="space-y-6">
-        {/* Jaquette générée par Pollinations */}
-        {imageLoading && (
-          <div className="w-full rounded-lg flex items-center justify-center" style={{ aspectRatio: '2/3', backgroundColor: '#d4d0c8' }}>
-            <p className="text-xs text-muted-foreground animate-pulse">Génération de la jaquette…</p>
-          </div>
-        )}
-        {imageUrl && !imageLoading && (
-          <img
-            src={imageUrl}
-            alt="Jaquette du jeu"
-            className="w-full rounded-lg"
+      {/* ── Score bar ─────────────────────────────────────────────── */}
+      <div className="max-w-xl mx-auto">
+        <div className="flex justify-between items-center mb-2">
+          <span className="font-label text-[10px] tracking-[0.3em] uppercase text-muted-foreground">
+            Score de succès
+          </span>
+          <span
+            className="font-headline text-lg font-bold"
+            style={{ color: isTop ? 'var(--wif-success)' : 'var(--wif-danger)' }}
+          >
+            {pct}%
+          </span>
+        </div>
+        <div className="h-2 w-full rounded-full bg-border overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-700"
+            style={{
+              width: `${pct}%`,
+              background: isTop ? 'var(--wif-success)' : 'var(--wif-danger)',
+            }}
           />
-        )}
+        </div>
+      </div>
 
-        {/* Résumé des choix clés */}
-        <div className="rounded-lg border bg-muted/30 p-4 space-y-2 text-sm">
-          <p className="font-semibold text-xs uppercase tracking-widest text-muted-foreground mb-3">
-            Récapitulatif
-          </p>
-          <SummaryRow label="Genre" value={answers.genre} />
-          <SummaryRow label="Univers" value={answers.universe} />
-          <SummaryRow label="Mode de jeu" value={answers.gameMode} />
-          <SummaryRow label="Style visuel" value={answers.visualStyle} />
-          {answers.gameName && answers.gameName !== 'Unnamed Game' && (
-            <SummaryRow label="Nom du jeu" value={answers.gameName} />
+      {/* ── Cover + récap ─────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start max-w-3xl mx-auto">
+
+        {/* Jaquette */}
+        <div>
+          {imageLoading && (
+            <div
+              className="w-full rounded-xl flex flex-col items-center justify-center gap-3"
+              style={{ aspectRatio: '2/3', background: 'var(--wif-bg3)' }}
+            >
+              <div
+                className="w-8 h-8 rounded-full border-2 border-border animate-spin"
+                style={{ borderTopColor: 'var(--wif-pink)' }}
+              />
+              <p className="font-label text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
+                Génération de la jaquette…
+              </p>
+            </div>
+          )}
+          {imageUrl && !imageLoading && (
+            <img
+              src={imageUrl}
+              alt="Jaquette du jeu"
+              className="w-full rounded-xl"
+              style={{
+                boxShadow: isTop
+                  ? '0 8px 40px rgba(0, 122, 76, 0.2)'
+                  : '0 8px 40px rgba(204, 26, 26, 0.18)',
+              }}
+            />
+          )}
+          {!imageUrl && !imageLoading && (
+            <div
+              className="w-full rounded-xl flex items-center justify-center"
+              style={{ aspectRatio: '2/3', background: 'var(--wif-bg3)' }}
+            >
+              <span className="font-label text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
+                Aucune image
+              </span>
+            </div>
           )}
         </div>
 
-        <Button variant="outline" className="w-full" onClick={onReset}>
-          Recommencer ↺
-        </Button>
-      </CardContent>
-    </Card>
+        {/* Récapitulatif */}
+        <Card>
+          <CardHeader>
+            <span className="font-label text-[10px] tracking-[0.3em] uppercase text-primary">
+              Récapitulatif
+            </span>
+            {answers.gameName && answers.gameName !== 'Unnamed Game' && (
+              <CardTitle className="font-headline text-xl">{answers.gameName}</CardTitle>
+            )}
+          </CardHeader>
+          <CardContent className="space-y-0">
+            <SummaryRow label="Genre" value={answers.genre} />
+            <SummaryRow label="Univers" value={answers.universe} />
+            <SummaryRow label="Mode de jeu" value={answers.gameMode} />
+            <SummaryRow label="Mécanique" value={answers.coreMechanic} />
+            <SummaryRow label="Style visuel" value={answers.visualStyle} />
+            <SummaryRow label="Durée" value={answers.playtime} />
+            <SummaryRow label="Plateforme(s)" value={answers.platforms?.join(', ')} />
+            <SummaryRow label="Prix" value={answers.pricing} />
+            <div className="pt-5">
+              <Button variant="outline" className="w-full" onClick={onReset}>
+                Recommencer ↺
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   )
 }
 
-// Petite ligne de résumé clé / valeur
+// Ligne clé / valeur du récapitulatif
 function SummaryRow({ label, value }) {
   if (!value) return null
   return (
-    <div className="flex justify-between gap-4">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium text-right">{value}</span>
+    <div className="flex justify-between gap-4 py-2.5 border-b border-border/50 last:border-0">
+      <span className="font-label text-[10px] tracking-[0.2em] uppercase text-muted-foreground shrink-0">
+        {label}
+      </span>
+      <span className="text-sm font-medium text-foreground font-exo text-right">{value}</span>
     </div>
   )
 }

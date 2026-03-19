@@ -1,32 +1,90 @@
 import { Link } from 'react-router-dom'
 
 export default function Hero() {
-    return (
-      <section className="text-center max-w-3xl mx-auto mb-16">
-        {/* Eyebrow */}
-        <p className="text-xs tracking-[0.2em] text-primary uppercase font-mono mb-4">
-          // exploration interactive · données Steam
-        </p>
+  return (
+    <section
+      className="flex flex-col items-center text-center technical-grid"
+      style={{ padding: '90px 48px 80px' }}
+    >
+      {/* Eyebrow */}
+      <p
+        className="font-space-mono uppercase tracking-[0.22em]"
+        style={{ fontSize: '0.65rem', color: 'var(--wif-cyan)', marginBottom: '40px' }}
+      >
+        // FICHE DE PRÉSENTATION PROJET – BOOTCAMP DATA ANALYST //
+      </p>
 
-        {/* Title */}
-        <h1 className="text-5xl md:text-6xl font-black leading-tight mb-4">
-          <span className="text-black">Explore le marché du</span>
-          <br />
-          <span className="text-primary">jeu indépendant</span>
-        </h1>
-
-        {/* Subtitle */}
-        <p className="text-sm text-gray-500 font-mono tracking-wide mt-4">
-          Choisissez un angle d'exploration – puis cliquez pour zoomer sur les données
-        </p>
-
-        {/* CTA */}
-        <Link
-          to="/minigame"
-          className="inline-block mt-8 px-6 py-3 bg-primary text-primary-foreground text-sm font-semibold font-mono rounded-lg hover:opacity-90 transition-opacity"
+      {/* Big logo title */}
+      <h1
+        className="font-exo font-black leading-none tracking-tight select-none"
+        style={{ fontSize: 'clamp(3.5rem, 11vw, 7.5rem)', marginBottom: '20px', letterSpacing: '-0.01em' }}
+      >
+        <span style={{ color: 'var(--wif-ink)' }}>WILL</span>
+        <span
+          style={{
+            color: 'var(--wif-pink)',
+            position: 'relative',
+            display: 'inline-block',
+          }}
         >
-          Tester mon jeu →
-        </Link>
-      </section>
+          IT
+        </span>
+        <span style={{ color: 'var(--wif-ink)' }}>FLOP</span>
+      </h1>
+
+      {/* Platform tagline */}
+      <p
+        className="font-space-mono uppercase tracking-[0.3em]"
+        style={{ fontSize: '0.72rem', color: 'var(--wif-gray)', marginBottom: '40px', letterSpacing: '0.28em' }}
+      >
+        LA SUCCESS STORY DES JEUX INDÉPENDANTS
+      </p>
+
+      {/* Badges */}
+      <div className="flex items-center justify-center flex-wrap gap-3" style={{ marginBottom: '56px' }}>
+        <span
+          className="font-inter text-[0.68rem] tracking-widest uppercase"
+          style={{
+            border: '1px solid var(--wif-pink)',
+            color: 'var(--wif-pink)',
+            padding: '6px 18px',
+            borderRadius: '999px',
+          }}
+        >
+          • Projet en cours
+        </span>
+        <span
+          className="font-inter text-[0.68rem] tracking-widest uppercase"
+          style={{
+            border: '1px solid var(--wif-cyan)',
+            color: 'var(--wif-cyan)',
+            padding: '6px 18px',
+            borderRadius: '999px',
+          }}
+        >
+          Data Analyst · Bootcamp 2026
+        </span>
+        <span
+          className="font-inter text-[0.68rem] tracking-widest uppercase"
+          style={{
+            border: '1px solid var(--wif-ink2)',
+            color: 'var(--wif-ink2)',
+            padding: '6px 18px',
+            borderRadius: '999px',
+          }}
+        >
+          Anthony &amp; Pierre
+        </span>
+      </div>
+
+      {/* CTA */}
+      <Link
+        to="/minigame"
+        className="inline-flex items-center gap-2 font-space-mono text-xs uppercase tracking-[0.2em] px-8 py-4 bg-primary text-white hover:bg-primary/90 transition-all duration-200 active:scale-95"
+        style={{ borderRadius: 0 }}
+      >
+        → Tester mon jeu
+      </Link>
+    </section>
   )
 }

@@ -1,8 +1,24 @@
+import { useState, useEffect } from 'react'
 import SuccessLeaderboard from '../components/leaderboard/SuccessLeaderboard'
 import FlopLeaderboard    from '../components/leaderboard/FlopLeaderboard'
 import LeaderboardCTA     from '../components/leaderboard/LeaderboardCTA'
+import { fetchLeaderboard } from '../api/leaderboard'
 
 export default function LeaderboardPage() {
+  const [successGames, setSuccessGames] = useState([])
+  const [flopGames, setFlopGames]       = useState([])
+  const [loading, setLoading]           = useState(true)
+
+  useEffect(() => {
+    fetchLeaderboard()
+      .then(({ success, flop }) => {
+        setSuccessGames(success)
+        setFlopGames(flop)
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
+
   return (
     <div className="technical-grid min-h-full">
       <div className="max-w-screen-2xl mx-auto px-6 py-12">
@@ -45,8 +61,8 @@ export default function LeaderboardPage() {
 
         {/* ── Section 2 — Bento Grid ───────────────────────────────── */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-4">
-          <SuccessLeaderboard />
-          <FlopLeaderboard />
+          <SuccessLeaderboard games={successGames} loading={loading} />
+          <FlopLeaderboard    games={flopGames}    loading={loading} />
         </section>
       </div>
 
