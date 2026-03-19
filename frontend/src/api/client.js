@@ -1,12 +1,3 @@
-import { createClient } from '@supabase/supabase-js'
-
-const url = import.meta.env.VITE_SUPABASE_URL
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-if (!url || !anonKey) {
-  console.warn(
-    'Supabase: set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env'
-  )
-}
-
-export const supabase = createClient(url ?? '', anonKey ?? '')
+// Supabase client — à configurer quand @supabase/supabase-js sera installé
+// npm install @supabase/supabase-js
+export const supabase = null

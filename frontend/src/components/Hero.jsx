@@ -28,5 +28,6 @@ export default function Hero() {
           Tester mon jeu →
         </Link>
       </div>
-    );
-  }
+    </section>
+  )
+}
