@@ -94,7 +94,7 @@ def update_old_games():
 def run_dbt():
     """Reconstruit la table ml_features via dbt run."""
     result = subprocess.run(
-        ["dbt", "run"],
+        ["dbt", "run", "--profiles-dir", str(DBT_DIR)],
         cwd=DBT_DIR,
         capture_output=True,
         text=True,
