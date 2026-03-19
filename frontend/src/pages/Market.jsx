@@ -8,17 +8,22 @@ export default function Market() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    if (!supabase) {
+      setError({ message: 'Supabase client non configuré' })
+      setLoading(false)
+      return
+    }
     const fetchData = async () => {
-      const { data, error, loading } = await supabase.from('games').select('*').order('name', { ascending: true })
+      const { data: games, error } = await supabase.from('games').select('*').order('name', { ascending: true })
       if (error) {
         setError(error)
       } else {
-        setData(data)
+        setData(games)
       }
       setLoading(false)
     }
     fetchData()
-  }, [data])
+  }, [])
 
   if (error) {
     return <div>Error: {error.message}</div>

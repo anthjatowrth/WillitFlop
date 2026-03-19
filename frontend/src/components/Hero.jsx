@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 
 export default function Hero() {
     return (
-      <div className="text-center max-w-3xl mx-auto mb-16">
+      <section className="text-center max-w-3xl mx-auto mb-16">
         {/* Eyebrow */}
         <p className="text-xs tracking-[0.2em] text-primary uppercase font-mono mb-4">
           // exploration interactive · données Steam
@@ -27,7 +27,6 @@ export default function Hero() {
         >
           Tester mon jeu →
         </Link>
-      </div>
-    </section>
+      </section>
   )
 }
