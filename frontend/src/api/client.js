@@ -1,3 +1,6 @@
-// Supabase client — à configurer quand @supabase/supabase-js sera installé
-// npm install @supabase/supabase-js
-export const supabase = null
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+export const supabase = createClient(supabaseUrl, supabaseKey)

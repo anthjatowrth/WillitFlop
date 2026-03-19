@@ -1,10 +1,8 @@
-import Navbar from '../components/Navbar'
 import Hero from '../components/Hero'
 import PromiseSection from '../components/PromiseSection'
 import HowItWorks from '../components/HowItWorks'
 import ResultShowcase from '../components/ResultShowcase'
 import ExplorationGrid from '../components/ExplorationGrid'
-import Footer from '../components/Footer'
 
 const Divider = () => (
   <div style={{
@@ -16,9 +14,7 @@ const Divider = () => (
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col font-exo bg-background text-foreground">
-      <Navbar />
-
+    <>
       <Hero />
 
       <Divider />
@@ -48,8 +44,6 @@ export default function Home() {
         </div>
         <ExplorationGrid />
       </section>
-
-      <Footer />
-    </div>
+    </>
   )
 }

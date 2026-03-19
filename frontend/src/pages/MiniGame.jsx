@@ -1,6 +1,4 @@
 import { useState } from 'react'
-import Navbar from '../components/Navbar'
-import Footer from '../components/Footer'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card'
 import { buildImagePrompt } from '../utils/promptBuilder'
@@ -278,10 +276,7 @@ export default function MiniGame() {
   // Rendu
   // -------------------------------------------------------------------------
   return (
-    <div className="min-h-screen bg-[#EEECE6] font-mono flex flex-col">
-      <Navbar />
-
-      <main className="flex-1 flex flex-col items-center justify-center px-6 py-16">
+    <div className="flex flex-col items-center justify-center px-6 py-16 font-mono" style={{ minHeight: 'calc(100vh - 72px)' }}>
 
         {/* Écran de résultat */}
         {result && (
@@ -402,9 +397,6 @@ export default function MiniGame() {
             </Card>
           </div>
         )}
-      </main>
-
-      <Footer />
     </div>
   )
 }
