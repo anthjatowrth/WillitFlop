@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card'
+import { buildImagePrompt } from '../utils/promptBuilder'
 
 // ---------------------------------------------------------------------------
 // Définition des 13 questions du questionnaire
@@ -118,6 +119,8 @@ export default function MiniGame() {
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
+  const [imageUrl, setImageUrl] = useState(null)
+  const [imageLoading, setImageLoading] = useState(false)
 
   const question = QUESTIONS[currentStep]
   const totalSteps = QUESTIONS.length
@@ -213,25 +216,49 @@ export default function MiniGame() {
   }
 
   // -------------------------------------------------------------------------
-  // Appel API — POST /predict
+  // Appel API — POST /predict  +  génération jaquette Pollinations (parallèle)
   // -------------------------------------------------------------------------
   const submitPrediction = async (rawAnswers) => {
     setIsLoading(true)
+    setImageLoading(true)
     setError(null)
+    setImageUrl(null)
     try {
       const payload = mapAnswersToPayload(rawAnswers)
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/predict`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      if (!response.ok) throw new Error(`Erreur serveur : ${response.status}`)
-      const data = await response.json()
+
+      const encodedPrompt = encodeURIComponent(buildImagePrompt({
+        ...payload,
+        description: rawAnswers.description,
+        iconicElement: rawAnswers.iconicElement,
+        game_name: rawAnswers.gameName,
+      }))
+      const negativePrompt = encodeURIComponent("text, watermark, blurry, low quality, deformed, ugly, bad anatomy, logo, signature")
+      const apiKey = import.meta.env.VITE_POLLINATIONS_API_KEY
+      const pollinationsEndpoint = `https://gen.pollinations.ai/image/${encodedPrompt}?model=flux&width=512&height=768&enhance=true&negative_prompt=${negativePrompt}&nologo=true&key=${apiKey}`
+
+      const [data, imageBlob] = await Promise.all([
+        // Appel 1 : prédiction backend (bloquant — erreur remontée)
+        fetch(`${import.meta.env.VITE_API_URL}/predict`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).then(r => {
+          if (!r.ok) throw new Error(`Erreur serveur : ${r.status}`)
+          return r.json()
+        }),
+        // Appel 2 : génération image Pollinations (non-bloquant — null si échec)
+        fetch(pollinationsEndpoint)
+          .then(r => r.ok ? r.blob() : null)
+          .catch(() => null),
+      ])
+
       setResult(data)
+      if (imageBlob) setImageUrl(URL.createObjectURL(imageBlob))
     } catch (err) {
       setError(err.message)
     } finally {
       setIsLoading(false)
+      setImageLoading(false)
     }
   }
 
@@ -243,6 +270,8 @@ export default function MiniGame() {
     setCurrentStep(0)
     setResult(null)
     setError(null)
+    setImageUrl(null)
+    setImageLoading(false)
   }
 
   // -------------------------------------------------------------------------
@@ -259,6 +288,8 @@ export default function MiniGame() {
           <ResultCard
             result={result}
             answers={answers}
+            imageUrl={imageUrl}
+            imageLoading={imageLoading}
             onReset={handleReset}
           />
         )}
@@ -432,7 +463,7 @@ function OptionGrid({ options, selected, onSelect, multi }) {
 // ---------------------------------------------------------------------------
 // Sous-composant : écran de résultat
 // ---------------------------------------------------------------------------
-function ResultCard({ result, answers, onReset }) {
+function ResultCard({ result, answers, imageUrl, imageLoading, onReset }) {
   // Le backend renvoie : { verdict: "Top!" | "Flop!", proba: float, metacritic_score: int }
   const { verdict, proba, metacritic_score } = result
   const isTop = verdict === 'Top!'
@@ -454,6 +485,20 @@ function ResultCard({ result, answers, onReset }) {
       </CardHeader>
 
       <CardContent className="space-y-6">
+        {/* Jaquette générée par Pollinations */}
+        {imageLoading && (
+          <div className="w-full rounded-lg flex items-center justify-center" style={{ aspectRatio: '2/3', backgroundColor: '#d4d0c8' }}>
+            <p className="text-xs text-muted-foreground animate-pulse">Génération de la jaquette…</p>
+          </div>
+        )}
+        {imageUrl && !imageLoading && (
+          <img
+            src={imageUrl}
+            alt="Jaquette du jeu"
+            className="w-full rounded-lg"
+          />
+        )}
+
         {/* Résumé des choix clés */}
         <div className="rounded-lg border bg-muted/30 p-4 space-y-2 text-sm">
           <p className="font-semibold text-xs uppercase tracking-widest text-muted-foreground mb-3">
