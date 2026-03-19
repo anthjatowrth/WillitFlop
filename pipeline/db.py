@@ -50,7 +50,11 @@ def get_games_for_monthly_update(conn) -> dict[str, list[int]]:
     import re
     from datetime import datetime
 
-    threshold_year = datetime.now().year - 1
+    # "Récent" = sorti cette année ou l'année précédente (approximation à l'année
+    # faute de date précise stockée). Un jeu de janvier N-1 peut avoir jusqu'à
+    # ~23 mois, mais c'est la meilleure résolution possible avec release_date TEXT.
+    current_year = datetime.now().year
+    threshold_year = current_year - 1
 
     with conn.cursor() as cur:
         cur.execute("SELECT app_id, release_date FROM games WHERE details_fetched = TRUE")

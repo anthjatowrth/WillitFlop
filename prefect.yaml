@@ -1,0 +1,41 @@
+name: willitflop
+prefect-version: "3.0.0"
+
+build: null
+push: null
+pull:
+  - prefect.deployments.steps.git_clone:
+      id: clone_step
+      repository: https://github.com/anthjatowrth/WillitFlop.git
+      branch: main
+  - prefect.deployments.steps.pip_install_requirements:
+      directory: "{{ clone_step.directory }}"
+      requirements_file: requirements-etl.txt
+      stream_output: false
+
+deployments:
+  - name: willitflop-etl
+    version: "1.0.0"
+    tags:
+      - etl
+      - steam
+      - weekly
+    description: "Pipeline ETL hebdomadaire WillitFlop — Steam, Twitch, dbt"
+    entrypoint: pipeline/flow.py:willitflop_etl
+    work_pool:
+      name: willitflop-pool   # à créer dans Prefect Cloud UI (type: Process)
+      job_variables:
+        env:
+          DB_HOST: "{{ $DB_HOST }}"
+          DB_PORT: "{{ $DB_PORT }}"
+          DB_NAME: "{{ $DB_NAME }}"
+          DB_USER: "{{ $DB_USER }}"
+          DB_PASSWORD: "{{ $DB_PASSWORD }}"
+          STEAM_API_KEY: "{{ $STEAM_API_KEY }}"
+          TWITCH_CLIENT_ID: "{{ $TWITCH_CLIENT_ID }}"
+          TWITCH_CLIENT_SECRET: "{{ $TWITCH_CLIENT_SECRET }}"
+    schedules:
+      - cron: "0 3 * * 1"     # Lundi 03h00 UTC
+        timezone: "UTC"
+        active: true
+    parameters: {}

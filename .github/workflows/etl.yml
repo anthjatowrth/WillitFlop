@@ -1,16 +1,18 @@
 name: WillitFlop ETL Pipeline
 
 on:
-  workflow_dispatch: # Déclenchement manuel depuis l'UI GitHub
-  schedule:
-    - cron: "0 3 * * 1" # Tous les lundis à 03h00 UTC
+  # Déclenché par l'Automation Prefect Cloud (webhook → GitHub API)
+  # ou manuellement depuis l'UI GitHub
+  workflow_dispatch:
 
 jobs:
   etl:
-    name: Run ETL Pipeline
+    name: Run Prefect Worker
     runs-on: ubuntu-latest
 
     env:
+      PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
+      PREFECT_API_URL: ${{ secrets.PREFECT_API_URL }}
       DB_HOST: ${{ secrets.DB_HOST }}
       DB_PORT: ${{ secrets.DB_PORT }}
       DB_NAME: ${{ secrets.DB_NAME }}
@@ -19,14 +21,12 @@ jobs:
       STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
       TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
       TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
-      PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
-      PREFECT_API_URL: ${{ secrets.PREFECT_API_URL }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.10
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -35,5 +35,5 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements-etl.txt
 
-      - name: Run ETL flow
-        run: PYTHONPATH=. python pipeline/flow.py
+      - name: Start Prefect worker (traite un run puis s'arrête)
+        run: PYTHONPATH=. prefect worker start --pool willitflop-pool --run-once

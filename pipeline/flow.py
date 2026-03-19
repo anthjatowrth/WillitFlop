@@ -4,19 +4,18 @@ Pipeline ETL WillitFlop — orchestrée avec Prefect.
 Étapes :
   1. collect_new_games   — nouveaux jeux qualifiants (Steam + SteamSpy)
   2. fix_null_prices     — remplace les price_eur NULL par la médiane des payants
-  3. update_recent_games — jeux < 1 an : owners + Twitch + reviews + KPIs
-  4. update_old_games    — jeux > 1 an : owners + Twitch + reviews + KPIs
+  3. update_recent_games — jeux récents (cette année ou l'an dernier) : owners + Twitch + reviews + KPIs
+  4. update_old_games    — jeux anciens (> 2 ans) : owners + Twitch + reviews + KPIs
   5. run_dbt             — reconstruit la table ml_features
 """
 
-import os
 import subprocess
 from pathlib import Path
 
-import psycopg2
 from dotenv import load_dotenv
 from prefect import flow, task
 
+from pipeline.db import get_connection
 from pipeline.run import run_collect_new, run_update_recent, run_update_old
 
 load_dotenv()
@@ -35,13 +34,7 @@ def collect_new_games():
 @task(retries=3, log_prints=True)
 def fix_null_prices():
     """Remplace les price_eur NULL par la médiane des jeux payants actifs."""
-    conn = psycopg2.connect(
-        host=os.environ["DB_HOST"],
-        port=int(os.environ.get("DB_PORT", 5432)),
-        dbname=os.environ["DB_NAME"],
-        user=os.environ["DB_USER"],
-        password=os.environ["DB_PASSWORD"],
-    )
+    conn = get_connection()
     try:
         with conn:
             with conn.cursor() as cur:
@@ -80,13 +73,13 @@ def fix_null_prices():
 
 @task(retries=3, log_prints=True)
 def update_recent_games():
-    """Mise à jour des jeux < 1 an : owners + Twitch + reviews + KPIs."""
+    """Mise à jour des jeux récents (cette année ou l'an dernier) : owners + Twitch + reviews + KPIs."""
     run_update_recent()
 
 
 @task(retries=3, log_prints=True)
 def update_old_games():
-    """Mise à jour des jeux > 1 an : owners + Twitch + reviews + KPIs."""
+    """Mise à jour des jeux anciens (> 2 ans) : owners + Twitch + reviews + KPIs."""
     run_update_old()
 
 
@@ -94,7 +87,7 @@ def update_old_games():
 def run_dbt():
     """Reconstruit la table ml_features via dbt run."""
     result = subprocess.run(
-        ["dbt", "run"],
+        ["dbt", "run", "--profiles-dir", str(DBT_DIR)],
         cwd=DBT_DIR,
         capture_output=True,
         text=True,
