@@ -15,6 +15,7 @@ from ml.config import (
     BOOL_FEATURES,
     MULTILABEL_FEATURES,
     NUMERIC_FEATURES,
+    REVIEW_FEATURES,
     TARGET,
     TEXT_FEATURE,
 )
@@ -27,7 +28,9 @@ _COLUMNS = (
     + NUMERIC_FEATURES
     + BOOL_FEATURES
     + MULTILABEL_FEATURES
-    + [TEXT_FEATURE, TARGET]
+    + [TEXT_FEATURE]
+    + REVIEW_FEATURES
+    + [TARGET]
 )
 
 
@@ -55,7 +58,8 @@ def load_features() -> pd.DataFrame:
         pd.DataFrame avec toutes les colonnes définies dans config.py
     """
     query = f"""
-        SELECT {', '.join(_COLUMNS)}
+        SELECT {', '.join(_COLUMNS)},
+               (CURRENT_DATE - release_date)::int AS game_age_days
         FROM   ml_features
         WHERE  {TARGET} IS NOT NULL
     """
@@ -72,6 +76,10 @@ def load_features() -> pd.DataFrame:
 
     # Remplace le texte NULL par chaîne vide (TF-IDF l'accepte)
     df[TEXT_FEATURE] = df[TEXT_FEATURE].fillna("")
+
+    # Idem pour les textes de sentiment (jeux sans avis)
+    for col in REVIEW_FEATURES:
+        df[col] = df[col].fillna("")
 
     # Les booléens peuvent arriver comme object en cas de NULL — on force bool
     for col in BOOL_FEATURES:

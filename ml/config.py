@@ -39,6 +39,12 @@ MULTILABEL_FEATURES = [
 # Colonne texte libre : TF-IDF
 TEXT_FEATURE = "short_description_clean"
 
+# Colonnes texte sentiment (avis joueurs) : TF-IDF indépendants
+REVIEW_FEATURES = [
+    "top_positive_reviews_text",
+    "top_negative_reviews_text",
+]
+
 # Colonne cible
 TARGET = "is_successful"
 

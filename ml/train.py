@@ -52,14 +52,21 @@ def run_training():
     # 1. Chargement des données
     # ------------------------------------------------------------------
     df = load_features()
-    X = df.drop(columns=[TARGET, "app_id"])
+
+    # Poids proportionnels à l'ancienneté du jeu (ramp linéaire sur 365 jours).
+    # Un jeu de 6 mois a un label is_successful peu fiable (pas assez de recul
+    # sur les owners), donc on réduit son influence dans le gradient.
+    # Cap à 1.0 : au-delà d'un an, le jeu est considéré "mature".
+    sample_weights = (df["game_age_days"] / 365.0).clip(lower=0.0, upper=1.0)
+
+    X = df.drop(columns=[TARGET, "app_id", "game_age_days"])
     y = df[TARGET].astype(int)
 
     # ------------------------------------------------------------------
     # 2. Split stratifié — conserve le ratio 17%/83% dans les deux splits
     # ------------------------------------------------------------------
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y,
+    X_train, X_test, y_train, y_test, w_train, w_test = train_test_split(
+        X, y, sample_weights,
         test_size=TEST_SIZE,
         random_state=RANDOM_STATE,
         stratify=y,
@@ -87,6 +94,7 @@ def run_training():
         y_train,
         cv=StratifiedKFold(n_splits=CV_FOLDS, shuffle=True, random_state=RANDOM_STATE),
         scoring=["roc_auc", "f1", "precision", "recall"],
+        fit_params={"model__sample_weight": w_train.values},
         n_jobs=-1,
     )
 
@@ -115,7 +123,7 @@ def run_training():
     X_train_t = preprocessor.transform(X_train)
 
     model = XGBClassifier(**XGBOOST_PARAMS, verbosity=0)
-    model.fit(X_train_t, y_train)
+    model.fit(X_train_t, y_train, sample_weight=w_train.values)
 
     # ------------------------------------------------------------------
     # 5. Sauvegarde des artifacts
