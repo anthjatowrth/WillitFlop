@@ -4,8 +4,7 @@ import { supabase } from '../api/client'
 /**
  * Custom hook for fetching paginated game data from Supabase.
  *
- * - genre / year filters are applied server-side via .eq() / .gte() / .lte()
- * - search is applied client-side on the returned array (no extra DB call)
+ * - genre / year / search filters are applied server-side
  * - pagination uses .range() — never fetches the entire table
  *
  * @param {{ page: number, pageSize: number, genre: string, year: string, search: string }}
@@ -46,6 +45,10 @@ export function useGameDatabase({ page = 1, pageSize = 12, genre = '', year = ''
         .lte('release_date', `${year}-12-31`)
     }
 
+    if (search.trim()) {
+      query = query.ilike('name', `%${search.trim()}%`)
+    }
+
     const { data, count, error: queryError } = await query
 
     if (queryError) {
@@ -57,18 +60,11 @@ export function useGameDatabase({ page = 1, pageSize = 12, genre = '', year = ''
     }
 
     setLoading(false)
-  }, [page, pageSize, genre, year])
+  }, [page, pageSize, genre, year, search])
 
   useEffect(() => {
     fetchGames()
   }, [fetchGames])
 
-  // Apply search client-side — no extra Supabase query
-  const games = search
-    ? rawGames.filter(g =>
-        g.name?.toLowerCase().includes(search.toLowerCase())
-      )
-    : rawGames
-
-  return { games, totalCount, loading, error, refetch: fetchGames }
+  return { games: rawGames, totalCount, loading, error, refetch: fetchGames }
 }

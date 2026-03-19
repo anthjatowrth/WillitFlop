@@ -143,16 +143,18 @@ function GameTrailer({ hlsUrl, posterUrl }) {
     const video = videoRef.current
     if (!video || !hlsUrl) return
 
-    if (hlsUrl.endsWith('.m3u8') && Hls.isSupported()) {
+    const isHls = hlsUrl.includes('.m3u8')
+
+    if (isHls && Hls.isSupported()) {
       const hls = new Hls()
       hls.loadSource(hlsUrl)
       hls.attachMedia(video)
       return () => hls.destroy()
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    } else if (isHls && video.canPlayType('application/vnd.apple.mpegurl')) {
       // Safari native HLS
       video.src = hlsUrl
     } else {
-      // Fallback: try direct src (webm/mp4)
+      // Direct webm/mp4
       video.src = hlsUrl
     }
   }, [hlsUrl])
@@ -162,59 +164,167 @@ function GameTrailer({ hlsUrl, posterUrl }) {
   return (
     <section>
       <SectionLabel>Trailer</SectionLabel>
-      <div className="overflow-hidden border border-border" style={{ aspectRatio: '16/9' }}>
+      <div className="overflow-hidden border border-border group" style={{ aspectRatio: '16/9' }}>
         <video
           ref={videoRef}
           poster={posterUrl}
-          controls
+          autoPlay
           muted
+          loop
+          playsInline
           className="w-full h-full object-cover"
+          onMouseEnter={(e) => e.currentTarget.setAttribute('controls', '')}
+          onMouseLeave={(e) => e.currentTarget.removeAttribute('controls')}
         />
       </div>
     </section>
   )
 }
 
-/** Screenshots gallery — thumbnails in a row, hover to enlarge */
+/** Lightbox overlay — fullscreen image viewer */
+function Lightbox({ url, onClose }) {
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onClose])
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+      onClick={onClose}
+    >
+      <button
+        className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
+        onClick={onClose}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>close</span>
+      </button>
+      <img
+        src={url}
+        alt="Screenshot"
+        className="max-w-[90vw] max-h-[90vh] object-contain"
+        onClick={(e) => e.stopPropagation()}
+      />
+    </div>
+  )
+}
+
+/** Screenshots gallery — thumbnails in a row, click to enlarge, click again to zoom */
 function ScreenshotGallery({ urls }) {
-  const [active, setActive] = useState(null)
+  const [active, setActive] = useState(urls?.[0] ?? null)
+  const [lightbox, setLightbox] = useState(null)
   if (!urls?.length) return null
 
   return (
-    <section>
-      <SectionLabel>Screenshots</SectionLabel>
-      <div className="flex flex-col gap-3">
-        {/* Enlarged preview */}
-        {active && (
-          <div className="overflow-hidden border border-border">
+    <>
+      {lightbox && <Lightbox url={lightbox} onClose={() => setLightbox(null)} />}
+      <section>
+        <SectionLabel>Screenshots</SectionLabel>
+        <div className="flex flex-col gap-3">
+          {/* Enlarged preview — click to open lightbox */}
+          <div
+            className="overflow-hidden border border-border cursor-zoom-in relative group"
+            style={{ aspectRatio: '16/9' }}
+            onClick={() => setLightbox(active)}
+          >
             <img
               src={active}
               alt="Screenshot"
-              className="w-full object-cover transition-all duration-300"
-              style={{ aspectRatio: '16/9' }}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
-          </div>
-        )}
-        {/* Thumbnail strip */}
-        <div className="flex gap-2 flex-wrap">
-          {urls.map((url, i) => (
-            <div
-              key={url}
-              className="overflow-hidden border border-border cursor-pointer transition-all duration-200"
-              style={{ width: 'calc(20% - 0.4rem)', aspectRatio: '16/9' }}
-              onMouseEnter={() => setActive(url)}
-              onMouseLeave={() => setActive(null)}
-            >
-              <img
-                src={url}
-                alt={`Screenshot ${i + 1}`}
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-              />
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
+              <span className="material-symbols-outlined text-white" style={{ fontSize: '32px' }}>zoom_in</span>
             </div>
-          ))}
+          </div>
+          {/* Thumbnail strip */}
+          <div className="flex gap-2">
+            {urls.map((url, i) => (
+              <button
+                key={url}
+                className="overflow-hidden border transition-all duration-200 flex-1"
+                style={{
+                  aspectRatio: '16/9',
+                  borderColor: active === url ? 'var(--primary)' : 'var(--border)',
+                }}
+                onClick={() => setActive(url)}
+              >
+                <img
+                  src={url}
+                  alt={`Screenshot ${i + 1}`}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                />
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
+  )
+}
+
+/** Screenshot carousel — auto-slide, used when no trailer is available */
+function ScreenshotCarousel({ urls }) {
+  const [index, setIndex] = useState(0)
+  const [lightbox, setLightbox] = useState(null)
+  if (!urls?.length) return null
+
+  const prev = () => setIndex((i) => (i - 1 + urls.length) % urls.length)
+  const next = () => setIndex((i) => (i + 1) % urls.length)
+
+  return (
+    <>
+      {lightbox && <Lightbox url={lightbox} onClose={() => setLightbox(null)} />}
+      <section>
+        <SectionLabel>Screenshots</SectionLabel>
+        <div className="flex flex-col gap-3">
+          {/* Main slide */}
+          <div
+            className="relative overflow-hidden border border-border group cursor-zoom-in"
+            style={{ aspectRatio: '16/9' }}
+            onClick={() => setLightbox(urls[index])}
+          >
+            <img
+              src={urls[index]}
+              alt={`Screenshot ${index + 1}`}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+            {/* Zoom hint */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
+              <span className="material-symbols-outlined text-white" style={{ fontSize: '32px' }}>zoom_in</span>
+            </div>
+            {/* Prev / Next */}
+            <button
+              className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white transition-colors p-1"
+              onClick={(e) => { e.stopPropagation(); prev() }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>chevron_left</span>
+            </button>
+            <button
+              className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white transition-colors p-1"
+              onClick={(e) => { e.stopPropagation(); next() }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>chevron_right</span>
+            </button>
+            {/* Counter */}
+            <div className="absolute bottom-2 right-3 bg-black/60 px-2 py-0.5 font-label text-[10px] tracking-wider text-white/80">
+              {index + 1} / {urls.length}
+            </div>
+          </div>
+          {/* Dot indicators */}
+          <div className="flex gap-1.5 justify-center">
+            {urls.map((_, i) => (
+              <button
+                key={i}
+                className="w-1.5 h-1.5 transition-all duration-200"
+                style={{ background: i === index ? 'var(--primary)' : 'var(--border)' }}
+                onClick={() => setIndex(i)}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+    </>
   )
 }
 
@@ -292,6 +402,14 @@ export default function GameDetailPage() {
   }
 
   // ── Derived values ───────────────────────────────────────────────────
+  // screenshot_urls may arrive as a JSON string if the column type is TEXT instead of TEXT[]
+  const screenshotUrls = (() => {
+    const raw = game.screenshot_urls
+    if (!raw) return []
+    if (Array.isArray(raw)) return raw
+    try { return JSON.parse(raw) } catch { return [] }
+  })()
+
   const genres     = game.game_genres?.map(r => r.genre_name) ?? []
   const tags       = [...(game.game_tags ?? [])].sort((a, b) => b.votes - a.votes).slice(0, 12)
   const categories = game.game_categories?.map(r => r.category_name) ?? []
@@ -397,8 +515,11 @@ export default function GameDetailPage() {
             </section>
           )}
 
-          {/* Trailer */}
-          <GameTrailer hlsUrl={game.trailer_hls_url} posterUrl={game.header_image} />
+          {/* Trailer or Screenshot carousel */}
+          {game.trailer_hls_url
+            ? <GameTrailer hlsUrl={game.trailer_hls_url} posterUrl={game.header_image} />
+            : <ScreenshotCarousel urls={screenshotUrls} />
+          }
 
           {/* Community tags */}
           {tags.length > 0 && (
@@ -418,8 +539,8 @@ export default function GameDetailPage() {
             </section>
           )}
 
-          {/* Screenshots gallery */}
-          <ScreenshotGallery urls={game.screenshot_urls} />
+          {/* Screenshots gallery — only when trailer is present (otherwise shown as carousel above) */}
+          {game.trailer_hls_url && <ScreenshotGallery urls={screenshotUrls} />}
 
           {/* Supported languages */}
           {game.supported_languages?.length > 0 && (

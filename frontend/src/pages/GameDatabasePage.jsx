@@ -14,6 +14,15 @@ function isRecentlyAdded(fetchedAt) {
   return new Date(fetchedAt) > thirtyDaysAgo
 }
 
+function relevanceScore(name, q) {
+  if (!name) return 0
+  const n = name.toLowerCase()
+  if (n === q) return 4
+  if (n.startsWith(q)) return 3
+  if (n.split(/\s+/).some(w => w.startsWith(q))) return 2
+  return 1
+}
+
 function extractYears(games) {
   const years = new Set()
   games.forEach(g => {
@@ -75,7 +84,7 @@ export default function GameDatabasePage() {
     pageSize: PAGE_SIZE,
     genre,
     year,
-    search: '', // search is client-side below
+    search,
   })
 
   // Accumulate or replace when Supabase returns a page
@@ -95,13 +104,17 @@ export default function GameDatabasePage() {
     setPage(1)
     setAllGames([])
     setIsAppending(false)
-  }, [genre, year])
+  }, [genre, year, search])
 
-  // Client-side search on accumulated data
+  // Sort by relevance when a search is active (server already filtered by ilike)
   const filteredGames = useMemo(() => {
     if (!search.trim()) return allGames
-    const q = search.toLowerCase()
-    return allGames.filter(g => g.name?.toLowerCase().includes(q))
+    const q = search.trim().toLowerCase()
+    return [...allGames].sort((a, b) => {
+      const diff = relevanceScore(b.name, q) - relevanceScore(a.name, q)
+      if (diff !== 0) return diff
+      return (b.metacritic_score ?? 0) - (a.metacritic_score ?? 0)
+    })
   }, [allGames, search])
 
   // Distinct years from accumulated data
@@ -159,14 +172,17 @@ export default function GameDatabasePage() {
           </div>
 
           <h1 className="font-headline font-black tracking-tighter text-5xl text-foreground leading-none">
-            GAME_DATABASE
-            <span style={{ color: 'var(--primary)' }}>.LOG</span>
+            NOTRE CATALOGUE 
+            <span style={{ color: 'var(--primary)' }}> INDIE GAMES</span>
           </h1>
 
           <p className="mt-3 font-inter text-sm text-muted-foreground max-w-xl">
-            Explore {totalCount > 0 ? totalCount.toLocaleString() : '16 000+'} Steam titles
-            ranked by Metacritic score — filter by genre, year, and keyword to find your next
-            intelligence target.
+            Notre catalogue réunit {totalCount > 0 ? totalCount.toLocaleString() : 'plus de seize mille'} jeux
+            indépendants publiés sur Steam, sélectionnés sur la base de leur score Metacritic. Nous avons
+            fait le choix de nous concentrer sur la scène indé : des créations portées par des studios de
+            petite taille, souvent fondés sur une vision forte et des prises de risque assumées — exactement
+            le type de projets que nous aimons analyser. Utilisez les filtres pour explorer par genre,
+            par année de sortie ou par mot-clé, et trouvez le titre qui vous inspire.
           </p>
         </section>
 
