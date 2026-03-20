@@ -33,14 +33,45 @@ async function uploadCover(blob, gameName) {
 }
 
 /**
+ * Vérifie si un jeu se qualifie dans le Top 5 du leaderboard du mois en cours,
+ * sans rien insérer en base.
+ * @returns {boolean} true si le jeu est éligible
+ */
+export async function checkLeaderboardEligibility({ verdict, proba }) {
+  const period = getCurrentPeriod()
+  const ascending = verdict === 'Top!'
+
+  const { data: existing, error } = await supabase
+    .from('leaderboard_entries')
+    .select('id, proba')
+    .eq('period', period)
+    .eq('verdict', verdict)
+    .order('proba', { ascending })
+    .limit(5)
+
+  if (error) {
+    console.error('[Leaderboard] Erreur fetch eligibility:', error)
+    return false
+  }
+
+  if (existing.length < 5) return true
+
+  const worst = existing[0]
+  return verdict === 'Top!'
+    ? proba > worst.proba
+    : proba < worst.proba
+}
+
+/**
  * Tente d'inscrire un jeu dans le leaderboard du mois en cours.
  * N'insère que si le jeu se qualifie dans le Top 5 de sa catégorie.
  * Si le top 5 est plein, remplace l'entrée la moins bonne.
  *
- * @param {Blob|null} coverBlob - Le blob image retourné par Pollinations
+ * @param {Blob|null} coverBlob    - Le blob image retourné par Pollinations
+ * @param {string|null} creator_name - Pseudo saisi par l'utilisateur
  * @returns {boolean} true si le jeu a été inscrit, false sinon
  */
-export async function saveToLeaderboard({ verdict, proba, metacritic_score, answers, coverBlob }) {
+export async function saveToLeaderboard({ verdict, proba, metacritic_score, answers, coverBlob, creator_name = null }) {
   const period = getCurrentPeriod()
   const gameName = answers.gameName?.trim() || 'Jeu sans nom'
 
@@ -87,7 +118,8 @@ export async function saveToLeaderboard({ verdict, proba, metacritic_score, answ
     pricing:         answers.pricing      || null,
     proba,
     metacritic_score: metacritic_score != null ? Math.round(metacritic_score) : null,
-    cover_url:       coverUrl,
+    cover_url:        coverUrl,
+    creator_name:     creator_name || null,
   }
 
   // Moins de 5 entrées → on insère directement
@@ -158,5 +190,6 @@ function entryToCard(entry, index) {
     score,
     image:    entry.cover_url ?? null,
     tags:     tags.length > 0 ? tags : undefined,
+    creator:  entry.creator_name ?? null,
   }
 }

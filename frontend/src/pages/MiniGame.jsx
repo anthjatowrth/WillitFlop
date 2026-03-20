@@ -3,7 +3,7 @@ import { Button } from '../components/ui/button'
 import { Badge } from '../components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card'
 import { buildImagePrompt } from '../utils/promptBuilder'
-import { saveToLeaderboard } from '../api/leaderboard'
+import { saveToLeaderboard, checkLeaderboardEligibility } from '../api/leaderboard'
 
 // ---------------------------------------------------------------------------
 // Définition des 13 questions du questionnaire
@@ -122,6 +122,8 @@ export default function MiniGame() {
   const [imageUrl, setImageUrl] = useState(null)
   const [imageLoading, setImageLoading] = useState(false)
   const [leaderboardAdded, setLeaderboardAdded] = useState(false)
+  const [showCreatorModal, setShowCreatorModal] = useState(false)
+  const [pendingLeaderboard, setPendingLeaderboard] = useState(null)
 
   const question = QUESTIONS[currentStep]
   const totalSteps = QUESTIONS.length
@@ -236,17 +238,29 @@ export default function MiniGame() {
       setResult(data)
       if (imageBlob) setImageUrl(URL.createObjectURL(imageBlob))
 
-      // Tente d'inscrire le jeu au leaderboard du mois
-      // On passe le blob directement : il sera uploadé dans Supabase Storage si le jeu se qualifie
-      saveToLeaderboard({ verdict: data.verdict, proba: data.proba, metacritic_score: data.metacritic_score, answers: rawAnswers, coverBlob: imageBlob })
-        .then(added => setLeaderboardAdded(added))
-        .catch(console.error)
+      // Vérifie l'éligibilité au leaderboard — si oui, affiche le modal pseudo
+      const eligible = await checkLeaderboardEligibility({ verdict: data.verdict, proba: data.proba })
+      if (eligible) {
+        setPendingLeaderboard({ verdict: data.verdict, proba: data.proba, metacritic_score: data.metacritic_score, answers: rawAnswers, coverBlob: imageBlob })
+        setShowCreatorModal(true)
+      }
     } catch (err) {
       setError(err.message)
     } finally {
       setIsLoading(false)
       setImageLoading(false)
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // Soumission du pseudo leaderboard (appelé depuis le modal)
+  // -------------------------------------------------------------------------
+  const handleCreatorSubmit = async (creatorName) => {
+    setShowCreatorModal(false)
+    if (!pendingLeaderboard) return
+    const added = await saveToLeaderboard({ ...pendingLeaderboard, creator_name: creatorName || null })
+    setLeaderboardAdded(added)
+    setPendingLeaderboard(null)
   }
 
   // -------------------------------------------------------------------------
@@ -260,6 +274,8 @@ export default function MiniGame() {
     setImageUrl(null)
     setImageLoading(false)
     setLeaderboardAdded(false)
+    setShowCreatorModal(false)
+    setPendingLeaderboard(null)
   }
 
   // -------------------------------------------------------------------------
@@ -267,6 +283,12 @@ export default function MiniGame() {
   // -------------------------------------------------------------------------
   return (
     <div className="technical-grid min-h-full">
+      {showCreatorModal && pendingLeaderboard && (
+        <CreatorModal
+          verdict={pendingLeaderboard.verdict}
+          onSubmit={handleCreatorSubmit}
+        />
+      )}
       <div className="max-w-screen-lg mx-auto px-6 py-12">
 
         {/* ── Header — masqué sur l'écran de résultat ─────────────── */}
@@ -598,6 +620,82 @@ function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded,
             </div>
           </CardContent>
         </Card>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Modal — saisie du pseudo pour le leaderboard
+// ---------------------------------------------------------------------------
+function CreatorModal({ verdict, onSubmit }) {
+  const [name, setName] = useState('')
+  const isTop = verdict === 'Top!'
+
+  const accentColor = isTop ? 'var(--wif-success)' : 'var(--wif-danger)'
+  const crown = isTop ? '👑' : '👑'
+  const crownStyle = isTop
+    ? { filter: 'drop-shadow(0 0 8px rgba(255,215,0,0.7))' }
+    : { filter: 'drop-shadow(0 0 8px rgba(139,94,60,0.6))', color: '#8B5E3C' }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)' }}
+    >
+      <div
+        className="w-full max-w-sm p-8 space-y-6"
+        style={{
+          background: 'var(--card)',
+          borderTop: `4px solid ${accentColor}`,
+          boxShadow: '0 24px 60px rgba(0,0,0,0.3)',
+        }}
+      >
+        {/* Crown + titre */}
+        <div className="text-center space-y-2">
+          <span className="text-4xl select-none" style={crownStyle}>{crown}</span>
+          <h2 className="font-headline text-2xl font-extrabold tracking-tight text-foreground">
+            {isTop ? 'Ton jeu entre dans le Top !' : 'Ton jeu entre dans le Flop !'}
+          </h2>
+          <p className="font-inter text-sm text-muted-foreground leading-relaxed">
+            Entre ton nom ou pseudo pour figurer dans le classement du mois.
+          </p>
+        </div>
+
+        {/* Input */}
+        <div className="space-y-2">
+          <label className="font-label text-[10px] tracking-[0.25em] uppercase text-muted-foreground block">
+            Ton pseudo
+          </label>
+          <input
+            type="text"
+            maxLength={32}
+            autoFocus
+            placeholder="Ex: Commander_Void"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && onSubmit(name.trim())}
+            className="w-full rounded-lg border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 font-exo"
+            style={{ '--tw-ring-color': accentColor }}
+          />
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-col gap-2">
+          <Button
+            className="w-full"
+            size="lg"
+            onClick={() => onSubmit(name.trim())}
+            style={name.trim() ? { background: accentColor, color: '#fff', border: 'none' } : {}}
+          >
+            {name.trim() ? `Confirmer — ${name.trim()}` : 'Confirmer (anonyme)'}
+          </Button>
+          <button
+            onClick={() => onSubmit(null)}
+            className="font-label text-[10px] tracking-[0.2em] uppercase text-muted-foreground hover:text-foreground transition-colors py-1"
+          >
+            Passer — rester anonyme
+          </button>
+        </div>
       </div>
     </div>
   )
