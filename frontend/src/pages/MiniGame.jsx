@@ -7,6 +7,78 @@ import { saveToLeaderboard, checkLeaderboardEligibility } from '../api/leaderboa
 import SlotMachine from '../components/minigame/SlotMachine'
 import DevSlider from '../components/minigame/DevSlider'
 import LanguageQuiz from '../components/minigame/LanguageQuiz'
+import imgAction from '../assets/action.png'
+import imgAventure from '../assets/aventure.png'
+import imgStrategy from '../assets/strategy.png'
+import imgRpg from '../assets/rpg.png'
+import imgPlatformer from '../assets/platformer.png'
+import imgSimulation from '../assets/simulation.png'
+import imgHorreur from '../assets/horreur.png'
+import imgNarratif from '../assets/narratif.png'
+import imgDark from '../assets/dark.png'
+import imgCozy from '../assets/cozy.png'
+import imgScifi from '../assets/scifi.png'
+import imgFantasy from '../assets/fantasy.png'
+import imgCyberpunk from '../assets/cyberpunk.png'
+import imgPostapo from '../assets/postapo.png'
+import imgHumour from '../assets/humour.png'
+import imgHorreurpsy from '../assets/horreurpsy.png'
+import imgHistorique from '../assets/historique.png'
+import imgAnime from '../assets/anime.png'
+import imgFps from '../assets/fps.png'
+import imgThirdPerson from '../assets/third-person.png'
+import imgIsometric from '../assets/isometric.png'
+import imgDefilement from '../assets/defilementlateral.png'
+import imgTopDown from '../assets/top_vuedessus.png'
+import imgPointClick from '../assets/pointnclick.png'
+import imgPixelArt from '../assets/pixelart.png'
+import imgCellShading from '../assets/cellshading.png'
+import img3DRealistic from '../assets/3Drealistic.png'
+import imgLowPoly from '../assets/lowpoly.png'
+import imgAquarelle from '../assets/aquarelle.png'
+import imgMinimalist from '../assets/minimalistflat.png'
+
+const GENRE_IMAGES = {
+  'Action / Combat': imgAction,
+  'Exploration / Aventure': imgAventure,
+  'Stratégie / Gestion': imgStrategy,
+  'RPG': imgRpg,
+  'Plateforme / Puzzle': imgPlatformer,
+  'Simulation': imgSimulation,
+  'Horreur / Thriller': imgHorreur,
+  'Narratif / Visual Novel': imgNarratif,
+}
+
+const AMBIANCE_IMAGES = {
+  'Dark / Mature': imgDark,
+  'Cozy / Wholesome': imgCozy,
+  'Sci-fi / Futuristic': imgScifi,
+  'Fantasy / Medieval': imgFantasy,
+  'Cyberpunk / Steampunk': imgCyberpunk,
+  'Post-Apocalyptique': imgPostapo,
+  'Humour / Parodie': imgHumour,
+  'Horreur / Psychologique': imgHorreurpsy,
+  'Historique': imgHistorique,
+  'Anime / Coloré': imgAnime,
+}
+
+const CAMERA_IMAGES = {
+  'Première personne (FPS)': imgFps,
+  'Troisième personne (TPS)': imgThirdPerson,
+  'Vue isométrique': imgIsometric,
+  'Défilement latéral (2D)': imgDefilement,
+  'Vue du dessus': imgTopDown,
+  'Point & Click': imgPointClick,
+}
+
+const VISUAL_STYLE_IMAGES = {
+  'Pixel Art / Rétro': imgPixelArt,
+  'Cell Shading / Cartoon': imgCellShading,
+  '3D Réaliste': img3DRealistic,
+  'Low Poly 3D': imgLowPoly,
+  'Aquarelle / Illustré': imgAquarelle,
+  'Minimaliste / Flat': imgMinimalist,
+}
 
 // ---------------------------------------------------------------------------
 // Définition des 12 questions du questionnaire
@@ -14,7 +86,7 @@ import LanguageQuiz from '../components/minigame/LanguageQuiz'
 const QUESTIONS = [
   {
     key: 'genre',
-    type: 'single',
+    type: 'genre-grid',
     label: 'Quelle est la famille de ton jeu ?',
     sublabel: 'Choix unique — il détermine les tags inférés',
     options: [
@@ -30,7 +102,7 @@ const QUESTIONS = [
   },
   {
     key: 'universe',
-    type: 'multi',
+    type: 'ambiance-grid',
     label: "Quelle est l'ambiance de ton univers ?",
     sublabel: "Jusqu'à 4 choix",
     options: [
@@ -70,7 +142,7 @@ const QUESTIONS = [
   },
   {
     key: 'visualStyle',
-    type: 'single',
+    type: 'visual-grid',
     label: 'Quel est le style graphique de ton jeu ?',
     sublabel: 'Choix unique — impacte le style de la jaquette générée',
     options: [
@@ -84,7 +156,7 @@ const QUESTIONS = [
   },
   {
     key: 'perspective',
-    type: 'single',
+    type: 'camera-grid',
     label: 'Quelle est la vue caméra principale ?',
     sublabel: 'Comment le joueur perçoit-il ton monde ?',
     options: [
@@ -215,7 +287,8 @@ export default function MiniGame() {
     const value = answers[q.key]
     if (q.optional) return true
     if (q.type === 'text') return value.trim().length > 0
-    if (q.type === 'multi') return value.length > 0
+    if (q.type === 'multi' || q.type === 'ambiance-grid') return value.length > 0
+    if (q.type === 'camera-grid' || q.type === 'visual-grid') return value !== ''
     if (q.type === 'yesno') return value !== null
     if (q.type === 'slotmachine') return value !== null
     if (q.type === 'devslider') return value !== null && value !== undefined
@@ -512,7 +585,7 @@ export default function MiniGame() {
 
         {/* ── Questionnaire ───────────────────────────────────────── */}
         {!result && !isLoading && !error && (
-          <div className="max-w-xl mx-auto space-y-5">
+          <div className={`${question?.type === 'ambiance-grid' ? 'max-w-4xl' : question?.type === 'camera-grid' ? 'max-w-xl' : 'max-w-xl'} mx-auto space-y-5`}>
             <ProgressBar current={currentStep + 1} total={totalSteps} />
 
             <Card>
@@ -536,6 +609,45 @@ export default function MiniGame() {
                     placeholder={question.placeholder}
                     value={answers[question.key]}
                     onChange={handleTextChange}
+                  />
+                )}
+
+                {/* Grille illustrée — genre */}
+                {question.type === 'genre-grid' && (
+                  <GenreGrid
+                    options={question.options}
+                    selected={answers[question.key]}
+                    onSelect={handleSingleSelect}
+                  />
+                )}
+
+                {/* Grille illustrée — ambiance */}
+                {question.type === 'ambiance-grid' && (
+                  <AmbianceGrid
+                    options={question.options}
+                    selected={answers[question.key]}
+                    onToggle={handleMultiToggle}
+                    maxSelect={question.maxSelect}
+                  />
+                )}
+
+                {/* Carousel — style graphique */}
+                {question.type === 'visual-grid' && (
+                  <GenreGrid
+                    options={question.options}
+                    selected={answers[question.key]}
+                    onSelect={handleSingleSelect}
+                    images={VISUAL_STYLE_IMAGES}
+                  />
+                )}
+
+                {/* Carousel — vue caméra */}
+                {question.type === 'camera-grid' && (
+                  <GenreGrid
+                    options={question.options}
+                    selected={answers[question.key]}
+                    onSelect={handleSingleSelect}
+                    images={CAMERA_IMAGES}
                   />
                 )}
 
@@ -643,6 +755,149 @@ function ProgressBar({ current, total }) {
           style={{ width: `${pct}%`, background: 'var(--wif-pink)' }}
         />
       </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Carousel arène — sélection de genre (Q1)
+// ---------------------------------------------------------------------------
+function GenreGrid({ options, selected, onSelect, images = GENRE_IMAGES }) {
+  const initialIdx = selected ? options.indexOf(selected) : 0
+  const [focusIdx, setFocusIdx] = useState(initialIdx >= 0 ? initialIdx : 0)
+
+  const focusedOption = options[focusIdx]
+  function go(dir) {
+    setFocusIdx(i => (i + dir + options.length) % options.length)
+  }
+
+  function pickThumb(idx) {
+    setFocusIdx(idx)
+    onSelect(options[idx])
+  }
+
+  return (
+    <div className="flex flex-col gap-3 select-none">
+      {/* Grande image centrale */}
+      <div className="relative w-full overflow-hidden rounded-xl" style={{ aspectRatio: '16/7' }}>
+        <img
+          key={focusedOption}
+          src={images[focusedOption]}
+          alt={focusedOption}
+          className="w-full h-full object-cover transition-all duration-300"
+        />
+        {/* Dégradé bas */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+
+        {/* Nom du genre */}
+        <div className="absolute bottom-0 left-0 right-0 px-5 pb-4">
+          <span className="font-label tracking-widest uppercase text-white text-lg font-bold drop-shadow-lg">
+            {focusedOption}
+          </span>
+        </div>
+
+        {/* Flèches */}
+        <button
+          onClick={() => go(-1)}
+          className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all"
+          style={{ background: 'rgba(0,0,0,0.45)', color: 'white', backdropFilter: 'blur(4px)' }}
+        >
+          ‹
+        </button>
+        <button
+          onClick={() => go(1)}
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all"
+          style={{ background: 'rgba(0,0,0,0.45)', color: 'white', backdropFilter: 'blur(4px)' }}
+        >
+          ›
+        </button>
+      </div>
+
+      {/* Strip de miniatures */}
+      <div className="flex gap-1.5">
+        {options.map((option, idx) => {
+          const isFocused = idx === focusIdx
+          const isSelected = option === selected
+          return (
+            <button
+              key={option}
+              onClick={() => pickThumb(idx)}
+              className="flex-1 rounded-lg overflow-hidden transition-all duration-200"
+              style={{
+                aspectRatio: '3/2',
+                minWidth: 0,
+                border: isFocused
+                  ? '2px solid var(--wif-pink)'
+                  : isSelected
+                  ? '2px solid rgba(255,20,147,0.4)'
+                  : '2px solid var(--wif-border)',
+                opacity: isFocused ? 1 : 0.6,
+                transform: isFocused ? 'scale(1.06)' : 'scale(1)',
+              }}
+            >
+              <img src={images[option]} alt={option} className="w-full h-full object-cover" />
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Grille illustrée — sélection d'ambiance (Q2, multi jusqu'à 4)
+// ---------------------------------------------------------------------------
+function AmbianceGrid({ options, selected, onToggle, maxSelect }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-4 gap-2">
+        {options.map((option, idx) => {
+          const isSelected = selected.includes(option)
+          const isDisabled = !isSelected && selected.length >= maxSelect
+          // Centre les 2 derniers items si la dernière ligne est incomplète (10 items → 2 en dernière ligne)
+          const lastRowRemainder = options.length % 4
+          const isFirstOfLastRow = lastRowRemainder !== 0 && idx === options.length - lastRowRemainder
+          return (
+            <button
+              key={option}
+              onClick={() => !isDisabled && onToggle(option)}
+              disabled={isDisabled}
+              className="relative rounded-xl overflow-hidden transition-all duration-200"
+              style={{
+                aspectRatio: '16/9',
+                border: isSelected ? '2px solid var(--wif-pink)' : '2px solid var(--wif-border)',
+                opacity: isDisabled ? 0.3 : 1,
+                transform: isSelected ? 'scale(1.03)' : 'scale(1)',
+                ...(isFirstOfLastRow && lastRowRemainder === 2 ? { gridColumnStart: 2 } : {}),
+              }}
+            >
+              <img
+                src={AMBIANCE_IMAGES[option]}
+                alt={option}
+                className="w-full h-full object-cover"
+              />
+              <div
+                className="absolute inset-0 transition-opacity duration-200"
+                style={{ background: isSelected ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.25)' }}
+              />
+              {isSelected && (
+                <div
+                  className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold"
+                  style={{ background: 'var(--wif-pink)' }}
+                >
+                  ✓
+                </div>
+              )}
+              <span className="absolute bottom-0 left-0 right-0 px-2 pb-2 text-center font-label text-[10px] tracking-widest uppercase text-white font-bold leading-tight drop-shadow-lg">
+                {option}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+      <p className="text-right font-label text-[10px] tracking-widest uppercase" style={{ color: 'var(--wif-muted)' }}>
+        {selected.length} / {maxSelect} sélectionné{selected.length > 1 ? 's' : ''}
+      </p>
     </div>
   )
 }
@@ -848,6 +1103,111 @@ function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded,
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* ── Facteurs clés ─────────────────────────────────────────── */}
+      <div className="max-w-xl mx-auto">
+        <FactorsSection answers={answers} />
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Heuristiques : quels choix jouent pour ou contre le succès
+// ---------------------------------------------------------------------------
+function getFactors(answers) {
+  const factors = []
+  const polishLabels = ['Garage', 'Studio Indé', 'AA Indé', 'Polished Gem']
+
+  // Polish
+  if (answers.devLevel >= 2)
+    factors.push({ label: `Finition : ${polishLabels[answers.devLevel]}`, positive: true })
+  else if (answers.devLevel === 0)
+    factors.push({ label: `Finition : ${polishLabels[answers.devLevel]}`, positive: false })
+
+  // Prix
+  if (answers.pricing === 0)
+    factors.push({ label: 'Gratuit — accessibilité maximale', positive: true })
+  else if (answers.pricing != null && answers.pricing <= 14.99)
+    factors.push({ label: `Prix accessible : ${answers.pricing}€`, positive: true })
+  else if (answers.pricing != null && answers.pricing >= 29.99)
+    factors.push({ label: `Prix élevé : ${answers.pricing}€`, positive: false })
+
+  // Langues
+  if (answers.languages != null) {
+    if (answers.languages >= 10)
+      factors.push({ label: `${answers.languages} langues — large audience`, positive: true })
+    else if (answers.languages <= 2)
+      factors.push({ label: `${answers.languages} langue(s) — audience limitée`, positive: false })
+  }
+
+  // DLC
+  if (answers.hasDLC === true)
+    factors.push({ label: 'DLC prévu — revenus additionnels', positive: true })
+  else if (answers.hasDLC === false)
+    factors.push({ label: 'Pas de DLC prévu', positive: false })
+
+  // Mécaniques tendances vs niches exigeantes
+  const trendingMechanics = ['Roguelike / Roguelite', 'Deckbuilding', 'Metroidvania']
+  const nicheHard = ['Souls-like', 'Tower Defense']
+  const hasTrending = answers.mechanics?.some(m => trendingMechanics.includes(m))
+  const hasNiche = answers.mechanics?.some(m => nicheHard.includes(m))
+  if (hasTrending)
+    factors.push({ label: 'Mécaniques en vogue (roguelike, deckbuilding…)', positive: true })
+  if (hasNiche)
+    factors.push({ label: 'Niche exigeante (souls-like / tower defense)', positive: false })
+
+  // Multijoueur / moddable
+  if (answers.categories?.includes('Workshop / Mods'))
+    factors.push({ label: 'Support moddable — longévité accrue', positive: true })
+  if (answers.categories?.some(c => ['Co-op en ligne', 'PvP compétitif'].includes(c)))
+    factors.push({ label: 'Multijoueur — engagement communautaire', positive: true })
+  if (answers.categories?.length === 1 && answers.categories[0] === 'Solo uniquement')
+    factors.push({ label: 'Solo uniquement — pas de multijoueur', positive: false })
+
+  return factors
+}
+
+// ---------------------------------------------------------------------------
+// Section facteurs positifs / négatifs
+// ---------------------------------------------------------------------------
+function FactorsSection({ answers }) {
+  const factors = getFactors(answers)
+  if (factors.length === 0) return null
+  return (
+    <div className="space-y-3">
+      <span className="font-label text-[10px] tracking-[0.3em] uppercase text-muted-foreground block">
+        Facteurs clés
+      </span>
+      <div className="flex flex-col gap-2">
+        {factors.map((f, i) => (
+          <div
+            key={i}
+            className="flex items-center gap-3 rounded-lg px-4 py-3"
+            style={{
+              background: f.positive
+                ? 'color-mix(in srgb, var(--wif-success) 12%, transparent)'
+                : 'color-mix(in srgb, var(--wif-danger) 12%, transparent)',
+              border: `1px solid ${f.positive
+                ? 'color-mix(in srgb, var(--wif-success) 35%, transparent)'
+                : 'color-mix(in srgb, var(--wif-danger) 35%, transparent)'}`,
+            }}
+          >
+            <span
+              className="shrink-0 text-base leading-none"
+              style={{ color: f.positive ? 'var(--wif-success)' : 'var(--wif-danger)' }}
+            >
+              {f.positive ? '▲' : '▼'}
+            </span>
+            <span
+              className="text-sm font-exo"
+              style={{ color: f.positive ? 'var(--wif-success)' : 'var(--wif-danger)' }}
+            >
+              {f.label}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   )
