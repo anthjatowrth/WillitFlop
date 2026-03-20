@@ -40,9 +40,10 @@ CREATE TABLE IF NOT EXISTS games (
     short_description_clean     TEXT,           -- description courte, HTML retiré, URLs retirées
     supported_languages         TEXT[],         -- liste des langues supportées
 
-    -- ── Images ────────────────────────────────────────────────────────────────
+    -- ── Images & médias ───────────────────────────────────────────────────────
     header_image                TEXT,           -- bannière principale (460×215)
-    first_screenshot_url        TEXT,           -- premier screenshot gameplay (pleine résolution)
+    screenshot_urls             TEXT[],         -- jusqu'à 5 screenshots gameplay (pleine résolution)
+    trailer_hls_url             TEXT,           -- URL HLS (.m3u8) du premier trailer Steam
 
     -- ── Label ML ──────────────────────────────────────────────────────────────
     is_successful           BOOLEAN,        -- label calculé (scoring multi-critères)

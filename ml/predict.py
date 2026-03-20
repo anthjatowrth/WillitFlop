@@ -37,6 +37,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pickle
+import random
 
 import pandas as pd
 
@@ -101,7 +102,7 @@ def predict(game: dict) -> dict:
     dict avec les clés :
       verdict          (str)   : "Top!" ou "Flop!"
       proba            (float) : probabilité de succès, arrondie à 2 décimales
-      metacritic_score (int)   : note fictive estimée (40–95)
+      metacritic_score (float) : note fictive estimée (40–95), avec variation aléatoire ±2
     """
     _load_artifacts()
 
@@ -136,8 +137,10 @@ def predict(game: dict) -> dict:
     # Verdict binaire
     verdict = "Top!" if proba >= DECISION_THRESHOLD else "Flop!"
 
-    # Note Metacritic fictive : mapping linéaire proba → [40, 95]
-    metacritic_score = int(round(METACRITIC_BASE + METACRITIC_RANGE * proba))
+    # Note Metacritic fictive : mapping linéaire proba → [40, 95] + variation aléatoire ±2
+    base_score = METACRITIC_BASE + METACRITIC_RANGE * proba
+    noise = random.uniform(-2.0, 2.0)
+    metacritic_score = round(max(40, min(95, base_score + noise)), 2)
 
     return {
         "verdict":          verdict,

@@ -17,4 +17,4 @@ class GameInput(BaseModel):
 class PredictResponse(BaseModel):
     verdict: str
     proba: float
-    metacritic_score: int
+    metacritic_score: float

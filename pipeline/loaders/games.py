@@ -19,7 +19,17 @@ def save_game_details(conn, app_id: int, d: dict):
         price_eur = 0.0
     metacritic_score = metacritic.get("score") or 0
     screenshots = d.get("screenshots") or []
-    first_screenshot_url = screenshots[0].get("path_full") if screenshots else None
+    screenshot_urls = [s["path_full"] for s in screenshots[:5] if s.get("path_full")]
+
+    movies = d.get("movies") or []
+    trailer_hls_url = None
+    if movies:
+        m = movies[0]
+        # Steam API returns video URLs under webm/mp4 objects, not hls_h264/dash_h264
+        trailer_hls_url = (
+            (m.get("webm") or {}).get("max")
+            or (m.get("mp4") or {}).get("max")
+        )
 
     with conn.cursor() as cur:
         cur.execute("""
@@ -27,7 +37,7 @@ def save_game_details(conn, app_id: int, d: dict):
                 app_id, name, is_free,
                 release_date, has_dlc, is_early_access,
                 short_description_clean,
-                header_image, first_screenshot_url,
+                header_image, screenshot_urls, trailer_hls_url,
                 supported_languages,
                 price_eur,
                 metacritic_score,
@@ -36,7 +46,7 @@ def save_game_details(conn, app_id: int, d: dict):
                 %s,%s,%s,
                 %s,%s,%s,
                 %s,
-                %s,%s,
+                %s,%s,%s,
                 %s,
                 %s,
                 %s,
@@ -50,7 +60,8 @@ def save_game_details(conn, app_id: int, d: dict):
                 is_early_access             = EXCLUDED.is_early_access,
                 short_description_clean     = EXCLUDED.short_description_clean,
                 header_image                = EXCLUDED.header_image,
-                first_screenshot_url        = EXCLUDED.first_screenshot_url,
+                screenshot_urls             = EXCLUDED.screenshot_urls,
+                trailer_hls_url             = EXCLUDED.trailer_hls_url,
                 supported_languages         = EXCLUDED.supported_languages,
                 price_eur                   = EXCLUDED.price_eur,
                 metacritic_score            = EXCLUDED.metacritic_score,
@@ -65,7 +76,8 @@ def save_game_details(conn, app_id: int, d: dict):
             is_early_access,
             short_description_clean,
             d.get("header_image"),
-            first_screenshot_url,
+            screenshot_urls,
+            trailer_hls_url,
             clean_supported_languages(d.get("supported_languages")),
             price_eur,
             metacritic_score,
