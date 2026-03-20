@@ -49,7 +49,7 @@ def predict_game(game: GameInput):
     return result
 
 
-DEEPL_KEY = os.getenv("DEEPL_API_KEY", "")
+DEEPL_KEY = os.getenv("DEEPL_API_KEY", "").strip()
 DEEPL_URL = "https://api-free.deepl.com/v2/translate"
 
 
