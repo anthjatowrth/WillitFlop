@@ -42,14 +42,39 @@ function ArrowButton() {
   )
 }
 
+/** Derives a single play-mode tag from Steam category names */
+function getPlayMode(categories) {
+  const cats = categories.map(c => c.toLowerCase())
+  if (cats.some(c => c.includes('co-op') || c.includes('coop'))) return 'CO-OP'
+  if (cats.some(c => c.includes('multi') || c.includes('pvp'))) return 'MULTI'
+  if (cats.some(c => c.includes('single'))) return 'SOLO'
+  return null
+}
+
+/** TOP / FLOP badge */
+function TopFlopBadge({ isSuccessful }) {
+  if (isSuccessful === null || isSuccessful === undefined) return null
+  const color = isSuccessful ? 'var(--wif-success)' : 'var(--wif-danger)'
+  const label = isSuccessful ? 'TOP' : 'FLOP'
+  return (
+    <span
+      className="text-sm font-label font-bold tracking-widest uppercase px-3 py-1"
+      style={{ background: color, color: 'white' }}
+    >
+      {label}
+    </span>
+  )
+}
+
 /** Cover image or placeholder */
-function CoverImage({ url, title, className = '' }) {
+function CoverImage({ url, title, className = '', objectFit = 'cover' }) {
   if (url) {
     return (
       <img
         src={url}
         alt={title}
-        className={`w-full h-full object-cover ${className}`}
+        className={`w-full h-full ${className}`}
+        style={{ objectFit }}
       />
     )
   }
@@ -77,11 +102,13 @@ export default function GameCard({
   variant = 'grid',
   title,
   genres = [],
+  categories = [],
   releaseDate,
   metacriticScore,
   coverImageUrl,
   gameId,
   isNew = false,
+  isSuccessful,
 }) {
   const navigate = useNavigate()
   const formattedDate = formatDate(releaseDate)
@@ -94,32 +121,49 @@ export default function GameCard({
         className="flex items-center gap-4 px-4 py-3 bg-card border border-border hover:bg-surface-container-low transition-all duration-300 cursor-pointer"
       >
         {/* Thumbnail */}
-        <div className="w-12 h-12 shrink-0 overflow-hidden">
-          <CoverImage url={coverImageUrl} title={title} />
+        <div className="shrink-0 overflow-hidden" style={{ width: '96px', aspectRatio: '16/9' }}>
+          <CoverImage url={coverImageUrl} title={title} objectFit="contain" />
         </div>
 
-        {/* Title + genres */}
+        {/* Title + tags */}
         <div className="flex-1 min-w-0">
           <div className="font-headline font-bold text-sm text-foreground truncate">{title}</div>
-          {genres.length > 0 && (
-            <div className="flex gap-1 mt-0.5 flex-wrap">
-              {genres.slice(0, 2).map(g => (
-                <span
-                  key={g}
-                  className="px-1.5 py-0.5 text-[8px] font-label tracking-wider uppercase bg-surface-container-high text-muted-foreground"
-                >
-                  {g}
-                </span>
-              ))}
-            </div>
-          )}
+          <div className="flex gap-1 mt-0.5 flex-wrap">
+            {getPlayMode(categories) && (
+              <span
+                className="px-1.5 py-0.5 text-[8px] font-label tracking-wider uppercase border"
+                style={{ color: 'var(--primary)', borderColor: 'var(--primary)' }}
+              >
+                {getPlayMode(categories)}
+              </span>
+            )}
+            {genres.slice(0, 2).map(g => (
+              <span
+                key={g}
+                className="px-1.5 py-0.5 text-[8px] font-label tracking-wider uppercase bg-surface-container-high text-muted-foreground"
+              >
+                {g}
+              </span>
+            ))}
+          </div>
         </div>
 
-        {/* Date + score */}
-        <div className="hidden md:flex items-center gap-4">
+        {/* Date + score + top/flop */}
+        <div className="hidden md:flex items-center gap-3">
           <span className="text-[10px] font-label text-muted-foreground uppercase tracking-wider whitespace-nowrap">
             {formattedDate}
           </span>
+          {(isSuccessful === true || isSuccessful === false) && (
+            <span
+              className="text-[9px] font-label font-bold tracking-widest uppercase px-1.5 py-0.5 whitespace-nowrap"
+              style={{
+                background: isSuccessful ? 'var(--wif-success)' : 'var(--wif-danger)',
+                color: 'white',
+              }}
+            >
+              {isSuccessful ? 'TOP' : 'FLOP'}
+            </span>
+          )}
           {getScoreAccent(metacriticScore) && (
             <div
               className="border px-2 py-1"
@@ -176,8 +220,16 @@ export default function GameCard({
             {title}
           </h3>
 
-          {genres.length > 0 && (
+          {(genres.length > 0 || getPlayMode(categories)) && (
             <div className="flex flex-wrap gap-1 mt-2">
+              {getPlayMode(categories) && (
+                <span
+                  className="px-1.5 py-0.5 text-[9px] font-label tracking-wider uppercase border"
+                  style={{ color: 'var(--primary)', borderColor: 'var(--primary)' }}
+                >
+                  {getPlayMode(categories)}
+                </span>
+              )}
               {genres.slice(0, 3).map(g => (
                 <span
                   key={g}
@@ -194,11 +246,8 @@ export default function GameCard({
           <span className="text-[10px] font-label text-muted-foreground uppercase tracking-wider">
             {formattedDate}
           </span>
+          <TopFlopBadge isSuccessful={isSuccessful} />
           <ArrowButton />
-        </div>
-
-        <div className="text-[9px] font-label text-muted-foreground/40 uppercase tracking-wider">
-          #{gameId}
         </div>
       </div>
     </div>

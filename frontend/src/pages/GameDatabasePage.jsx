@@ -3,7 +3,7 @@ import { supabase } from '../api/client'
 import { useGameDatabase } from '../hooks/useGameDatabase'
 import GameCard from '../components/database/GameCard'
 
-const PAGE_SIZE = 12
+const PAGE_SIZE = 80
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -51,40 +51,33 @@ function SkeletonList() {
 // ── Main page ─────────────────────────────────────────────────────────────
 
 export default function GameDatabasePage() {
-  const [page, setPage]         = useState(1)
-  const [genre, setGenre]       = useState('')
-  const [year, setYear]         = useState('')
-  const [search, setSearch]     = useState('')
-  const [viewMode, setViewMode] = useState('grid') // 'grid' | 'list'
+  const [page, setPage]             = useState(1)
+  const [year, setYear]             = useState('')
+  const [search, setSearch]         = useState('')
+  const [playMode, setPlayMode]     = useState('') // '' | 'solo' | 'multi' | 'coop'
+  const [letterFilter, setLetter]   = useState('A') // '' | 'A'-'Z' | '#'
+  const [sortBy, setSortBy]         = useState('alpha') // 'alpha' | 'owners' | 'metacritic'
+  const [viewMode, setViewMode]     = useState('grid') // 'grid' | 'list'
+
+  // Total unfiltered count for the intro text
+  const [totalGamesCount, setTotalGamesCount] = useState(0)
+  useEffect(() => {
+    supabase.from('games').select('*', { count: 'exact', head: true })
+      .then(({ count }) => { if (count) setTotalGamesCount(count) })
+  }, [])
 
   // Accumulated games for "Load More" pattern
   const [allGames, setAllGames]       = useState([])
   const [isAppending, setIsAppending] = useState(false)
 
-  // All distinct genres fetched once for the dropdown
-  const [allGenres, setAllGenres] = useState([])
-
-  // Fetch distinct genres on mount
-  useEffect(() => {
-    supabase
-      .from('game_genres')
-      .select('genre_name')
-      .order('genre_name')
-      .limit(2000)
-      .then(({ data }) => {
-        if (data) {
-          const unique = [...new Set(data.map(r => r.genre_name))].sort()
-          setAllGenres(unique)
-        }
-      })
-  }, [])
-
   const { games: pageGames, totalCount, loading, error, refetch } = useGameDatabase({
     page,
     pageSize: PAGE_SIZE,
-    genre,
     year,
     search,
+    playMode,
+    letterFilter,
+    sortBy,
   })
 
   // Accumulate or replace when Supabase returns a page
@@ -104,7 +97,7 @@ export default function GameDatabasePage() {
     setPage(1)
     setAllGames([])
     setIsAppending(false)
-  }, [genre, year, search])
+  }, [year, search, playMode, letterFilter, sortBy])
 
   // Sort by relevance when a search is active (server already filtered by ilike)
   const filteredGames = useMemo(() => {
@@ -139,10 +132,6 @@ export default function GameDatabasePage() {
     setPage(p => p + 1)
   }
 
-  function handleGenreChange(e) {
-    setGenre(e.target.value)
-  }
-
   function handleYearChange(e) {
     setYear(e.target.value)
   }
@@ -166,7 +155,7 @@ export default function GameDatabasePage() {
             />
             <span className="font-label text-[10px] tracking-[0.3em] uppercase text-muted-foreground">
               {connectionOk
-                ? 'Supabase Terminal Connection: Active'
+                ? 'Will it flop connection : Active'
                 : 'Connection Error — Supabase Unreachable'}
             </span>
           </div>
@@ -177,12 +166,12 @@ export default function GameDatabasePage() {
           </h1>
 
           <p className="mt-3 font-inter text-sm text-muted-foreground max-w-xl">
-            Notre catalogue réunit {totalCount > 0 ? totalCount.toLocaleString() : 'plus de seize mille'} jeux
-            indépendants publiés sur Steam, sélectionnés sur la base de leur score Metacritic. Nous avons
+            Notre catalogue réunit {totalGamesCount > 0 ? totalGamesCount.toLocaleString() : 'plus de seize mille'} jeux
+            publiés sur Steam. Nous avons
             fait le choix de nous concentrer sur la scène indé : des créations portées par des studios de
-            petite taille, souvent fondés sur une vision forte et des prises de risque assumées — exactement
-            le type de projets que nous aimons analyser. Utilisez les filtres pour explorer par genre,
-            par année de sortie ou par mot-clé, et trouvez le titre qui vous inspire.
+            petite taille, souvent fondés sur une vision forte et des prises de risque assumées, exactement
+            le type de projets que nous aimons analyser. Nous rappelons que notre site n'a pas pour objectif de représenter tous les jeux de la scène indé (voir données). Utilisez les filtres pour explorer 
+            et trouvez le titre qui vous inspire.
           </p>
         </section>
 
@@ -191,7 +180,7 @@ export default function GameDatabasePage() {
           <div className="grid grid-cols-12 gap-3">
 
             {/* Search */}
-            <div className="col-span-12 md:col-span-5 relative">
+            <div className="col-span-12 md:col-span-6 relative">
               <span
                 className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-muted-foreground"
                 style={{ fontSize: '18px' }}
@@ -200,25 +189,11 @@ export default function GameDatabasePage() {
               </span>
               <input
                 type="text"
-                placeholder="Search by title…"
+                placeholder="Recherche par titre…"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 className="w-full pl-9 pr-4 py-2.5 bg-card border border-border text-sm font-inter text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
               />
-            </div>
-
-            {/* Genre */}
-            <div className="col-span-6 md:col-span-3">
-              <select
-                value={genre}
-                onChange={handleGenreChange}
-                className="w-full px-3 py-2.5 bg-card border border-border text-sm font-inter text-foreground focus:outline-none focus:border-primary transition-colors appearance-none"
-              >
-                <option value="">All Genres</option>
-                {allGenres.map(g => (
-                  <option key={g} value={g}>{g}</option>
-                ))}
-              </select>
             </div>
 
             {/* Year */}
@@ -228,10 +203,24 @@ export default function GameDatabasePage() {
                 onChange={handleYearChange}
                 className="w-full px-3 py-2.5 bg-card border border-border text-sm font-inter text-foreground focus:outline-none focus:border-primary transition-colors appearance-none"
               >
-                <option value="">All Years</option>
+                <option value="">Année</option>
                 {availableYears.map(y => (
                   <option key={y} value={y}>{y}</option>
                 ))}
+              </select>
+            </div>
+
+            {/* Play mode */}
+            <div className="col-span-6 md:col-span-2">
+              <select
+                value={playMode}
+                onChange={e => setPlayMode(e.target.value)}
+                className="w-full px-3 py-2.5 bg-card border border-border text-sm font-inter text-foreground focus:outline-none focus:border-primary transition-colors appearance-none"
+              >
+                <option value="">Tous les modes</option>
+                <option value="solo">Solo</option>
+                <option value="multi">Multi</option>
+                <option value="coop">Co-op</option>
               </select>
             </div>
 
@@ -261,11 +250,63 @@ export default function GameDatabasePage() {
             </div>
           </div>
 
+          {/* Sort + Alphabet picker */}
+          <div className="mt-3 flex items-center gap-4 flex-wrap">
+
+            {/* Sort buttons */}
+            <div className="flex gap-0 shrink-0">
+              {[
+                { key: 'alpha',      label: 'A → Z' },
+                { key: 'owners',     label: 'Popularité' },
+                { key: 'metacritic', label: 'Metacritic' },
+              ].map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => {
+                    setSortBy(key)
+                    if (key === 'alpha') {
+                      setLetter('A')
+                    } else {
+                      setLetter('')
+                    }
+                  }}
+                  className={`px-3 h-7 text-[10px] font-label tracking-wider uppercase border transition-all duration-200 ${
+                    sortBy === key
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-card text-muted-foreground border-border hover:border-primary hover:text-primary'
+                  }`}
+                  style={{ marginLeft: key === 'alpha' ? 0 : '-1px' }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Alphabet picker — only shown in alpha mode */}
+            {sortBy === 'alpha' && (
+              <div className="flex flex-wrap gap-0">
+                {['#', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(l => (
+                  <button
+                    key={l}
+                    onClick={() => setLetter(letterFilter === l ? '' : l)}
+                    className={`w-8 h-7 text-[11px] font-label tracking-wider transition-all duration-200 ${
+                      letterFilter === l
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-primary'
+                    }`}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Results count */}
           {!loading && (
-            <div className="mt-3 font-label text-[10px] tracking-widest uppercase text-muted-foreground">
+            <div className="mt-2 font-label text-[10px] tracking-widest uppercase text-muted-foreground">
               {filteredGames.length > 0
-                ? `Showing ${filteredGames.length} of ${totalCount.toLocaleString()} entries`
+                ? `Affiche ${filteredGames.length} sur ${totalCount.toLocaleString()} jeux`
                 : null}
             </div>
           )}
@@ -337,11 +378,13 @@ export default function GameDatabasePage() {
                       variant="grid"
                       title={game.name}
                       genres={game.game_genres?.map(r => r.genre_name) ?? []}
+                      categories={game.game_categories?.map(r => r.category_name) ?? []}
                       releaseDate={game.release_date}
                       metacriticScore={game.metacritic_score}
                       coverImageUrl={game.header_image}
                       gameId={game.app_id}
                       isNew={isRecentlyAdded(game.fetched_at)}
+                      isSuccessful={game.is_successful}
                     />
                   ))}
                 </div>
@@ -354,11 +397,13 @@ export default function GameDatabasePage() {
                       variant="list"
                       title={game.name}
                       genres={game.game_genres?.map(r => r.genre_name) ?? []}
+                      categories={game.game_categories?.map(r => r.category_name) ?? []}
                       releaseDate={game.release_date}
                       metacriticScore={game.metacritic_score}
                       coverImageUrl={game.header_image}
                       gameId={game.app_id}
                       isNew={isRecentlyAdded(game.fetched_at)}
+                      isSuccessful={game.is_successful}
                     />
                   ))}
                 </div>

@@ -11,7 +11,7 @@ export default function Hero() {
         className="font-space-mono uppercase tracking-[0.22em]"
         style={{ fontSize: '0.65rem', color: 'var(--wif-cyan)', marginBottom: '40px' }}
       >
-        // FICHE DE PRÉSENTATION PROJET – BOOTCAMP DATA ANALYST //
+        // ON PENSE TOUS SAVOIR CE QU'EST UN BON JEU, MAIS SAUREZ VOUS EN FAIRE UN ? //
       </p>
 
       {/* Big logo title */}
