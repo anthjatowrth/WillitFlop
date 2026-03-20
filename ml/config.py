@@ -15,9 +15,12 @@ PREPROCESSOR_PATH = ARTIFACTS_DIR / "preprocessor.pkl"
 # Features — doit correspondre exactement aux colonnes de ml_features (dbt)
 # ---------------------------------------------------------------------------
 
+# Prix séparé pour appliquer une transformation log(1+x) avant passthrough.
+# Réduit la sensibilité aux écarts absolus (diff 0€→10€ ≠ diff 50€→60€).
+PRICE_FEATURE = "price_eur"
+
 # Colonnes numériques continues : passthrough (XGBoost n'a pas besoin de scaling)
 NUMERIC_FEATURES = [
-    "price_eur",
     "achievement_count",
     "nb_supported_languages",
 ]
@@ -38,6 +41,21 @@ MULTILABEL_FEATURES = [
 
 # Colonne texte libre : TF-IDF
 TEXT_FEATURE = "short_description_clean"
+
+# ---------------------------------------------------------------------------
+# Pondération éditoriale des feature groups
+# ---------------------------------------------------------------------------
+# Technique : répétition de colonnes dans la matrice transformée.
+# Pour les modèles arborescents (XGBoost), multiplier les valeurs ne change
+# pas les splits — seule la répétition de colonnes augmente la probabilité
+# d'échantillonnage lors de colsample_bytree.
+#
+# Tags x3, genres x2, categories x2 : focus sur l'essence du jeu.
+# Texte réduit (150 → 100 features) : moins d'influence des descriptions mktg.
+TAGS_WEIGHT       = 3
+GENRES_WEIGHT     = 2
+CATEGORIES_WEIGHT = 2
+TEXT_MAX_FEATURES = 200
 
 # Colonne cible
 TARGET = "is_successful"

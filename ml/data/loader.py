@@ -15,6 +15,7 @@ from ml.config import (
     BOOL_FEATURES,
     MULTILABEL_FEATURES,
     NUMERIC_FEATURES,
+    PRICE_FEATURE,
     TARGET,
     TEXT_FEATURE,
 )
@@ -24,6 +25,7 @@ load_dotenv()
 # Colonnes à sélectionner — identifiant inclus pour le debug/tracing
 _COLUMNS = (
     ["app_id"]
+    + [PRICE_FEATURE]
     + NUMERIC_FEATURES
     + BOOL_FEATURES
     + MULTILABEL_FEATURES

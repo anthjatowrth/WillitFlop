@@ -3,13 +3,19 @@ Preprocessing pipeline WillitFlop.
 
 ColumnTransformer appliqué au DataFrame issu de loader.py :
 
-  ┌─────────────────────────────────────────────────────────────────┐
-  │  num_bool   │ passthrough │ price_eur, achievement_count, ...   │
-  │  tags       │ MLB wrapper │ ["Action","RPG", ...] → 0/1 columns │
-  │  genres     │ MLB wrapper │ ["RPG","Indie", ...]  → 0/1 columns │
-  │  categories │ MLB wrapper │ ["Single-player", ...]→ 0/1 columns │
-  │  text       │ TF-IDF      │ short_description_clean             │
-  └─────────────────────────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  price_log  │ log(1+x)    │ price_eur → log-transformé                 │
+  │  num_bool   │ passthrough │ achievement_count, nb_supported_languages...│
+  │  tags       │ MLB x3      │ ["Action","RPG", ...] → colonnes x3 répétées│
+  │  genres     │ MLB x2      │ ["RPG","Indie", ...]  → colonnes x2 répétées│
+  │  categories │ MLB x2      │ ["Single-player", ...]→ colonnes x2 répétées│
+  │  text       │ TF-IDF 100  │ short_description_clean (réduit de 300→100) │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+Pondération éditoriale (v2) :
+  - Tags x3, genres x2, categories x2 via répétition de colonnes.
+  - Prix log-transformé : atténue la sensibilité aux grands écarts absolus.
+  - Texte réduit à 100 features TF-IDF (vs 300 avant).
 
 Pourquoi un wrapper MultiLabelEncoder ?
   MultiLabelBinarizer n'implémente pas get_feature_names_out() ni
@@ -26,9 +32,19 @@ import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.preprocessing import MultiLabelBinarizer
+from sklearn.preprocessing import FunctionTransformer, MultiLabelBinarizer
 
-from ml.config import BOOL_FEATURES, MULTILABEL_FEATURES, NUMERIC_FEATURES, TEXT_FEATURE
+from ml.config import (
+    BOOL_FEATURES,
+    CATEGORIES_WEIGHT,
+    GENRES_WEIGHT,
+    MULTILABEL_FEATURES,
+    NUMERIC_FEATURES,
+    PRICE_FEATURE,
+    TAGS_WEIGHT,
+    TEXT_FEATURE,
+    TEXT_MAX_FEATURES,
+)
 
 
 class MultiLabelEncoder(BaseEstimator, TransformerMixin):
@@ -40,10 +56,18 @@ class MultiLabelEncoder(BaseEstimator, TransformerMixin):
     vocabulaire lors du fit() et est sérialisée dans preprocessor.pkl.
 
     Input  : Series pandas de listes Python, ex: [["Action","RPG"], ["Indie"], ...]
-    Output : numpy array dense (n_samples, n_classes)
+    Output : numpy array dense (n_samples, n_classes * repeat)
+
+    Paramètre repeat :
+      Répète les colonnes binarisées `repeat` fois dans la matrice de sortie.
+      Technique standard pour pondérer des features dans les modèles arborescents :
+      XGBoost échantillonne les colonnes aléatoirement (colsample_bytree),
+      donc répéter les colonnes augmente leur probabilité d'être sélectionnées.
+      Note : multiplier les valeurs (0/1) ne changerait pas les splits d'un arbre.
     """
 
-    def __init__(self):
+    def __init__(self, repeat: int = 1):
+        self.repeat = repeat
         self.mlb_ = None  # instancié dans fit() pour respecter le pattern sklearn
 
     def fit(self, X, y=None):
@@ -52,11 +76,21 @@ class MultiLabelEncoder(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
-        return self.mlb_.transform(X)
+        result = self.mlb_.transform(X)
+        if self.repeat == 1:
+            return result
+        return np.tile(result, (1, self.repeat))
 
     def get_feature_names_out(self, input_features=None):
         """Expose les noms de classes pour ColumnTransformer.get_feature_names_out()."""
-        return np.array(self.mlb_.classes_, dtype=object)
+        classes = np.array(self.mlb_.classes_, dtype=object)
+        if self.repeat == 1:
+            return classes
+        # Suffixe _w0, _w1, _w2 pour distinguer les colonnes dupliquées
+        return np.concatenate([
+            np.array([f"{c}_w{i}" for c in self.mlb_.classes_], dtype=object)
+            for i in range(self.repeat)
+        ])
 
 
 def build_preprocessor() -> ColumnTransformer:
@@ -77,7 +111,17 @@ def build_preprocessor() -> ColumnTransformer:
     limites lors du calcul des SHAP values sur de petits datasets.
     """
     transformers = [
-        # --- Numériques + booléens ----------------------------------------
+        # --- Prix : log(1 + price_eur) ----------------------------------------
+        # Atténue la sensibilité aux grands écarts de prix absolus.
+        # La différence 0€→10€ a plus d'impact gameplay que 50€→60€.
+        # FunctionTransformer avec validate=False pour accepter un DataFrame 1-col.
+        (
+            "price_log",
+            FunctionTransformer(np.log1p, validate=False),
+            [PRICE_FEATURE],  # liste → DataFrame 2D (1 col) passé au transformer
+        ),
+
+        # --- Autres numériques + booléens ------------------------------------
         # XGBoost n'a pas besoin de normalisation : passthrough suffit.
         # Les booléens pandas (True/False) sont traités comme 1/0 nativement.
         (
@@ -86,23 +130,24 @@ def build_preprocessor() -> ColumnTransformer:
             NUMERIC_FEATURES + BOOL_FEATURES,  # liste → DataFrame 2D passé tel quel
         ),
 
-        # --- Multi-label : un encoder indépendant par colonne ---------------
+        # --- Multi-label : pondération éditoriale par répétition de colonnes --
         # Chaque MLB apprend son propre vocabulaire (tags ≠ genres ≠ categories).
+        # repeat=N → les colonnes binarisées apparaissent N fois dans la matrice,
+        # ce qui augmente leur probabilité d'échantillonnage (colsample_bytree).
         # Sélecteur en chaîne simple → Series 1D transmise au fit/transform.
-        ("tags",       MultiLabelEncoder(), MULTILABEL_FEATURES[0]),  # "tags"
-        ("genres",     MultiLabelEncoder(), MULTILABEL_FEATURES[1]),  # "genres"
-        ("categories", MultiLabelEncoder(), MULTILABEL_FEATURES[2]),  # "categories"
+        ("tags",       MultiLabelEncoder(repeat=TAGS_WEIGHT),       MULTILABEL_FEATURES[0]),  # x3
+        ("genres",     MultiLabelEncoder(repeat=GENRES_WEIGHT),     MULTILABEL_FEATURES[1]),  # x2
+        ("categories", MultiLabelEncoder(repeat=CATEGORIES_WEIGHT), MULTILABEL_FEATURES[2]),  # x2
 
-        # --- Texte : TF-IDF description --------------------------------------
-        # max_features=300 : on garde les 300 uni/bigrammes les plus discriminants.
-        # ngram_range=(1,2) : capture les expressions clés ("open world",
-        #   "early access", "battle royale") en plus des mots isolés.
-        # sublinear_tf=True : remplace tf par log(1+tf), ce qui atténue
-        #   l'impact des mots très répétés dans les longues descriptions.
+        # --- Texte : TF-IDF description (réduit) -----------------------------
+        # max_features réduit de 300 → 100 : moins d'influence des descriptions
+        # marketing, focus sur les features métier (tags/genres/categories).
+        # ngram_range=(1,2) : capture "open world", "battle royale", etc.
+        # sublinear_tf=True : log(1+tf) atténue les mots très répétés.
         (
             "text",
             TfidfVectorizer(
-                max_features=300,
+                max_features=TEXT_MAX_FEATURES,
                 ngram_range=(1, 2),
                 sublinear_tf=True,
                 stop_words="english",

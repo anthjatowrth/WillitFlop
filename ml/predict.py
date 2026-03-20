@@ -50,6 +50,7 @@ from ml.config import (
     MODEL_PATH,
     MULTILABEL_FEATURES,
     NUMERIC_FEATURES,
+    PRICE_FEATURE,
     PREPROCESSOR_PATH,
     TEXT_FEATURE,
 )
@@ -123,6 +124,7 @@ def predict(game: dict) -> dict:
 
     # Conversion en DataFrame (le preprocessor attend un DataFrame pandas)
     row = {
+        PRICE_FEATURE: merged[PRICE_FEATURE],
         **{col: merged[col] for col in NUMERIC_FEATURES},
         **{col: merged[col] for col in BOOL_FEATURES},
         **{col: merged[col] for col in MULTILABEL_FEATURES},
