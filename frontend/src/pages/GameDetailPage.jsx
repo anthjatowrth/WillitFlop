@@ -8,8 +8,8 @@ import { translateToFR } from '../utils/deepl'
 // ── Formatting helpers ────────────────────────────────────────────────────
 
 function formatDate(dateStr) {
-  if (!dateStr) return 'TBA'
-  return new Date(dateStr).toLocaleDateString('en-US', {
+  if (!dateStr) return 'À venir'
+  return new Date(dateStr).toLocaleDateString('fr-FR', {
     day: 'numeric', month: 'long', year: 'numeric',
   })
 }
@@ -30,14 +30,14 @@ function formatOwners(midpoint) {
 }
 
 function formatPrice(isF, priceEur) {
-  if (isF) return 'Free to Play'
+  if (isF) return 'Gratuit'
   if (!priceEur) return '—'
   return `€${priceEur.toFixed(2)}`
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────
 
-/** Section header with left primary border — matches LeaderboardPage style */
+/** Section header with left primary border */
 function SectionLabel({ children }) {
   return (
     <div className="font-label text-[10px] tracking-[0.35em] uppercase text-primary mb-4">
@@ -64,55 +64,18 @@ function StatRow({ icon, label, value, accent = false }) {
   )
 }
 
-/** Review bar — positive / negative split */
-function ReviewBar({ positive, total }) {
-  if (!total) return null
-  const pct = Math.round((positive / total) * 100)
-  return (
-    <div>
-      <div className="flex justify-between mb-1">
-        <span className="font-label text-[9px] tracking-widest uppercase text-muted-foreground">
-          Community Score
-        </span>
-        <span className="font-label text-[9px] tracking-widest uppercase font-bold"
-          style={{ color: pct >= 70 ? 'var(--wif-success)' : pct >= 50 ? 'var(--wif-warn)' : 'var(--wif-danger)' }}
-        >
-          {pct}% positive
-        </span>
-      </div>
-      <div className="h-1.5 bg-surface-container-high overflow-hidden">
-        <div
-          className="h-full transition-all duration-700"
-          style={{
-            width: `${pct}%`,
-            background: pct >= 70 ? 'var(--wif-success)' : pct >= 50 ? 'var(--wif-warn)' : 'var(--wif-danger)',
-          }}
-        />
-      </div>
-      <div className="flex justify-between mt-1">
-        <span className="font-label text-[8px] text-muted-foreground/60">
-          ↑ {positive.toLocaleString()}
-        </span>
-        <span className="font-label text-[8px] text-muted-foreground/60">
-          ↓ {(total - positive).toLocaleString()}
-        </span>
-      </div>
-    </div>
-  )
-}
-
-/** Metacritic score display — large format */
+/** Metacritic score display — large format, half-card */
 function MetacriticBlock({ score }) {
   const accent = getScoreAccent(score)
   if (!accent) return (
-    <div className="flex flex-col items-center justify-center py-3 border border-border">
+    <div className="flex flex-col items-center justify-center py-4 border border-border flex-1">
       <span className="font-label text-[9px] tracking-widest uppercase text-muted-foreground">Metacritic</span>
-      <span className="font-headline text-2xl font-black text-muted-foreground/30 mt-1">N/A</span>
+      <span className="font-headline text-4xl font-black text-muted-foreground/30 mt-1">N/A</span>
     </div>
   )
   return (
     <div
-      className="flex flex-col items-center justify-center py-3 border"
+      className="flex flex-col items-center justify-center py-4 border flex-1"
       style={{ borderColor: `var(--${accent})` }}
     >
       <span
@@ -127,6 +90,40 @@ function MetacriticBlock({ score }) {
       >
         {score}
       </span>
+    </div>
+  )
+}
+
+/** Community score display — large format, half-card */
+function CommunityScoreBlock({ positive, total }) {
+  if (!total) return (
+    <div className="flex flex-col items-center justify-center py-4 border border-border flex-1">
+      <span className="font-label text-[9px] tracking-widest uppercase text-muted-foreground">Score Communauté</span>
+      <span className="font-headline text-4xl font-black text-muted-foreground/30 mt-1">N/A</span>
+    </div>
+  )
+  const pct = Math.round((positive / total) * 100)
+  const color = pct >= 70 ? 'var(--wif-success)' : pct >= 50 ? 'var(--wif-warn)' : 'var(--wif-danger)'
+  return (
+    <div className="flex flex-col items-center justify-center py-4 border flex-1" style={{ borderColor: color }}>
+      <span className="font-label text-[9px] tracking-widest uppercase" style={{ color }}>
+        Score Communauté
+      </span>
+      <span className="font-headline text-4xl font-black mt-1 leading-none" style={{ color }}>
+        {pct}%
+      </span>
+      <div className="w-full px-3 mt-2">
+        <div className="h-1.5 bg-surface-container-high overflow-hidden">
+          <div
+            className="h-full transition-all duration-700"
+            style={{ width: `${pct}%`, background: color }}
+          />
+        </div>
+        <div className="flex justify-between mt-1">
+          <span className="font-label text-[8px] text-muted-foreground/60">↑ {positive.toLocaleString()}</span>
+          <span className="font-label text-[8px] text-muted-foreground/60">↓ {(total - positive).toLocaleString()}</span>
+        </div>
+      </div>
     </div>
   )
 }
@@ -152,10 +149,8 @@ function GameTrailer({ hlsUrl, posterUrl }) {
       hls.attachMedia(video)
       return () => hls.destroy()
     } else if (isHls && video.canPlayType('application/vnd.apple.mpegurl')) {
-      // Safari native HLS
       video.src = hlsUrl
     } else {
-      // Direct webm/mp4
       video.src = hlsUrl
     }
   }, [hlsUrl])
@@ -211,7 +206,7 @@ function Lightbox({ url, onClose }) {
   )
 }
 
-/** Screenshots gallery — thumbnails in a row, click to enlarge, click again to zoom */
+/** Screenshots gallery — thumbnails in a row, click to enlarge */
 function ScreenshotGallery({ urls }) {
   const [active, setActive] = useState(urls?.[0] ?? null)
   const [lightbox, setLightbox] = useState(null)
@@ -221,9 +216,8 @@ function ScreenshotGallery({ urls }) {
     <>
       {lightbox && <Lightbox url={lightbox} onClose={() => setLightbox(null)} />}
       <section>
-        <SectionLabel>Screenshots</SectionLabel>
+        <SectionLabel>Captures d'écran</SectionLabel>
         <div className="flex flex-col gap-3">
-          {/* Enlarged preview — click to open lightbox */}
           <div
             className="overflow-hidden border border-border cursor-zoom-in relative group"
             style={{ aspectRatio: '16/9' }}
@@ -238,7 +232,6 @@ function ScreenshotGallery({ urls }) {
               <span className="material-symbols-outlined text-white" style={{ fontSize: '32px' }}>zoom_in</span>
             </div>
           </div>
-          {/* Thumbnail strip */}
           <div className="flex gap-2">
             {urls.map((url, i) => (
               <button
@@ -277,9 +270,8 @@ function ScreenshotCarousel({ urls }) {
     <>
       {lightbox && <Lightbox url={lightbox} onClose={() => setLightbox(null)} />}
       <section>
-        <SectionLabel>Screenshots</SectionLabel>
+        <SectionLabel>Captures d'écran</SectionLabel>
         <div className="flex flex-col gap-3">
-          {/* Main slide */}
           <div
             className="relative overflow-hidden border border-border group cursor-zoom-in"
             style={{ aspectRatio: '16/9' }}
@@ -290,11 +282,9 @@ function ScreenshotCarousel({ urls }) {
               alt={`Screenshot ${index + 1}`}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
-            {/* Zoom hint */}
             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
               <span className="material-symbols-outlined text-white" style={{ fontSize: '32px' }}>zoom_in</span>
             </div>
-            {/* Prev / Next */}
             <button
               className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white transition-colors p-1"
               onClick={(e) => { e.stopPropagation(); prev() }}
@@ -307,12 +297,10 @@ function ScreenshotCarousel({ urls }) {
             >
               <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>chevron_right</span>
             </button>
-            {/* Counter */}
             <div className="absolute bottom-2 right-3 bg-black/60 px-2 py-0.5 font-label text-[10px] tracking-wider text-white/80">
               {index + 1} / {urls.length}
             </div>
           </div>
-          {/* Dot indicators */}
           <div className="flex gap-1.5 justify-center">
             {urls.map((_, i) => (
               <button
@@ -360,7 +348,6 @@ export default function GameDetailPage() {
         setGame(data)
         setLoading(false)
 
-        // Build a single batched request: [description, ...genres, ...tags, ...categories]
         const description = data.short_description_clean ?? ''
         const genres      = (data.game_genres ?? []).map(r => r.genre_name)
         const tags        = [...(data.game_tags ?? [])].sort((a, b) => b.votes - a.votes).slice(0, 12).map(r => r.tag_name)
@@ -408,15 +395,15 @@ export default function GameDetailPage() {
       <div className="linear-grid min-h-full flex items-center justify-center">
         <div className="text-center">
           <span className="material-symbols-outlined text-5xl text-muted-foreground">error</span>
-          <p className="font-headline font-bold mt-3 text-foreground">Game not found</p>
+          <p className="font-headline font-bold mt-3 text-foreground">Jeu introuvable</p>
           <p className="font-inter text-sm text-muted-foreground mt-1 mb-6">
-            {error?.message ?? 'No entry with this ID in the database.'}
+            {error?.message ?? 'Aucune entrée avec cet identifiant dans la base de données.'}
           </p>
           <button
             onClick={() => navigate('/database')}
             className="px-5 py-2 bg-primary text-primary-foreground font-bold text-xs font-label tracking-widest uppercase"
           >
-            Back to Catalogue
+            Retour au catalogue
           </button>
         </div>
       </div>
@@ -424,7 +411,6 @@ export default function GameDetailPage() {
   }
 
   // ── Derived values ───────────────────────────────────────────────────
-  // screenshot_urls may arrive as a JSON string if the column type is TEXT instead of TEXT[]
   const screenshotUrls = (() => {
     const raw = game.screenshot_urls
     if (!raw) return []
@@ -436,7 +422,6 @@ export default function GameDetailPage() {
   const tagsRaw       = [...(game.game_tags ?? [])].sort((a, b) => b.votes - a.votes).slice(0, 12)
   const categoriesRaw = game.game_categories?.map(r => r.category_name) ?? []
 
-  // Use translated values when ready, fall back to originals
   const description = translated?.description ?? game.short_description_clean
   const genres      = translated
     ? genresRaw.map((_, i) => translated.genres[i] ?? genresRaw[i])
@@ -454,6 +439,8 @@ export default function GameDetailPage() {
     return new Date(game.fetched_at) > ago
   })()
 
+  const successColor = game.is_successful ? 'var(--wif-success)' : 'var(--wif-danger)'
+
   // ── Render ───────────────────────────────────────────────────────────
   return (
     <div className="linear-grid min-h-full">
@@ -461,7 +448,6 @@ export default function GameDetailPage() {
       {/* ── Hero ───────────────────────────────────────────────────── */}
       <div className="relative w-full overflow-hidden" style={{ minHeight: '320px' }}>
 
-        {/* Background image */}
         {game.header_image
           ? <img
               src={game.header_image}
@@ -471,53 +457,63 @@ export default function GameDetailPage() {
           : <div className="absolute inset-0 bg-surface-container-high" />
         }
 
-        {/* Overlays */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/30" />
         <div className="absolute inset-0 linear-grid opacity-30" />
 
-        {/* Content */}
         <div className="relative max-w-screen-2xl mx-auto px-6 py-10 flex flex-col justify-end h-full" style={{ minHeight: '320px' }}>
 
-          {/* Breadcrumb + back */}
           <button
             onClick={() => navigate('/database')}
             className="flex items-center gap-1.5 font-label text-[10px] tracking-widest uppercase text-white/60 hover:text-white transition-colors mb-6 self-start"
           >
             <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>arrow_back</span>
-            Game_Database.Log
+            Catalogue de jeux
           </button>
 
-          {/* Status + new badges */}
           <div className="flex items-center gap-2 mb-3">
-            <span
-              className="px-2 py-0.5 text-[9px] font-bold font-label tracking-widest uppercase"
-              style={{
-                background: game.is_successful ? 'var(--wif-success)' : 'var(--wif-danger)',
-                color: 'white',
-              }}
-            >
-              {game.is_successful ? 'Viable' : 'Flopped'}
-            </span>
             {isNew && (
               <span className="px-2 py-0.5 text-[9px] font-bold font-label tracking-widest uppercase bg-primary text-primary-foreground">
-                New Entry
+                Nouveau
               </span>
             )}
             {game.is_early_access && (
               <span className="px-2 py-0.5 text-[9px] font-bold font-label tracking-widest uppercase border border-white/40 text-white/80">
-                Early Access
+                Accès Anticipé
               </span>
             )}
           </div>
 
-          {/* Title */}
-          <h1 className="font-headline font-black tracking-tighter text-white leading-none mb-4"
-            style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}
-          >
-            {game.name}
-          </h1>
+          <div className="flex items-center gap-4 mb-4 flex-wrap">
+            <h1 className="font-headline font-black tracking-tighter text-white leading-none"
+              style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}
+            >
+              {game.name}
+            </h1>
+            {/* Verdict token — inline avec le titre */}
+            <div
+              className="flex items-center gap-2 px-4 py-2.5 border"
+              style={{
+                borderColor: successColor,
+                background: game.is_successful
+                  ? 'color-mix(in srgb, var(--wif-success) 15%, transparent)'
+                  : 'color-mix(in srgb, var(--wif-danger) 15%, transparent)',
+              }}
+            >
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: '22px', color: successColor }}
+              >
+                {game.is_successful ? 'trending_up' : 'trending_down'}
+              </span>
+              <span
+                className="font-headline font-bold text-lg tracking-wide"
+                style={{ color: successColor }}
+              >
+                {game.is_successful ? 'Succès' : 'Flop'}
+              </span>
+            </div>
+          </div>
 
-          {/* Genre chips */}
           {genres.length > 0 && (
             <div className="flex gap-2 flex-wrap">
               {genres.map((g, i) => (
@@ -543,7 +539,7 @@ export default function GameDetailPage() {
           {description && (
             <section style={{ borderLeft: '3px solid var(--primary)' }} className="pl-5">
               <SectionLabel>À propos de ce jeu</SectionLabel>
-              <p className="font-inter text-sm text-foreground/80 leading-relaxed">
+              <p className="font-inter text-base text-foreground/80 leading-relaxed">
                 {description}
               </p>
             </section>
@@ -554,6 +550,62 @@ export default function GameDetailPage() {
             ? <GameTrailer hlsUrl={game.trailer_hls_url} posterUrl={game.header_image} />
             : <ScreenshotCarousel urls={screenshotUrls} />
           }
+
+          {/* Facteurs de succès */}
+          {(tagsRaw.length > 0 || categories.length > 0) && (
+            <section>
+              <SectionLabel>Facteurs de succès identifiés</SectionLabel>
+              <div className="flex flex-col gap-4">
+                {tagsRaw.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {tagsRaw.slice(0, 6).map((t, i) => (
+                      <div
+                        key={t.tag_name}
+                        className="bg-card border p-3"
+                        style={{ borderColor: i < 3 ? 'var(--primary)' : 'var(--border)' }}
+                      >
+                        <div className="font-label text-[8px] tracking-widest uppercase text-muted-foreground mb-1">
+                          {i < 3 ? 'Signal fort' : 'Signal'}
+                        </div>
+                        <div className="font-headline font-bold text-sm text-foreground mb-2">
+                          {tags[i]?.tag_name ?? t.tag_name}
+                        </div>
+                        <div className="h-1 bg-surface-container-high overflow-hidden">
+                          <div
+                            className="h-full transition-all duration-700"
+                            style={{
+                              width: `${Math.min(100, Math.round((t.votes / (tagsRaw[0]?.votes || 1)) * 100))}%`,
+                              background: i < 3 ? 'var(--primary)' : 'var(--border)',
+                            }}
+                          />
+                        </div>
+                        <div className="font-label text-[8px] text-muted-foreground/60 mt-1">
+                          {t.votes.toLocaleString()} votes
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {categories.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {categories.map((c, i) => (
+                      <div
+                        key={categoriesRaw[i] ?? i}
+                        className="flex items-center gap-1.5 px-3 py-1.5 border text-[10px] font-label tracking-wider uppercase"
+                        style={{ borderColor: 'var(--primary)', color: 'var(--primary)' }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>check_circle</span>
+                        {c}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* Screenshots gallery — only when trailer is present */}
+          {game.trailer_hls_url && <ScreenshotGallery urls={screenshotUrls} />}
 
           {/* Community tags */}
           {tags.length > 0 && (
@@ -573,27 +625,7 @@ export default function GameDetailPage() {
             </section>
           )}
 
-          {/* Screenshots gallery — only when trailer is present (otherwise shown as carousel above) */}
-          {game.trailer_hls_url && <ScreenshotGallery urls={screenshotUrls} />}
-
-          {/* Supported languages */}
-          {game.supported_languages?.length > 0 && (
-            <section>
-              <SectionLabel>Supported Languages</SectionLabel>
-              <div className="flex flex-wrap gap-2">
-                {game.supported_languages.map(lang => (
-                  <span
-                    key={lang}
-                    className="px-2 py-0.5 text-[10px] font-label tracking-wider bg-surface-container-high text-muted-foreground"
-                  >
-                    {lang}
-                  </span>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Categories */}
+          {/* Fonctionnalités */}
           {categories.length > 0 && (
             <section>
               <SectionLabel>Fonctionnalités</SectionLabel>
@@ -606,6 +638,23 @@ export default function GameDetailPage() {
                     <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>check_circle</span>
                     {c}
                   </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Langues supportées — dernier élément */}
+          {game.supported_languages?.length > 0 && (
+            <section>
+              <SectionLabel>Langues supportées</SectionLabel>
+              <div className="flex flex-wrap gap-2">
+                {game.supported_languages.map(lang => (
+                  <span
+                    key={lang}
+                    className="px-2 py-0.5 text-[10px] font-label tracking-wider bg-surface-container-high text-muted-foreground"
+                  >
+                    {lang}
+                  </span>
                 ))}
               </div>
             </section>
@@ -627,73 +676,79 @@ export default function GameDetailPage() {
             </div>
           )}
 
-          {/* Price + status */}
-          <div className="bg-card border border-border p-4 flex items-center justify-between">
-            <div>
-              <div className="font-label text-[9px] tracking-widest uppercase text-muted-foreground mb-0.5">Price</div>
-              <div className="font-headline font-black text-xl text-foreground">
-                {formatPrice(game.is_free, game.price_eur)}
+          {/* Scores — Metacritic + Community côte à côte */}
+          <div className="bg-card border border-border p-4 flex flex-col gap-4">
+            <SectionLabel>Réception critique</SectionLabel>
+            <div className="flex gap-3">
+              <MetacriticBlock score={game.metacritic_score} />
+              <CommunityScoreBlock
+                positive={game.review_total_positive}
+                total={game.review_total}
+              />
+            </div>
+            {game.review_total > 0 && (
+              <div className="font-label text-[9px] tracking-widest uppercase text-muted-foreground text-right">
+                {game.review_total?.toLocaleString()} avis au total
+              </div>
+            )}
+          </div>
+
+          {/* Prix + Date de sortie */}
+          <div className="bg-card border border-border p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <div className="font-label text-[9px] tracking-widest uppercase text-muted-foreground mb-0.5">Prix</div>
+                <div className="font-headline font-black text-xl text-foreground">
+                  {formatPrice(game.is_free, game.price_eur)}
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-1.5">
+                {game.has_dlc && (
+                  <span className="px-2 py-0.5 text-[9px] font-label tracking-widest uppercase bg-surface-container text-muted-foreground border border-border">
+                    Has DLC
+                  </span>
+                )}
+                {game.is_free && (
+                  <span className="px-2 py-0.5 text-[9px] font-label tracking-widest uppercase bg-surface-container text-muted-foreground border border-border">
+                    Gratuit
+                  </span>
+                )}
               </div>
             </div>
-            <div className="flex flex-col items-end gap-1.5">
-              {game.has_dlc && (
-                <span className="px-2 py-0.5 text-[9px] font-label tracking-widest uppercase bg-surface-container text-muted-foreground border border-border">
-                  Has DLC
-                </span>
-              )}
-              {game.is_free && (
-                <span className="px-2 py-0.5 text-[9px] font-label tracking-widest uppercase bg-surface-container text-muted-foreground border border-border">
-                  Free
-                </span>
-              )}
+            <div className="border-t border-border/40 pt-1">
+              <StatRow icon="calendar_month" label="Date de sortie" value={formatDate(game.release_date)} />
             </div>
           </div>
 
-          {/* Reception */}
-          <div className="bg-card border border-border p-4 flex flex-col gap-4">
-            <SectionLabel>Critical Reception</SectionLabel>
-
-            <MetacriticBlock score={game.metacritic_score} />
-
-            <ReviewBar
-              positive={game.review_total_positive}
-              total={game.review_total}
-            />
-
-            <div className="font-label text-[9px] tracking-widest uppercase text-muted-foreground text-right">
-              {game.review_total?.toLocaleString()} total reviews
-            </div>
-          </div>
-
-          {/* Audience metrics */}
+          {/* Métriques d'audience */}
           <div className="bg-card border border-border p-4">
-            <SectionLabel>Audience Metrics</SectionLabel>
+            <SectionLabel>Métriques d'audience</SectionLabel>
             <div className="flex flex-col">
               <StatRow
                 icon="group"
-                label="Est. Owners"
+                label="Propriétaires est."
                 value={formatOwners(game.owners_midpoint)}
                 accent
               />
               <StatRow
                 icon="leaderboard"
-                label="Peak CCU"
+                label="Pic de joueurs"
                 value={game.spy_peak_ccu?.toLocaleString() ?? '—'}
               />
               <StatRow
                 icon="schedule"
-                label="Median Playtime"
+                label="Temps de jeu médian"
                 value={formatMinutes(game.spy_median_playtime)}
               />
               <StatRow
                 icon="emoji_events"
-                label="Achievements"
+                label="Succès Steam"
                 value={game.achievement_count > 0 ? game.achievement_count : '—'}
               />
               {game.achievement_count > 0 && (
                 <StatRow
                   icon="military_tech"
-                  label="Avg. Unlock Rate"
+                  label="Taux débloqué moy."
                   value={`${game.achievement_median_unlock_rate?.toFixed(1)}%`}
                 />
               )}
@@ -703,31 +758,31 @@ export default function GameDetailPage() {
           {/* Twitch */}
           {game.is_on_twitch && (
             <div className="bg-card border border-border p-4">
-              <SectionLabel>Live on Twitch</SectionLabel>
+              <div className="flex items-center gap-2 mb-4">
+                {/* Twitch logo */}
+                <svg viewBox="0 0 24 28" fill="#9146FF" style={{ width: '16px', height: '16px', flexShrink: 0 }}>
+                  <path d="M2.149 0L0 4.5v19h6v3l3.5-3H14l6-6V0H2.149zM19 17l-3 3H10l-3.5 3.5V20H3V2h16v15z" />
+                  <path d="M16 7h-2v5h2V7zm-5 0H9v5h2V7z" />
+                </svg>
+                <span className="font-label text-[10px] tracking-[0.35em] uppercase text-primary">
+                  Live sur Twitch
+                </span>
+              </div>
               <div className="flex flex-col">
                 <StatRow
                   icon="live_tv"
-                  label="Active Streams"
+                  label="Streams actifs"
                   value={game.twitch_streams_count ?? 0}
                   accent
                 />
                 <StatRow
                   icon="visibility"
-                  label="Viewers"
+                  label="Spectateurs"
                   value={game.twitch_viewers_count?.toLocaleString() ?? '0'}
                 />
               </div>
             </div>
           )}
-
-          {/* Metadata */}
-          <div className="bg-card border border-border p-4">
-            <SectionLabel>Release Info</SectionLabel>
-            <div className="flex flex-col">
-              <StatRow icon="calendar_month" label="Release Date" value={formatDate(game.release_date)} />
-              <StatRow icon="tag" label="Steam ID" value={`#${game.app_id}`} />
-            </div>
-          </div>
 
         </aside>
       </div>
