@@ -1,6 +1,10 @@
 from pydantic import BaseModel
 
 
+class TranslateRequest(BaseModel):
+    texts: list[str]
+
+
 class GameInput(BaseModel):
     price_eur: float | None = None
     is_free: bool | None = None

@@ -15,10 +15,14 @@ Variables d'environnement :
 
 import os
 
-from fastapi import FastAPI
+import httpx
+from dotenv import load_dotenv
+
+load_dotenv()
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.schemas import GameInput, PredictResponse
+from api.schemas import GameInput, PredictResponse, TranslateRequest
 from ml.predict import predict
 
 app = FastAPI(title="WillitFlop API")
@@ -43,3 +47,22 @@ def predict_game(game: GameInput):
     # Les champs None sont exclus : predict() comble les manquants avec ses défauts
     result = predict(game.model_dump(exclude_none=True))
     return result
+
+
+DEEPL_KEY = os.getenv("DEEPL_API_KEY", "")
+DEEPL_URL = "https://api-free.deepl.com/v2/translate"
+
+
+@app.post("/translate")
+def translate(body: TranslateRequest):
+    if not DEEPL_KEY:
+        raise HTTPException(status_code=503, detail="DeepL key not configured")
+
+    response = httpx.post(
+        DEEPL_URL,
+        headers={"Authorization": f"DeepL-Auth-Key {DEEPL_KEY}"},
+        json={"text": body.texts, "target_lang": "FR"},
+        timeout=10,
+    )
+    response.raise_for_status()
+    return {"translations": [t["text"] for t in response.json()["translations"]]}

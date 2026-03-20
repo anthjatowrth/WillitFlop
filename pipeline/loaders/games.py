@@ -25,11 +25,7 @@ def save_game_details(conn, app_id: int, d: dict):
     trailer_hls_url = None
     if movies:
         m = movies[0]
-        # Steam API returns video URLs under webm/mp4 objects, not hls_h264/dash_h264
-        trailer_hls_url = (
-            (m.get("webm") or {}).get("max")
-            or (m.get("mp4") or {}).get("max")
-        )
+        trailer_hls_url = m.get("hls_h264") or m.get("dash_h264") or m.get("dash_av1")
 
     with conn.cursor() as cur:
         cur.execute("""
