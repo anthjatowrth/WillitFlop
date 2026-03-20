@@ -944,169 +944,150 @@ function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded,
 
   const polishLabels = ['Garage', 'Studio Indé', 'AA Indé', 'Polished Gem']
 
+  const accentColor = isTop ? 'var(--wif-success)' : 'var(--wif-danger)'
+
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
 
-      {/* ── Verdict hero ──────────────────────────────────────────── */}
-      <section className="text-center space-y-3">
-        <span className="font-label text-[10px] tracking-[0.3em] uppercase text-muted-foreground block">
-          Verdict de l'algorithme
-        </span>
-        <div
-          className="font-orbitron text-7xl md:text-8xl font-black tracking-tight leading-none"
-          style={{ color: isTop ? 'var(--wif-success)' : 'var(--wif-danger)' }}
-        >
-          {isTop ? 'TOP !' : 'FLOP !'}
-        </div>
-        {leaderboardAdded && (
-          <div className="flex justify-center">
-            <Badge variant="ink">🏆 Inscrit au Leaderboard du mois !</Badge>
-          </div>
-        )}
-      </section>
-
-      {/* ── Métriques ─────────────────────────────────────────────── */}
-      <div className="max-w-xl mx-auto grid grid-cols-2 gap-4">
-        {/* Succès prédit */}
-        <div style={{
+      {/* ── Unified result card ───────────────────────────────────── */}
+      <div
+        className="max-w-3xl mx-auto rounded-2xl overflow-hidden"
+        style={{
+          border: `2.5px solid ${accentColor}`,
           background: 'var(--wif-bg3)',
-          borderRadius: '12px',
-          padding: '20px',
-          border: `1.5px solid ${isTop ? 'var(--wif-success)' : 'var(--wif-danger)'}`,
-          textAlign: 'center',
-        }}>
-          <span className="font-label text-[9px] tracking-[0.25em] uppercase text-muted-foreground block mb-2">
-            Succès prédit
-          </span>
+          boxShadow: isTop
+            ? '0 0 40px rgba(0,122,76,0.12)'
+            : '0 0 40px rgba(204,26,26,0.12)',
+        }}
+      >
+
+        {/* ── Top : image + verdict ──────────────────────────────── */}
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr] items-start">
+
+          {/* Jaquette */}
           <div
-            className="font-orbitron text-4xl font-black"
-            style={{ color: isTop ? 'var(--wif-success)' : 'var(--wif-danger)' }}
+            className="flex items-center justify-center"
+            style={{ aspectRatio: '2/3', background: '#111', borderRight: '2px solid var(--border)', borderBottom: '2px solid var(--border)' }}
           >
-            {pct}%
+            {imageLoading && (
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-6 h-6 rounded-full border-2 border-border animate-spin" style={{ borderTopColor: 'var(--wif-pink)' }} />
+                <p className="font-label text-[10px] tracking-[0.2em] uppercase text-muted-foreground">Génération…</p>
+              </div>
+            )}
+            {imageUrl && !imageLoading && (
+              <img src={imageUrl} alt="Jaquette du jeu" className="w-full h-full object-contain" />
+            )}
+            {!imageUrl && !imageLoading && (
+              <span className="font-label text-[10px] tracking-[0.2em] uppercase text-muted-foreground">Aucune image</span>
+            )}
           </div>
-          <div className="mt-3 h-1.5 rounded-full bg-border overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-700"
-              style={{ width: `${pct}%`, background: isTop ? 'var(--wif-success)' : 'var(--wif-danger)' }}
-            />
-          </div>
-        </div>
 
-        {/* Metacritic estimé */}
-        <div style={{
-          background: 'var(--wif-bg3)',
-          borderRadius: '12px',
-          padding: '20px',
-          border: '1.5px solid var(--wif-pink)',
-          textAlign: 'center',
-        }}>
-          <span className="font-label text-[9px] tracking-[0.25em] uppercase text-muted-foreground block mb-2">
-            Metacritic estimé
-          </span>
-          <div className="font-orbitron text-4xl font-black" style={{ color: 'var(--wif-pink)' }}>
-            {metacritic_score != null ? Math.round(metacritic_score) : '—'}
-          </div>
-          <div className="mt-3 h-1.5 rounded-full bg-border overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-700"
-              style={{ width: `${metacritic_score ?? 0}%`, background: 'var(--wif-pink)' }}
-            />
-          </div>
-        </div>
-      </div>
+          {/* Verdict + métriques + titre + accroche */}
+          <div className="flex flex-col justify-center p-7 gap-6">
 
-      {/* ── Cover + récap ─────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start max-w-3xl mx-auto">
+            {/* Verdict */}
+            <div>
+              <span className="font-label text-[10px] tracking-[0.3em] uppercase text-muted-foreground block mb-1">
+                Verdict de l'algorithme
+              </span>
+              <div className="font-orbitron text-6xl font-black tracking-tight leading-none" style={{ color: accentColor }}>
+                {isTop ? 'TOP !' : 'FLOP !'}
+              </div>
+              {leaderboardAdded && (
+                <div className="mt-2"><Badge variant="ink">🏆 Inscrit au Leaderboard du mois !</Badge></div>
+              )}
+            </div>
 
-        {/* Jaquette */}
-        <div>
-          {imageLoading && (
-            <div
-              className="w-full rounded-xl flex flex-col items-center justify-center gap-3"
-              style={{ aspectRatio: '2/3', background: 'var(--wif-bg3)' }}
-            >
-              <div
-                className="w-8 h-8 rounded-full border-2 border-border animate-spin"
-                style={{ borderTopColor: 'var(--wif-pink)' }}
-              />
-              <p className="font-label text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
-                Génération de la jaquette…
+            {/* Métriques */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <span className="font-label text-[10px] tracking-[0.2em] uppercase text-muted-foreground block mb-1">Succès prédit</span>
+                <div className="font-orbitron text-4xl font-black" style={{ color: accentColor }}>{pct}%</div>
+                <div className="mt-2 h-1 rounded-full bg-border overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: accentColor }} />
+                </div>
+              </div>
+              <div>
+                <span className="font-label text-[10px] tracking-[0.2em] uppercase text-muted-foreground block mb-1">Metacritic estimé</span>
+                <div className="font-orbitron text-4xl font-black" style={{ color: 'var(--wif-pink)' }}>
+                  {metacritic_score != null ? Math.round(metacritic_score) : '—'}
+                </div>
+                <div className="mt-2 h-1 rounded-full bg-border overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-700" style={{ width: `${metacritic_score ?? 0}%`, background: 'var(--wif-pink)' }} />
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-border" />
+
+            {/* Titre + accroche */}
+            <div>
+              {answers.gameName && answers.gameName !== 'Unnamed Game' && (
+                <p className="font-headline font-bold text-2xl leading-tight mb-2">{answers.gameName}</p>
+              )}
+              <p className="font-inter text-sm text-muted-foreground italic">
+                Analyse narrative en cours de développement — bientôt une accroche générée par IA pour décrire le positionnement de votre jeu.
               </p>
             </div>
-          )}
-          {imageUrl && !imageLoading && (
-            <img
-              src={imageUrl}
-              alt="Jaquette du jeu"
-              className="w-full rounded-xl"
-              style={{
-                boxShadow: isTop
-                  ? '0 8px 40px rgba(0, 122, 76, 0.2)'
-                  : '0 8px 40px rgba(204, 26, 26, 0.18)',
-              }}
-            />
-          )}
-          {!imageUrl && !imageLoading && (
-            <div
-              className="w-full rounded-xl flex items-center justify-center"
-              style={{ aspectRatio: '2/3', background: 'var(--wif-bg3)' }}
-            >
-              <span className="font-label text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
-                Aucune image
-              </span>
-            </div>
-          )}
+
+            {/* Étiquette de prix */}
+            {answers.pricing != null && (
+              <div className="flex justify-center">
+                <div
+                  className="relative inline-flex flex-col items-center px-7 py-4 rounded-sm"
+                  style={{
+                    background: '#d63a6e',
+                    boxShadow: '3px 4px 0px rgba(0,0,0,0.3)',
+                  }}
+                >
+                  {/* Trou d'étiquette */}
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-background border-2 border-border" />
+                  <span className="font-label text-[11px] tracking-[0.3em] uppercase text-white/80 mt-1">Prix</span>
+                  <span className="font-orbitron font-black text-white leading-none" style={{ fontSize: '2rem' }}>
+                    {answers.pricing === 0 ? 'GRATUIT' : `${answers.pricing} €`}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Récapitulatif */}
-        <Card>
-          <CardHeader>
-            <span className="font-label text-[10px] tracking-[0.3em] uppercase text-primary">
-              Récapitulatif
-            </span>
-            {answers.gameName && answers.gameName !== 'Unnamed Game' && (
-              <CardTitle className="font-headline text-xl">{answers.gameName}</CardTitle>
-            )}
-          </CardHeader>
-          <CardContent className="space-y-0">
-            <SummaryRow label="Genre" value={answers.genre} />
-            <SummaryRow label="Ambiance" value={answers.universe?.join(', ')} />
-            <SummaryRow label="Mécaniques" value={answers.mechanics?.join(', ')} />
-            <SummaryRow label="Style" value={answers.visualStyle} />
-            <SummaryRow label="Vue" value={answers.perspective} />
-            <SummaryRow label="Mode" value={answers.categories?.join(', ')} />
-            <SummaryRow
-              label="Prix"
-              value={
-                answers.pricing != null
-                  ? answers.pricing === 0 ? 'Gratuit' : `${answers.pricing}€`
-                  : null
-              }
-            />
-            <SummaryRow label="Polish" value={polishLabels[answers.devLevel] ?? null} />
-            <SummaryRow
-              label="Langues"
-              value={answers.languages ? `${answers.languages} langues` : null}
-            />
-            <SummaryRow
-              label="DLC"
-              value={
-                answers.hasDLC === true ? 'Oui'
-                : answers.hasDLC === false ? 'Non'
-                : null
-              }
-            />
-            <div className="pt-5">
-              <Button variant="outline" className="w-full" onClick={onReset}>
-                Recommencer ↺
-              </Button>
+        {/* ── Séparateur ────────────────────────────────────────── */}
+        <div className="border-t" style={{ borderColor: accentColor, opacity: 0.3 }} />
+
+        {/* ── Bottom : récap pleine largeur ─────────────────────── */}
+        <div className="p-7 space-y-6">
+
+
+          {/* Récapitulatif en 2 colonnes */}
+          <div>
+            <span className="font-label text-[9px] tracking-[0.3em] uppercase text-primary block mb-3">Récapitulatif</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+              <div>
+                <SummaryRow label="Genre"      value={answers.genre} />
+                <SummaryRow label="Ambiance"   value={answers.universe?.join(', ')} />
+                <SummaryRow label="Mécaniques" value={answers.mechanics?.join(', ')} />
+                <SummaryRow label="Style"      value={answers.visualStyle} />
+              </div>
+              <div>
+                <SummaryRow label="Vue"     value={answers.perspective} />
+                <SummaryRow label="Mode"    value={answers.categories?.join(', ')} />
+                <SummaryRow label="Polish"  value={polishLabels[answers.devLevel] ?? null} />
+                <SummaryRow label="Langues" value={answers.languages ? `${answers.languages} langues` : null} />
+                <SummaryRow label="DLC"     value={answers.hasDLC === true ? 'Oui' : answers.hasDLC === false ? 'Non' : null} />
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+
+          <Button variant="outline" className="w-full" onClick={onReset}>
+            Recommencer ↺
+          </Button>
+        </div>
       </div>
 
       {/* ── Facteurs clés ─────────────────────────────────────────── */}
-      <div className="max-w-xl mx-auto">
+      <div className="max-w-3xl mx-auto">
         <FactorsSection answers={answers} />
       </div>
     </div>
