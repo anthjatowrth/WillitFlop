@@ -56,7 +56,7 @@ export default function Navbar() {
             to="/minigame"
             className="px-5 py-2 bg-primary text-primary-foreground font-bold text-sm rounded-sm shadow-lg active:scale-95 duration-100"
           >
-            Start Prediction
+            À vous de jouer !
           </NavLink>
 
           <button

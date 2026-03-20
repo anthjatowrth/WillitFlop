@@ -4,90 +4,147 @@ import { Badge } from '../components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card'
 import { buildImagePrompt } from '../utils/promptBuilder'
 import { saveToLeaderboard, checkLeaderboardEligibility } from '../api/leaderboard'
+import SlotMachine from '../components/minigame/SlotMachine'
+import DevSlider from '../components/minigame/DevSlider'
+import LanguageQuiz from '../components/minigame/LanguageQuiz'
 
 // ---------------------------------------------------------------------------
-// Définition des 13 questions du questionnaire
+// Définition des 12 questions du questionnaire
 // ---------------------------------------------------------------------------
 const QUESTIONS = [
   {
-    key: 'description',
-    type: 'text',
-    label: 'Décris ton jeu en une ou deux phrases.',
-    sublabel: "C'est quoi l'idée, l'ambiance, le concept central ?",
-    placeholder: 'Ex: Un RPG de gestion de donjon où tu joues le méchant…',
-  },
-  {
     key: 'genre',
     type: 'single',
-    label: 'Genre principal ?',
-    options: ['Action', 'RPG', 'Stratégie', 'Simulation', 'Horreur', 'Aventure', 'Platformer', 'Puzzle', 'Sports & Course', 'Visual Novel'],
+    label: 'Quelle est la famille de ton jeu ?',
+    sublabel: 'Choix unique — il détermine les tags inférés',
+    options: [
+      'Action / Combat',
+      'Exploration / Aventure',
+      'Stratégie / Gestion',
+      'RPG',
+      'Plateforme / Puzzle',
+      'Simulation',
+      'Horreur / Thriller',
+      'Narratif / Visual Novel',
+    ],
   },
   {
     key: 'universe',
-    type: 'single',
-    label: 'Univers / Ambiance ?',
-    options: ['Fantaisie', 'Science-fiction', 'Contemporain', 'Post-apocalyptique', 'Historique', 'Cyberpunk', 'Horreur Gothique', 'Monde Enfantin'],
+    type: 'multi',
+    label: "Quelle est l'ambiance de ton univers ?",
+    sublabel: "Jusqu'à 4 choix",
+    options: [
+      'Dark / Mature',
+      'Cozy / Wholesome',
+      'Sci-fi / Futuristic',
+      'Fantasy / Medieval',
+      'Cyberpunk / Steampunk',
+      'Post-Apocalyptique',
+      'Humour / Parodie',
+      'Horreur / Psychologique',
+      'Historique',
+      'Anime / Coloré',
+    ],
+    maxSelect: 4,
   },
   {
-    key: 'perspective',
-    type: 'single',
-    label: 'Perspective caméra ?',
-    options: ['Vue du dessus', 'Défilement latéral (2D)', 'Première personne (FPS)', 'Troisième personne', 'Isométrique', 'Point & click'],
+    key: 'mechanics',
+    type: 'multi',
+    label: 'Comment joue-t-on à ton jeu ?',
+    sublabel: "Jusqu'à 5 mécaniques",
+    options: [
+      'Roguelike / Roguelite',
+      'Open World',
+      'Story Rich / Narratif',
+      'Craft / Survie',
+      'Tour par tour',
+      'Action rapide',
+      'Puzzle / Logique',
+      'Deckbuilding',
+      'Souls-like',
+      'Sandbox',
+      'Tower Defense',
+      'Metroidvania',
+    ],
+    maxSelect: 5,
   },
   {
     key: 'visualStyle',
     type: 'single',
-    label: 'Style visuel ?',
-    options: ['Pixel art rétro', 'Cartoon coloré', 'Sombre & réaliste', 'Aquarelle', 'Low poly 3D', 'Minimaliste'],
+    label: 'Quel est le style graphique de ton jeu ?',
+    sublabel: 'Choix unique — impacte le style de la jaquette générée',
+    options: [
+      'Pixel Art / Rétro',
+      'Cell Shading / Cartoon',
+      '3D Réaliste',
+      'Low Poly 3D',
+      'Aquarelle / Illustré',
+      'Minimaliste / Flat',
+    ],
   },
   {
-    key: 'gameMode',
+    key: 'perspective',
     type: 'single',
-    label: 'Mode de jeu ?',
-    options: ['Solo', 'Coopératif multijoueur', 'Compétitif multijoueur', 'Solo avec éléments en ligne'],
+    label: 'Quelle est la vue caméra principale ?',
+    sublabel: 'Comment le joueur perçoit-il ton monde ?',
+    options: [
+      'Première personne (FPS)',
+      'Troisième personne (TPS)',
+      'Vue isométrique',
+      'Défilement latéral (2D)',
+      'Vue du dessus',
+      'Point & Click',
+    ],
   },
   {
-    key: 'coreMechanic',
-    type: 'single',
-    label: 'Mécanique principale ?',
-    options: ['Combat', 'Exploration', 'Gestion', 'Narratif', 'Construction', 'Infiltration', 'Résolution d\'énigmes', 'Craft & Collection'],
-  },
-  {
-    key: 'playtime',
-    type: 'single',
-    label: 'Durée de jeu estimée ?',
-    options: ['Court (< 5h)', 'Moyen (5–20h)', 'Long (20–50h)', 'Très long (50h+)', 'Rejouabilité infinie (roguelike / sandbox)'],
-  },
-  {
-    key: 'platforms',
+    key: 'categories',
     type: 'multi',
-    label: 'Plateforme(s) cible(s) ?',
-    sublabel: 'Plusieurs choix possibles.',
-    options: ['PC', 'Console', 'Mobile', 'Navigateur'],
+    label: 'Qui va jouer et comment ?',
+    sublabel: 'Plusieurs choix possibles',
+    options: [
+      'Solo uniquement',
+      'Co-op local',
+      'Co-op en ligne',
+      'PvP compétitif',
+      'Workshop / Mods',
+    ],
   },
   {
     key: 'pricing',
-    type: 'single',
-    label: 'Modèle de prix ?',
-    options: ['Gratuit', 'Moins de 5€', '5–15€', '15–30€', 'Plus de 30€'],
+    type: 'slotmachine',
+    label: 'Quel est le prix de ton jeu ?',
+    sublabel: 'Lance la machine — le marché décide.',
+  },
+  {
+    key: 'devLevel',
+    type: 'devslider',
+    label: "Combien d'amour as-tu mis dans ton jeu ?",
+    sublabel: 'Glisse le curseur pour définir ton niveau de polish.',
   },
   {
     key: 'hasDLC',
     type: 'yesno',
-    label: 'Ton jeu aura-t-il des DLC ou du contenu payant supplémentaire ?',
+    label: 'Ton jeu aura-t-il des DLC ou du contenu payant ?',
   },
   {
-    key: 'iconicElement',
+    key: 'languages',
+    type: 'languagequiz',
+    label: 'Dans combien de langues sortira ton jeu ?',
+    sublabel: 'Réponds correctement… ou pas. Internet est ton ami.',
+  },
+  {
+    key: 'description',
     type: 'text',
-    label: 'Y a-t-il un personnage central, une créature ou un lieu iconique ?',
-    sublabel: 'Décris-le brièvement.',
-    placeholder: 'Ex: Un dragon mécanique gardien des ruines…',
+    label: 'Décris ton jeu en 2-3 phrases.',
+    sublabel: "Ambiance, sensation, ce que le joueur va vivre.",
+    placeholder:
+      'Ex: Un RPG de gestion de donjon où tu joues le méchant qui recrute des monstres et piège des héros…',
   },
   {
     key: 'gameName',
     type: 'text',
-    label: 'Comment s\'appelle ton jeu ?',
-    sublabel: 'Laisse vide et on en génèrera un.',
+    label: "Comment s'appelle ton jeu ?",
+    sublabel: "Laisse vide, on en génèrera un pour toi.",
     placeholder: 'Nom du jeu (optionnel)',
     optional: true,
   },
@@ -95,18 +152,17 @@ const QUESTIONS = [
 
 // Valeurs initiales de l'état answers
 const INITIAL_ANSWERS = {
-  description: '',
   genre: '',
-  universe: '',
-  perspective: '',
+  universe: [],
+  mechanics: [],
   visualStyle: '',
-  gameMode: '',
-  coreMechanic: '',
-  playtime: '',
-  platforms: [],
-  pricing: '',
+  perspective: '',
+  categories: [],
+  pricing: null,
+  devLevel: 1,
   hasDLC: null,
-  iconicElement: '',
+  languages: null,
+  description: '',
   gameName: '',
 }
 
@@ -138,10 +194,12 @@ export default function MiniGame() {
   const handleMultiToggle = (value) => {
     setAnswers(prev => {
       const current = prev[question.key]
-      const updated = current.includes(value)
-        ? current.filter(v => v !== value)
-        : [...current, value]
-      return { ...prev, [question.key]: updated }
+      const maxSelect = question.maxSelect
+      if (current.includes(value)) {
+        return { ...prev, [question.key]: current.filter(v => v !== value) }
+      }
+      if (maxSelect && current.length >= maxSelect) return prev
+      return { ...prev, [question.key]: [...current, value] }
     })
   }
 
@@ -153,11 +211,15 @@ export default function MiniGame() {
   // Validation
   // -------------------------------------------------------------------------
   const canProceed = () => {
-    const value = answers[question.key]
-    if (question.optional) return true
-    if (question.type === 'text') return value.trim().length > 0
-    if (question.type === 'multi') return value.length > 0
-    if (question.type === 'yesno') return value !== null
+    const q = QUESTIONS[currentStep]
+    const value = answers[q.key]
+    if (q.optional) return true
+    if (q.type === 'text') return value.trim().length > 0
+    if (q.type === 'multi') return value.length > 0
+    if (q.type === 'yesno') return value !== null
+    if (q.type === 'slotmachine') return value !== null
+    if (q.type === 'devslider') return value !== null && value !== undefined
+    if (q.type === 'languagequiz') return value !== null
     return value !== ''
   }
 
@@ -176,25 +238,106 @@ export default function MiniGame() {
   // -------------------------------------------------------------------------
   // Mapping réponses → payload ML
   // -------------------------------------------------------------------------
-  const mapAnswersToPayload = (a) => {
-    const priceMap = {
-      'Gratuit': 0,
-      'Moins de 5€': 3,
-      '5–15€': 10,
-      '15–30€': 22,
-      'Plus de 30€': 40,
+  const mapAnswersToPayload = (a, descriptionEN) => {
+    const price_eur = typeof a.pricing === 'number' ? a.pricing : null
+    const is_free = price_eur === 0
+
+    const achievementMap = [5, 20, 45, 80]
+    const achievement_count = achievementMap[a.devLevel] ?? 20
+
+    const genreTagMap = {
+      'Action / Combat': ['Action', 'Combat', 'Fast-Paced'],
+      'Exploration / Aventure': ['Adventure', 'Exploration', 'Open World'],
+      'Stratégie / Gestion': ['Strategy', 'Management', 'Resource Management'],
+      'RPG': ['RPG', 'Action RPG'],
+      'Plateforme / Puzzle': ['Platformer', 'Puzzle', '2D Platformer'],
+      'Simulation': ['Simulation', 'Casual'],
+      'Horreur / Thriller': ['Horror', 'Psychological Horror', 'Thriller'],
+      'Narratif / Visual Novel': ['Visual Novel', 'Story Rich', 'Narrative'],
     }
-    const price_eur = priceMap[a.pricing] ?? null
-    const tags = [a.universe, a.perspective, a.visualStyle, a.playtime, ...a.platforms].filter(Boolean)
-    const descParts = [a.description, a.iconicElement].filter(v => v.trim())
-    const short_description_clean = descParts.join(' ') || null
+    const universeTagMap = {
+      'Dark / Mature': ['Dark', 'Mature'],
+      'Cozy / Wholesome': ['Cozy', 'Wholesome'],
+      'Sci-fi / Futuristic': ['Sci-fi', 'Futuristic'],
+      'Fantasy / Medieval': ['Fantasy', 'Medieval'],
+      'Cyberpunk / Steampunk': ['Cyberpunk', 'Steampunk'],
+      'Post-Apocalyptique': ['Post-apocalyptic'],
+      'Humour / Parodie': ['Comedy', 'Parody'],
+      'Horreur / Psychologique': ['Horror', 'Psychological'],
+      'Historique': ['Historical'],
+      'Anime / Coloré': ['Anime', 'Colorful'],
+    }
+    const mechanicsTagMap = {
+      'Roguelike / Roguelite': ['Rogue-like', 'Rogue-lite'],
+      'Open World': ['Open World'],
+      'Story Rich / Narratif': ['Story Rich', 'Narrative'],
+      'Craft / Survie': ['Crafting', 'Survival'],
+      'Tour par tour': ['Turn-Based', 'Turn-Based Strategy'],
+      'Action rapide': ['Action', 'Fast-Paced'],
+      'Puzzle / Logique': ['Puzzle', 'Logic'],
+      'Deckbuilding': ['Deckbuilding', 'Card Game'],
+      'Souls-like': ['Souls-like', 'Difficult'],
+      'Sandbox': ['Sandbox'],
+      'Tower Defense': ['Tower Defense'],
+      'Metroidvania': ['Metroidvania'],
+    }
+
+    const visualStyleTagMap = {
+      'Pixel Art / Rétro':      ['Pixel Graphics', '2D', 'Retro'],
+      'Cell Shading / Cartoon': ['Colorful', 'Cartoon'],
+      '3D Réaliste':            ['3D', 'Realistic'],
+      'Low Poly 3D':            ['Low-poly', '3D'],
+      'Aquarelle / Illustré':   ['Hand-drawn', '2D'],
+      'Minimaliste / Flat':     ['Minimalist'],
+    }
+    const perspectiveTagMap = {
+      'Première personne (FPS)': ['FPS', 'First-Person'],
+      'Troisième personne (TPS)': ['Third-Person'],
+      'Vue isométrique':          ['Isometric'],
+      'Défilement latéral (2D)':  ['Side Scroller', '2D Platformer'],
+      'Vue du dessus':            ['Top-Down'],
+      'Point & Click':            ['Point & Click'],
+    }
+
+    const genreTags      = genreTagMap[a.genre] || []
+    const universeTags   = (a.universe || []).flatMap(u => universeTagMap[u] || [])
+    const mechanicsTags  = (a.mechanics || []).flatMap(m => mechanicsTagMap[m] || [])
+    const visualTags     = visualStyleTagMap[a.visualStyle] || []
+    const perspTags      = perspectiveTagMap[a.perspective] || []
+    const tags = [...new Set([...genreTags, ...universeTags, ...mechanicsTags, ...visualTags, ...perspTags])]
+
+    const genreGenreMap = {
+      'Action / Combat': ['Action'],
+      'Exploration / Aventure': ['Adventure', 'Action'],
+      'Stratégie / Gestion': ['Strategy'],
+      'RPG': ['RPG', 'Adventure'],
+      'Plateforme / Puzzle': ['Action', 'Casual'],
+      'Simulation': ['Simulation'],
+      'Horreur / Thriller': ['Action', 'Adventure'],
+      'Narratif / Visual Novel': ['Adventure', 'Casual'],
+    }
+    const genres = genreGenreMap[a.genre] || []
+
+    const categoryMap = {
+      'Solo uniquement': ['Single-player'],
+      'Co-op local': ['Single-player', 'Co-op'],
+      'Co-op en ligne': ['Single-player', 'Online Co-op', 'Co-op'],
+      'PvP compétitif': ['Multi-player', 'PvP', 'Online PvP'],
+      'Workshop / Mods': ['Single-player', 'Steam Workshop'],
+    }
+    const categories = [...new Set((a.categories || []).flatMap(c => categoryMap[c] || []))]
+
+    const short_description_clean = descriptionEN?.trim() || a.description?.trim() || null
 
     return {
       price_eur,
-      is_free: a.pricing === 'Gratuit',
+      is_free,
       has_dlc: a.hasDLC,
-      genres: a.genre ? [a.genre] : null,
-      categories: [a.gameMode, a.coreMechanic].filter(Boolean),
+      is_early_access: false,
+      achievement_count,
+      nb_supported_languages: a.languages ?? 3,
+      genres: genres.length > 0 ? genres : null,
+      categories: categories.length > 0 ? categories : null,
       tags: tags.length > 0 ? tags : null,
       short_description_clean,
     }
@@ -209,13 +352,35 @@ export default function MiniGame() {
     setError(null)
     setImageUrl(null)
     try {
-      const payload = mapAnswersToPayload(rawAnswers)
+      // Traduire la description en anglais — utile pour le TF-IDF (entraîné sur Steam EN)
+      // et pour Pollinations qui génère de meilleures images avec des prompts EN.
+      // Silencieux en cas d'échec : on garde le texte original.
+      let descriptionEN = rawAnswers.description?.trim() || ''
+      if (descriptionEN) {
+        try {
+          const tr = await fetch(`${import.meta.env.VITE_API_URL}/translate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ texts: [descriptionEN] }),
+          })
+          if (tr.ok) {
+            const { translations } = await tr.json()
+            descriptionEN = translations[0] || descriptionEN
+          }
+        } catch { /* silencieux — fallback sur le texte original */ }
+      }
+
+      const payload = mapAnswersToPayload(rawAnswers, descriptionEN)
 
       const encodedPrompt = encodeURIComponent(buildImagePrompt({
-        ...payload,
-        description: rawAnswers.description,
-        iconicElement: rawAnswers.iconicElement,
-        game_name: rawAnswers.gameName,
+        genre:        rawAnswers.genre,
+        universe:     rawAnswers.universe,
+        mechanics:    rawAnswers.mechanics,
+        visualStyle:  rawAnswers.visualStyle,
+        perspective:  rawAnswers.perspective,
+        categories:   rawAnswers.categories,
+        description:  descriptionEN,
+        game_name:    rawAnswers.gameName,
       }))
       const negativePrompt = encodeURIComponent("text, watermark, blurry, low quality, deformed, ugly, bad anatomy, logo, signature")
       const apiKey = import.meta.env.VITE_POLLINATIONS_API_KEY
@@ -238,7 +403,6 @@ export default function MiniGame() {
       setResult(data)
       if (imageBlob) setImageUrl(URL.createObjectURL(imageBlob))
 
-      // Vérifie l'éligibilité au leaderboard — si oui, affiche le modal pseudo
       const eligible = await checkLeaderboardEligibility({ verdict: data.verdict, proba: data.proba })
       if (eligible) {
         setPendingLeaderboard({ verdict: data.verdict, proba: data.proba, metacritic_score: data.metacritic_score, answers: rawAnswers, coverBlob: imageBlob })
@@ -301,7 +465,7 @@ export default function MiniGame() {
               Will It <span style={{ color: 'var(--wif-pink)' }}>Flop</span> ?
             </h1>
             <p className="text-muted-foreground font-label text-xs tracking-wider">
-              13 questions — notre algorithme prédit le destin de ton jeu
+              12 questions — notre algorithme prédit le destin de ton jeu
             </p>
           </section>
         )}
@@ -392,6 +556,7 @@ export default function MiniGame() {
                     selected={answers[question.key]}
                     onSelect={handleMultiToggle}
                     multi={true}
+                    maxSelect={question.maxSelect}
                   />
                 )}
 
@@ -413,6 +578,28 @@ export default function MiniGame() {
                       </button>
                     ))}
                   </div>
+                )}
+
+                {/* Machine à sous — prix */}
+                {question.type === 'slotmachine' && (
+                  <SlotMachine
+                    onSelect={(v) => setAnswers(prev => ({ ...prev, pricing: v }))}
+                  />
+                )}
+
+                {/* Slider de polish dev */}
+                {question.type === 'devslider' && (
+                  <DevSlider
+                    value={answers.devLevel}
+                    onSelect={(v) => setAnswers(prev => ({ ...prev, devLevel: v }))}
+                  />
+                )}
+
+                {/* Quiz des langues */}
+                {question.type === 'languagequiz' && (
+                  <LanguageQuiz
+                    onSelect={(v) => setAnswers(prev => ({ ...prev, languages: v }))}
+                  />
                 )}
 
                 {/* Bouton navigation */}
@@ -463,20 +650,24 @@ function ProgressBar({ current, total }) {
 // ---------------------------------------------------------------------------
 // Grille d'options (single ou multi)
 // ---------------------------------------------------------------------------
-function OptionGrid({ options, selected, onSelect, multi }) {
+function OptionGrid({ options, selected, onSelect, multi, maxSelect }) {
   return (
     <div className="grid grid-cols-2 gap-2">
       {options.map(option => {
         const isSelected = multi ? selected.includes(option) : selected === option
+        const isDisabled = multi && maxSelect && !isSelected && selected.length >= maxSelect
         return (
           <button
             key={option}
-            onClick={() => onSelect(option)}
+            onClick={() => !isDisabled && onSelect(option)}
+            disabled={isDisabled}
             className="rounded-lg border-2 px-3 py-3 text-sm text-left transition-all font-exo"
             style={
               isSelected
                 ? { borderColor: 'var(--wif-pink)', background: 'var(--wif-pink)', color: '#fff', fontWeight: 600 }
-                : { borderColor: 'var(--wif-border)', background: 'transparent', color: 'var(--wif-ink)' }
+                : isDisabled
+                  ? { borderColor: 'var(--wif-border)', background: 'transparent', color: 'var(--wif-ink)', opacity: 0.35, cursor: 'not-allowed' }
+                  : { borderColor: 'var(--wif-border)', background: 'transparent', color: 'var(--wif-ink)' }
             }
           >
             {isSelected && <span className="mr-1.5 text-xs opacity-80">✓</span>}
@@ -496,11 +687,13 @@ function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded,
   const isTop = verdict === 'Top!'
   const pct = Math.round((proba ?? 0) * 100)
 
+  const polishLabels = ['Garage', 'Studio Indé', 'AA Indé', 'Polished Gem']
+
   return (
     <div className="space-y-10">
 
       {/* ── Verdict hero ──────────────────────────────────────────── */}
-      <section className="text-center space-y-4">
+      <section className="text-center space-y-3">
         <span className="font-label text-[10px] tracking-[0.3em] uppercase text-muted-foreground block">
           Verdict de l'algorithme
         </span>
@@ -510,44 +703,60 @@ function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded,
         >
           {isTop ? 'TOP !' : 'FLOP !'}
         </div>
-        <div className="flex items-center justify-center gap-3 flex-wrap">
-          <Badge variant={isTop ? 'cyan' : 'pink'}>
-            {pct}% de succès prédit
-          </Badge>
-          {metacritic_score != null && (
-            <Badge variant="ink">
-              Metacritic estimé · {metacritic_score}
-            </Badge>
-          )}
-          {leaderboardAdded && (
-            <Badge variant="ink">
-              🏆 Inscrit au Leaderboard du mois !
-            </Badge>
-          )}
-        </div>
+        {leaderboardAdded && (
+          <div className="flex justify-center">
+            <Badge variant="ink">🏆 Inscrit au Leaderboard du mois !</Badge>
+          </div>
+        )}
       </section>
 
-      {/* ── Score bar ─────────────────────────────────────────────── */}
-      <div className="max-w-xl mx-auto">
-        <div className="flex justify-between items-center mb-2">
-          <span className="font-label text-[10px] tracking-[0.3em] uppercase text-muted-foreground">
-            Score de succès
+      {/* ── Métriques ─────────────────────────────────────────────── */}
+      <div className="max-w-xl mx-auto grid grid-cols-2 gap-4">
+        {/* Succès prédit */}
+        <div style={{
+          background: 'var(--wif-bg3)',
+          borderRadius: '12px',
+          padding: '20px',
+          border: `1.5px solid ${isTop ? 'var(--wif-success)' : 'var(--wif-danger)'}`,
+          textAlign: 'center',
+        }}>
+          <span className="font-label text-[9px] tracking-[0.25em] uppercase text-muted-foreground block mb-2">
+            Succès prédit
           </span>
-          <span
-            className="font-headline text-lg font-bold"
+          <div
+            className="font-orbitron text-4xl font-black"
             style={{ color: isTop ? 'var(--wif-success)' : 'var(--wif-danger)' }}
           >
             {pct}%
-          </span>
+          </div>
+          <div className="mt-3 h-1.5 rounded-full bg-border overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{ width: `${pct}%`, background: isTop ? 'var(--wif-success)' : 'var(--wif-danger)' }}
+            />
+          </div>
         </div>
-        <div className="h-2 w-full rounded-full bg-border overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-700"
-            style={{
-              width: `${pct}%`,
-              background: isTop ? 'var(--wif-success)' : 'var(--wif-danger)',
-            }}
-          />
+
+        {/* Metacritic estimé */}
+        <div style={{
+          background: 'var(--wif-bg3)',
+          borderRadius: '12px',
+          padding: '20px',
+          border: '1.5px solid var(--wif-pink)',
+          textAlign: 'center',
+        }}>
+          <span className="font-label text-[9px] tracking-[0.25em] uppercase text-muted-foreground block mb-2">
+            Metacritic estimé
+          </span>
+          <div className="font-orbitron text-4xl font-black" style={{ color: 'var(--wif-pink)' }}>
+            {metacritic_score != null ? Math.round(metacritic_score) : '—'}
+          </div>
+          <div className="mt-3 h-1.5 rounded-full bg-border overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{ width: `${metacritic_score ?? 0}%`, background: 'var(--wif-pink)' }}
+            />
+          </div>
         </div>
       </div>
 
@@ -606,13 +815,32 @@ function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded,
           </CardHeader>
           <CardContent className="space-y-0">
             <SummaryRow label="Genre" value={answers.genre} />
-            <SummaryRow label="Univers" value={answers.universe} />
-            <SummaryRow label="Mode de jeu" value={answers.gameMode} />
-            <SummaryRow label="Mécanique" value={answers.coreMechanic} />
-            <SummaryRow label="Style visuel" value={answers.visualStyle} />
-            <SummaryRow label="Durée" value={answers.playtime} />
-            <SummaryRow label="Plateforme(s)" value={answers.platforms?.join(', ')} />
-            <SummaryRow label="Prix" value={answers.pricing} />
+            <SummaryRow label="Ambiance" value={answers.universe?.join(', ')} />
+            <SummaryRow label="Mécaniques" value={answers.mechanics?.join(', ')} />
+            <SummaryRow label="Style" value={answers.visualStyle} />
+            <SummaryRow label="Vue" value={answers.perspective} />
+            <SummaryRow label="Mode" value={answers.categories?.join(', ')} />
+            <SummaryRow
+              label="Prix"
+              value={
+                answers.pricing != null
+                  ? answers.pricing === 0 ? 'Gratuit' : `${answers.pricing}€`
+                  : null
+              }
+            />
+            <SummaryRow label="Polish" value={polishLabels[answers.devLevel] ?? null} />
+            <SummaryRow
+              label="Langues"
+              value={answers.languages ? `${answers.languages} langues` : null}
+            />
+            <SummaryRow
+              label="DLC"
+              value={
+                answers.hasDLC === true ? 'Oui'
+                : answers.hasDLC === false ? 'Non'
+                : null
+              }
+            />
             <div className="pt-5">
               <Button variant="outline" className="w-full" onClick={onReset}>
                 Recommencer ↺
