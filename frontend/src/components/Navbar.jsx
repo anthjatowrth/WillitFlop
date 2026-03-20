@@ -1,38 +1,78 @@
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from 'react'
+import { NavLink } from 'react-router-dom'
+import Logo from './Logo'
+
+const NAV_LINKS = [
+  { label: 'Accueil',     to: '/',             end: true },
+  { label: 'Tendances',   to: '/market' },
+  { label: 'Leaderboard', to: '/leaderboard' },
+  { label: 'Catalogue',   to: '/database' },
+]
 
 export default function Navbar() {
-  return (
-    <header className="w-full flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-background">
-      {/* Logo */}
-      <div className="text-sm font-bold tracking-widest uppercase">
-        <span className="text-black">WILL</span>
-        <span className="text-primary">I</span>
-        <span className="text-black">T</span>
-        <span className="text-primary">FLOP</span>
-      </div>
+  const [dark, setDark] = useState(() =>
+    typeof window !== 'undefined' && localStorage.getItem('wif-theme') === 'dark'
+  )
 
-      {/* Nav actions */}
-      <nav className="flex items-center gap-3">
-        <Button
-          variant="outline"
-          size="sm"
-          className="rounded-none border border-black text-black text-xs tracking-widest uppercase font-mono hover:bg-black hover:text-white transition-colors"
-        >
-          DATA EXPLORER
-        </Button>
-        <Button
-          size="sm"
-          className="rounded-none bg-primary text-white text-xs tracking-widest uppercase font-mono hover:bg-primary/80 transition-colors"
-        >
-          Étude complète →
-        </Button>
-        <a
-          href="#"
-          className="text-xs text-black tracking-widest uppercase font-mono hover:underline"
-        >
-          → Accueil
-        </a>
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', dark)
+    localStorage.setItem('wif-theme', dark ? 'dark' : 'light')
+  }, [dark])
+
+  return (
+    <header className="sticky top-0 z-50 glass-panel bg-background/80 shadow-xl border-b-0">
+      <nav className="flex justify-between items-center w-full px-6 py-4 max-w-screen-2xl mx-auto font-space-grotesk tracking-tight">
+
+        {/* Left — logo + nav links */}
+        <div className="flex items-center gap-8">
+          <NavLink to="/" aria-label="Home">
+            <Logo className="text-sm" />
+          </NavLink>
+
+          <div className="hidden md:flex items-center gap-6">
+            {NAV_LINKS.map(({ label, to, end }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                className={({ isActive }) =>
+                  isActive
+                    ? 'text-primary border-b-2 border-primary pb-1 font-bold text-sm'
+                    : 'text-foreground/60 hover:text-primary transition-colors text-sm'
+                }
+              >
+                {label}
+              </NavLink>
+            ))}
+          </div>
+        </div>
+
+        {/* Right — CTA + dark mode toggle */}
+        <div className="flex items-center gap-4">
+          <button className="px-4 py-2 text-sm font-bold text-foreground/60 hover:bg-muted transition-all duration-200 rounded-sm">
+            Connexion
+          </button>
+          <NavLink
+            to="/minigame"
+            className="px-5 py-2 bg-primary text-primary-foreground font-bold text-sm rounded-sm shadow-lg active:scale-95 duration-100"
+          >
+            Start Prediction
+          </NavLink>
+
+          <button
+            onClick={() => setDark(d => !d)}
+            aria-label={dark ? 'Passer en mode clair' : 'Passer en mode sombre'}
+            className="flex items-center justify-center w-8 h-8 border border-border text-muted-foreground hover:border-primary hover:text-primary transition-colors rounded-sm"
+          >
+            <span
+              className="material-symbols-outlined select-none"
+              style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}
+            >
+              {dark ? 'light_mode' : 'dark_mode'}
+            </span>
+          </button>
+        </div>
       </nav>
     </header>
-  );
+  )
 }

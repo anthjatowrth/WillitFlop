@@ -133,37 +133,75 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: var(--wif-pink);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: var(--wif-cyan);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: var(--wif-pink);
+  /* ── Palette de marque — variante sombre ─────────────────────────────
+     Inspirée du fond encre (#0D0D1A) du thème clair, mais avec une
+     hiérarchie de surfaces à teinte violet-charbon.
+  ──────────────────────────────────────────────────────────────────── */
+  --wif-bg:      #0F0E16;   /* fond principal — quasi-noir violet       */
+  --wif-bg2:     #17161F;   /* fond secondaire — footer / nav           */
+  --wif-bg3:     #1F1E2B;   /* fond tertiaire — containers / hover      */
+  --wif-border:  #2E2C40;   /* bordures subtiles                        */
+  --wif-ink:     #F0EDE6;   /* texte principal — crème chaud            */
+  --wif-ink2:    #C0BBB3;   /* texte secondaire                         */
+  --wif-gray:    #7A7A8C;   /* texte atténué / labels                   */
+  --wif-success: #00B86B;   /* vert plus lumineux sur fond sombre       */
+  --wif-danger:  #FF4444;   /* rouge plus lumineux sur fond sombre      */
+  --wif-warn:    #C8940A;   /* ambre plus lumineux sur fond sombre      */
+  /* accents de marque : inchangés — ils brillent naturellement */
+
+  /* ── Tokens sémantiques Tailwind ───────────────────────────────────── */
+  --background:              var(--wif-bg);
+  --foreground:              var(--wif-ink);
+  --card:                    #1F1E2B;
+  --card-foreground:         var(--wif-ink);
+  --popover:                 #1F1E2B;
+  --popover-foreground:      var(--wif-ink);
+  --primary:                 var(--wif-pink);
+  --primary-foreground:      var(--wif-white);
+  --secondary:               var(--wif-bg3);
+  --secondary-foreground:    var(--wif-ink2);
+  --muted:                   var(--wif-bg3);
+  --muted-foreground:        var(--wif-gray);
+  --accent:                  var(--wif-cyan);
+  --accent-foreground:       var(--wif-white);
+  --destructive:             var(--wif-danger);
+  --destructive-foreground:  var(--wif-white);
+  --border:                  var(--wif-border);
+  --input:                   var(--wif-border);
+  --ring:                    var(--wif-pink);
+
+  /* ── Graphiques ─────────────────────────────────────────────────────── */
   --chart-1: var(--wif-pink);
   --chart-2: var(--wif-cyan);
   --chart-3: var(--wif-cyan-b);
   --chart-4: var(--wif-success);
   --chart-5: var(--wif-warn);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: var(--wif-pink);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: var(--wif-pink);
+
+  /* ── Hiérarchie de surfaces (Cyber Tactile — dark scale) ─────────────
+     lowest → highest : du plus sombre au plus élevé visuellement
+  ──────────────────────────────────────────────────────────────────── */
+  --surface-container-lowest:  var(--wif-bg);      /* #0F0E16 — fonds flat      */
+  --surface-container-low:     var(--wif-bg2);     /* #17161F — sections        */
+  --surface-container:         var(--wif-bg3);     /* #1F1E2B — containers      */
+  --surface-container-high:    var(--wif-border);  /* #2E2C40 — high contrast   */
+  --surface-container-highest: #3E3C54;            /* plus élevé encore         */
+  --on-surface-variant:        var(--wif-ink2);
+  --outline-variant:           var(--wif-border);
+
+  /* ── Tertiary ────────────────────────────────────────────────────────── */
+  --tertiary:           var(--wif-cyan);
+  --tertiary-container: var(--wif-cyan-b);
+  --on-tertiary:        var(--wif-white);
+
+  /* ── Sidebar ─────────────────────────────────────────────────────────── */
+  --sidebar:                      var(--wif-bg2);
+  --sidebar-foreground:           var(--wif-ink);
+  --sidebar-primary:              var(--wif-pink);
+  --sidebar-primary-foreground:   var(--wif-white);
+  --sidebar-accent:               var(--wif-cyan);
+  --sidebar-accent-foreground:    var(--wif-white);
+  --sidebar-border:               var(--wif-border);
+  --sidebar-ring:                 var(--wif-pink);
 }
 
 /* ─────────────────────────────────────────────────────────────────────
@@ -269,6 +307,9 @@
 .technical-grid {
   background-image: radial-gradient(circle, rgba(232, 0, 90, 0.10) 1px, transparent 1px);
   background-size: 24px 24px;
+}
+.dark .technical-grid {
+  background-image: radial-gradient(circle, rgba(232, 0, 90, 0.18) 1px, transparent 1px);
 }
 
 /* Linear grid — game database page only */

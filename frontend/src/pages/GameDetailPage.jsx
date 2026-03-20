@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import Hls from 'hls.js'
 import { supabase } from '../api/client'
 import { getScoreAccent } from '../utils/scoreColor'
+import { translateToFR } from '../utils/deepl'
 
 // ── Formatting helpers ────────────────────────────────────────────────────
 
@@ -334,13 +335,15 @@ export default function GameDetailPage() {
   const { appId } = useParams()
   const navigate   = useNavigate()
 
-  const [game, setGame]     = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError]   = useState(null)
+  const [game, setGame]         = useState(null)
+  const [loading, setLoading]   = useState(true)
+  const [error, setError]       = useState(null)
+  const [translated, setTranslated] = useState(null)
 
   useEffect(() => {
     setLoading(true)
     setError(null)
+    setTranslated(null)
 
     supabase
       .from('games')
@@ -353,9 +356,28 @@ export default function GameDetailPage() {
       .eq('app_id', appId)
       .single()
       .then(({ data, error: err }) => {
-        if (err) setError(err)
-        else setGame(data)
+        if (err) { setError(err); setLoading(false); return }
+        setGame(data)
         setLoading(false)
+
+        // Build a single batched request: [description, ...genres, ...tags, ...categories]
+        const description = data.short_description_clean ?? ''
+        const genres      = (data.game_genres ?? []).map(r => r.genre_name)
+        const tags        = [...(data.game_tags ?? [])].sort((a, b) => b.votes - a.votes).slice(0, 12).map(r => r.tag_name)
+        const categories  = (data.game_categories ?? []).map(r => r.category_name)
+
+        const batch = [description, ...genres, ...tags, ...categories].filter(Boolean)
+        if (!batch.length) return
+
+        translateToFR(batch).then(results => {
+          let i = 0
+          const tr = {}
+          tr.description = description ? results[i++] : ''
+          tr.genres      = genres.map(() => results[i++])
+          tr.tags        = tags.map(() => results[i++])
+          tr.categories  = categories.map(() => results[i++])
+          setTranslated(tr)
+        })
       })
   }, [appId])
 
@@ -410,9 +432,21 @@ export default function GameDetailPage() {
     try { return JSON.parse(raw) } catch { return [] }
   })()
 
-  const genres     = game.game_genres?.map(r => r.genre_name) ?? []
-  const tags       = [...(game.game_tags ?? [])].sort((a, b) => b.votes - a.votes).slice(0, 12)
-  const categories = game.game_categories?.map(r => r.category_name) ?? []
+  const genresRaw     = game.game_genres?.map(r => r.genre_name) ?? []
+  const tagsRaw       = [...(game.game_tags ?? [])].sort((a, b) => b.votes - a.votes).slice(0, 12)
+  const categoriesRaw = game.game_categories?.map(r => r.category_name) ?? []
+
+  // Use translated values when ready, fall back to originals
+  const description = translated?.description ?? game.short_description_clean
+  const genres      = translated
+    ? genresRaw.map((_, i) => translated.genres[i] ?? genresRaw[i])
+    : genresRaw
+  const tags = translated
+    ? tagsRaw.map((t, i) => ({ ...t, tag_name: translated.tags[i] ?? t.tag_name }))
+    : tagsRaw
+  const categories = translated
+    ? categoriesRaw.map((_, i) => translated.categories[i] ?? categoriesRaw[i])
+    : categoriesRaw
 
   const isNew = (() => {
     if (!game.fetched_at) return false
@@ -486,9 +520,9 @@ export default function GameDetailPage() {
           {/* Genre chips */}
           {genres.length > 0 && (
             <div className="flex gap-2 flex-wrap">
-              {genres.map(g => (
+              {genres.map((g, i) => (
                 <span
-                  key={g}
+                  key={genresRaw[i]}
                   className="px-2 py-0.5 text-[9px] font-label tracking-widest uppercase border border-white/25 text-white/70"
                 >
                   {g}
@@ -506,11 +540,11 @@ export default function GameDetailPage() {
         <div className="lg:col-span-2 flex flex-col gap-10">
 
           {/* Description */}
-          {game.short_description_clean && (
+          {description && (
             <section style={{ borderLeft: '3px solid var(--primary)' }} className="pl-5">
-              <SectionLabel>About this game</SectionLabel>
+              <SectionLabel>À propos de ce jeu</SectionLabel>
               <p className="font-inter text-sm text-foreground/80 leading-relaxed">
-                {game.short_description_clean}
+                {description}
               </p>
             </section>
           )}
@@ -524,11 +558,11 @@ export default function GameDetailPage() {
           {/* Community tags */}
           {tags.length > 0 && (
             <section>
-              <SectionLabel>Community Tags</SectionLabel>
+              <SectionLabel>Tags Communauté</SectionLabel>
               <div className="flex flex-wrap gap-2">
-                {tags.map(t => (
+                {tags.map((t, i) => (
                   <span
-                    key={t.tag_name}
+                    key={tagsRaw[i]?.tag_name ?? i}
                     className="px-2.5 py-1 text-[10px] font-label tracking-wider uppercase bg-card border border-border text-muted-foreground hover:border-primary hover:text-primary transition-colors"
                   >
                     {t.tag_name}
@@ -562,11 +596,11 @@ export default function GameDetailPage() {
           {/* Categories */}
           {categories.length > 0 && (
             <section>
-              <SectionLabel>Features</SectionLabel>
+              <SectionLabel>Fonctionnalités</SectionLabel>
               <div className="flex flex-wrap gap-2">
-                {categories.map(c => (
+                {categories.map((c, i) => (
                   <div
-                    key={c}
+                    key={categoriesRaw[i] ?? i}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border text-[10px] font-label tracking-wider uppercase text-foreground/70"
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>check_circle</span>

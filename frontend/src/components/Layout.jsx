@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import Navbar from './Navbar'
 import Logo from './Logo'
 
 const NAV_LINKS = [
@@ -11,56 +12,13 @@ const NAV_LINKS = [
 export default function Layout() {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground technical-grid">
+      <Navbar />
 
-      {/* ── TopBar ─────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 glass-panel bg-background/80 shadow-xl border-b-0">
-        <nav className="flex justify-between items-center w-full px-6 py-4 max-w-screen-2xl mx-auto font-space-grotesk tracking-tight">
-
-          {/* Left: logo + nav links */}
-          <div className="flex items-center gap-8">
-            <NavLink to="/" aria-label="Home">
-              <Logo className="text-sm" />
-            </NavLink>
-
-            <div className="hidden md:flex items-center gap-6">
-              {NAV_LINKS.map(({ label, to, end }) => (
-                <NavLink
-                  key={to}
-                  to={to}
-                  end={end}
-                  className={({ isActive }) =>
-                    isActive
-                      ? 'text-primary border-b-2 border-primary pb-1 font-bold text-sm'
-                      : 'text-foreground/60 hover:text-primary transition-colors text-sm'
-                  }
-                >
-                  {label}
-                </NavLink>
-              ))}
-            </div>
-          </div>
-
-          {/* Right: CTA buttons */}
-          <div className="flex items-center gap-4">
-            <button className="px-4 py-2 text-sm font-bold text-foreground/60 hover:bg-muted transition-all duration-200 rounded-sm">
-              Connexion (en développement)
-            </button>
-            <NavLink
-              to="/minigame"
-              className="px-5 py-2 bg-primary text-primary-foreground font-bold text-sm rounded-sm shadow-lg active:scale-95 duration-100"
-            >
-              Start Prediction
-            </NavLink>
-          </div>
-        </nav>
-      </header>
-
-      {/* ── Page content (Outlet) ──────────────────────────────────── */}
       <main className="flex-1">
         <Outlet />
       </main>
 
-      {/* ── Footer ─────────────────────────────────────────────────── */}
+      {/* ── Footer ────────────────────────────────────────────────── */}
       <footer className="bg-surface-container-low grid grid-cols-1 md:grid-cols-4 gap-8 w-full px-8 py-12 mt-auto border-t border-border/20">
 
         {/* Col 1 — Brand */}
@@ -104,7 +62,7 @@ export default function Layout() {
           </ul>
         </div>
 
-        {/* Col 4 — Connect + credits */}
+        {/* Col 4 — Connect */}
         <div>
           <h4 className="font-inter text-[11px] font-black uppercase tracking-widest text-primary mb-6">
             Connect
@@ -123,7 +81,6 @@ export default function Layout() {
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>alternate_email</span>
             </a>
           </div>
-          {/* Preserve existing footer copy */}
           <div className="mt-8 font-inter text-xs tracking-widest uppercase text-muted-foreground">
             Explorer · Bootcamp Data Analyst 2026 · Anthony &amp; Pierre
           </div>
