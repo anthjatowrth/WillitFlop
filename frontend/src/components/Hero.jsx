@@ -11,12 +11,12 @@ export default function Hero() {
         className="font-space-mono uppercase tracking-[0.22em]"
         style={{ fontSize: '0.65rem', color: 'var(--wif-cyan)', marginBottom: '40px' }}
       >
-        // ON PENSE TOUS SAVOIR CE QU'EST UN BON JEU, MAIS SAUREZ VOUS EN FAIRE UN ? //
+        // SI VOUS POUVEZ CRÉER UN JEU VIDÉO, ÇA SERAIT QUOI ? //
       </p>
 
       {/* Big logo title */}
       <h1
-        className="font-exo font-black leading-none tracking-tight select-none"
+        className="font-orbitron font-black leading-none tracking-tight select-none"
         style={{ fontSize: 'clamp(3.5rem, 11vw, 7.5rem)', marginBottom: '20px', letterSpacing: '-0.01em' }}
       >
         <span style={{ color: 'var(--wif-ink)' }}>WILL</span>

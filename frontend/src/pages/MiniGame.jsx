@@ -940,7 +940,7 @@ function OptionGrid({ options, selected, onSelect, multi, maxSelect }) {
 function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded, onReset }) {
   const { verdict, proba, metacritic_score } = result
   const isTop = verdict === 'Top!'
-  const pct = Math.round((proba ?? 0) * 100)
+  const pct = parseFloat(((proba ?? 0) * 100).toFixed(1))
 
   const polishLabels = ['Garage', 'Studio Indé', 'AA Indé', 'Polished Gem']
 
@@ -988,10 +988,10 @@ function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded,
 
             {/* Verdict */}
             <div>
-              <span className="font-label text-[10px] tracking-[0.3em] uppercase text-muted-foreground block mb-1">
+              <span className="font-label text-xs tracking-[0.3em] uppercase text-muted-foreground block mb-1">
                 Verdict de l'algorithme
               </span>
-              <div className="font-orbitron text-6xl font-black tracking-tight leading-none" style={{ color: accentColor }}>
+              <div className="font-orbitron text-7xl font-black tracking-tight leading-none" style={{ color: accentColor }}>
                 {isTop ? 'TOP !' : 'FLOP !'}
               </div>
               {leaderboardAdded && (
@@ -1002,16 +1002,16 @@ function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded,
             {/* Métriques */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <span className="font-label text-[10px] tracking-[0.2em] uppercase text-muted-foreground block mb-1">Succès prédit</span>
-                <div className="font-orbitron text-4xl font-black" style={{ color: accentColor }}>{pct}%</div>
+                <span className="font-label text-xs tracking-[0.2em] uppercase text-muted-foreground block mb-1">Succès prédit</span>
+                <div className="font-orbitron text-5xl font-black" style={{ color: accentColor }}>{pct}%</div>
                 <div className="mt-2 h-1 rounded-full bg-border overflow-hidden">
                   <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: accentColor }} />
                 </div>
               </div>
               <div>
-                <span className="font-label text-[10px] tracking-[0.2em] uppercase text-muted-foreground block mb-1">Metacritic estimé</span>
-                <div className="font-orbitron text-4xl font-black" style={{ color: 'var(--wif-pink)' }}>
-                  {metacritic_score != null ? Math.round(metacritic_score) : '—'}
+                <span className="font-label text-xs tracking-[0.2em] uppercase text-muted-foreground block mb-1">Metacritic</span>
+                <div className="font-orbitron text-5xl font-black" style={{ color: 'var(--wif-pink)' }}>
+                  {metacritic_score != null ? parseFloat(metacritic_score.toFixed(1)) : '—'}
                 </div>
                 <div className="mt-2 h-1 rounded-full bg-border overflow-hidden">
                   <div className="h-full rounded-full transition-all duration-700" style={{ width: `${metacritic_score ?? 0}%`, background: 'var(--wif-pink)' }} />
@@ -1024,7 +1024,7 @@ function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded,
             {/* Titre + accroche */}
             <div>
               {answers.gameName && answers.gameName !== 'Unnamed Game' && (
-                <p className="font-headline font-bold text-2xl leading-tight mb-2">{answers.gameName}</p>
+                <p className="font-headline font-bold text-3xl leading-tight mb-2">{answers.gameName}</p>
               )}
               <p className="font-inter text-sm text-muted-foreground italic">
                 Analyse narrative en cours de développement — bientôt une accroche générée par IA pour décrire le positionnement de votre jeu.
@@ -1033,9 +1033,9 @@ function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded,
 
             {/* Étiquette de prix */}
             {answers.pricing != null && (
-              <div className="flex justify-center">
+              <div className="flex justify-center mt-4">
                 <div
-                  className="relative inline-flex flex-col items-center px-7 py-4 rounded-sm"
+                  className="relative inline-flex flex-col items-center px-7 py-3 rounded-sm"
                   style={{
                     background: '#d63a6e',
                     boxShadow: '3px 4px 0px rgba(0,0,0,0.3)',
@@ -1043,8 +1043,8 @@ function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded,
                 >
                   {/* Trou d'étiquette */}
                   <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-background border-2 border-border" />
-                  <span className="font-label text-[11px] tracking-[0.3em] uppercase text-white/80 mt-1">Prix</span>
-                  <span className="font-orbitron font-black text-white leading-none" style={{ fontSize: '2rem' }}>
+                  <span className="font-label text-[10px] tracking-[0.3em] uppercase text-white/80 mt-1">Prix</span>
+                  <span className="font-orbitron font-black text-white leading-none" style={{ fontSize: '1.4rem' }}>
                     {answers.pricing === 0 ? 'GRATUIT' : `${answers.pricing} €`}
                   </span>
                 </div>
