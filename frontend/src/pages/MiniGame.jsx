@@ -37,6 +37,18 @@ import img3DRealistic from '../assets/3Drealistic.png'
 import imgLowPoly from '../assets/lowpoly.png'
 import imgAquarelle from '../assets/aquarelle.png'
 import imgMinimalist from '../assets/minimalistflat.png'
+import imgRoguelike from '../assets/Roguelike.png'
+import imgOpenWorld from '../assets/open_world.png'
+import imgStoryRich from '../assets/story_rich.png'
+import imgCraftSurvie from '../assets/Craft_survie.png'
+import imgTourParTour from '../assets/tour_par_tour.png'
+import imgActionRapide from '../assets/Action_rapide.png'
+import imgPuzzle from '../assets/puzzle.png'
+import imgDeckbuilding from '../assets/Deckbuilding.png'
+import imgSoulsLike from '../assets/Souls-like.png'
+import imgSandbox from '../assets/Sandbox.png'
+import imgTowerDefense from '../assets/tower_defense.png'
+import imgMetroidvania from '../assets/metroidvania.png'
 
 const GENRE_IMAGES = {
   'Action / Combat': imgAction,
@@ -69,6 +81,21 @@ const CAMERA_IMAGES = {
   'Défilement latéral (2D)': imgDefilement,
   'Vue du dessus': imgTopDown,
   'Point & Click': imgPointClick,
+}
+
+const MECHANICS_IMAGES = {
+  'Roguelike / Roguelite': imgRoguelike,
+  'Open World': imgOpenWorld,
+  'Story Rich / Narratif': imgStoryRich,
+  'Craft / Survie': imgCraftSurvie,
+  'Tour par tour': imgTourParTour,
+  'Action rapide': imgActionRapide,
+  'Puzzle / Logique': imgPuzzle,
+  'Deckbuilding': imgDeckbuilding,
+  'Souls-like': imgSoulsLike,
+  'Sandbox': imgSandbox,
+  'Tower Defense': imgTowerDefense,
+  'Metroidvania': imgMetroidvania,
 }
 
 const VISUAL_STYLE_IMAGES = {
@@ -121,9 +148,9 @@ const QUESTIONS = [
   },
   {
     key: 'mechanics',
-    type: 'multi',
+    type: 'ambiance-grid',
     label: 'Comment joue-t-on à ton jeu ?',
-    sublabel: "Jusqu'à 5 mécaniques",
+    sublabel: 'Choix unique — la mécanique principale de ton jeu',
     options: [
       'Roguelike / Roguelite',
       'Open World',
@@ -138,7 +165,8 @@ const QUESTIONS = [
       'Tower Defense',
       'Metroidvania',
     ],
-    maxSelect: 5,
+    maxSelect: 1,
+    images: MECHANICS_IMAGES,
   },
   {
     key: 'visualStyle',
@@ -269,6 +297,9 @@ export default function MiniGame() {
       const maxSelect = question.maxSelect
       if (current.includes(value)) {
         return { ...prev, [question.key]: current.filter(v => v !== value) }
+      }
+      if (maxSelect === 1) {
+        return { ...prev, [question.key]: [value] }
       }
       if (maxSelect && current.length >= maxSelect) return prev
       return { ...prev, [question.key]: [...current, value] }
@@ -628,6 +659,7 @@ export default function MiniGame() {
                     selected={answers[question.key]}
                     onToggle={handleMultiToggle}
                     maxSelect={question.maxSelect}
+                    images={question.images ?? AMBIANCE_IMAGES}
                   />
                 )}
 
@@ -847,13 +879,13 @@ function GenreGrid({ options, selected, onSelect, images = GENRE_IMAGES }) {
 // ---------------------------------------------------------------------------
 // Grille illustrée — sélection d'ambiance (Q2, multi jusqu'à 4)
 // ---------------------------------------------------------------------------
-function AmbianceGrid({ options, selected, onToggle, maxSelect }) {
+function AmbianceGrid({ options, selected, onToggle, maxSelect, images = AMBIANCE_IMAGES }) {
   return (
     <div className="flex flex-col gap-2">
       <div className="grid grid-cols-4 gap-2">
         {options.map((option, idx) => {
           const isSelected = selected.includes(option)
-          const isDisabled = !isSelected && selected.length >= maxSelect
+          const isDisabled = maxSelect !== 1 && !isSelected && selected.length >= maxSelect
           // Centre les 2 derniers items si la dernière ligne est incomplète (10 items → 2 en dernière ligne)
           const lastRowRemainder = options.length % 4
           const isFirstOfLastRow = lastRowRemainder !== 0 && idx === options.length - lastRowRemainder
@@ -872,7 +904,7 @@ function AmbianceGrid({ options, selected, onToggle, maxSelect }) {
               }}
             >
               <img
-                src={AMBIANCE_IMAGES[option]}
+                src={images[option]}
                 alt={option}
                 className="w-full h-full object-cover"
               />
@@ -895,9 +927,11 @@ function AmbianceGrid({ options, selected, onToggle, maxSelect }) {
           )
         })}
       </div>
-      <p className="text-right font-label text-[10px] tracking-widest uppercase" style={{ color: 'var(--wif-muted)' }}>
-        {selected.length} / {maxSelect} sélectionné{selected.length > 1 ? 's' : ''}
-      </p>
+      {maxSelect > 1 && (
+        <p className="text-right font-label text-[10px] tracking-widest uppercase" style={{ color: 'var(--wif-muted)' }}>
+          {selected.length} / {maxSelect} sélectionné{selected.length > 1 ? 's' : ''}
+        </p>
+      )}
     </div>
   )
 }
