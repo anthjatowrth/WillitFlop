@@ -206,7 +206,7 @@ export default function AboutProject() {
               Le Wilson score est un intervalle de confiance appliqué aux avis positifs. Contrairement à un simple
               pourcentage brut, il tient compte du volume total d'avis : un jeu avec dix avis tous positifs est
               bien moins fiable qu'un jeu avec dix mille avis à 85 % positifs. Le Wilson score pénalise les
-              petits échantillons et valorise les données abondantes — c'est ce qui rend notre mesure de la
+              petits échantillons et valorise les données abondantes, c'est ce qui rend notre mesure de la
               réputation robuste et honnête.
             </BodyText>
 
@@ -230,7 +230,7 @@ export default function AboutProject() {
 
             <BodyText style={{ marginTop: '16px', fontSize: '0.8rem' }}>
               Un score brut de 100 % sur un petit échantillon est trompeur. Le Wilson score le ramène à 63 % pour
-              refléter l'incertitude statistique, tandis qu'un score à 85 % sur un large volume reste à 84 % —
+              refléter l'incertitude statistique, tandis qu'un score à 85 % sur un large volume reste à 84 %,
               presque intact, car le signal est solide.
             </BodyText>
           </BlockCard>
@@ -249,7 +249,7 @@ export default function AboutProject() {
               <BodyText>
                 Nous sommes dans une démarche honnête : nous mesurons le poids de certains facteurs bien définis,
                 pas de tous les facteurs. Le marketing, la notoriété d'un studio ou le timing de sortie sont des
-                variables tout aussi déterminantes — mais elles sont délibérément hors de notre scope.
+                variables tout aussi déterminantes, mais elles sont délibérément hors de notre scope.
               </BodyText>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', alignContent: 'start' }}>
