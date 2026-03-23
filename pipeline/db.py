@@ -62,7 +62,7 @@ def get_games_for_monthly_update(conn) -> dict[str, list[int]]:
 
     recent, old = [], []
     for app_id, release_date in rows:
-        match = re.search(r'\b(19|20)\d{2}\b', release_date or "")
+        match = re.search(r'\b(19|20)\d{2}\b', str(release_date) if release_date is not None else "")
         if match and int(match.group()) >= threshold_year:
             recent.append(app_id)
         else:
