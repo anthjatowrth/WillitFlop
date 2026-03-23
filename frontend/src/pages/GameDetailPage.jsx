@@ -703,11 +703,6 @@ export default function GameDetailPage() {
                 </div>
               </div>
               <div className="flex flex-col items-end gap-1.5">
-                {game.has_dlc && (
-                  <span className="px-2 py-0.5 text-[9px] font-label tracking-widest uppercase bg-surface-container text-muted-foreground border border-border">
-                    Has DLC
-                  </span>
-                )}
                 {game.is_free && (
                   <span className="px-2 py-0.5 text-[9px] font-label tracking-widest uppercase bg-surface-container text-muted-foreground border border-border">
                     Gratuit

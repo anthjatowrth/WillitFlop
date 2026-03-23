@@ -8,7 +8,6 @@ class TranslateRequest(BaseModel):
 class GameInput(BaseModel):
     price_eur: float | None = None
     is_free: bool | None = None
-    has_dlc: bool | None = None
     is_early_access: bool | None = None
     achievement_count: int | None = None
     nb_supported_languages: int | None = None

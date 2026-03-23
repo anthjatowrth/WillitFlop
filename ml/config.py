@@ -28,7 +28,6 @@ NUMERIC_FEATURES = [
 # Colonnes booléennes (True/False en PG → bool Python) : passthrough
 BOOL_FEATURES = [
     "is_free",
-    "has_dlc",
     "is_early_access",
 ]
 

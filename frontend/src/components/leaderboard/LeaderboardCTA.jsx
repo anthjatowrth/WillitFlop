@@ -1,7 +1,7 @@
 const ICON_CARDS = [
-  { icon: 'monitoring',  label: 'Analytics',  rotate: '-rotate-6'  },
-  { icon: 'database',    label: 'Data',        rotate: 'rotate-3'   },
-  { icon: 'psychology',  label: 'Prediction',  rotate: '-rotate-2'  },
+  { icon: 'monitoring',  label: 'Analytique',  rotate: '-rotate-6'  },
+  { icon: 'database',    label: 'Données',     rotate: 'rotate-3'   },
+  { icon: 'psychology',  label: 'Prédiction',  rotate: '-rotate-2'  },
 ]
 
 export default function LeaderboardCTA() {
@@ -23,14 +23,14 @@ export default function LeaderboardCTA() {
         {/* Left — text + CTA */}
         <div className="max-w-xl">
           <span className="font-label text-[10px] tracking-[0.3em] uppercase text-primary block mb-4">
-            Challenge the Algorithm
+            Défiez l'algorithme
           </span>
           <h2 className="font-headline text-4xl md:text-5xl font-extrabold tracking-tighter text-foreground leading-tight mb-4">
-            Think you can beat<br />the algorithm?
+            Vous pensez battre<br />l'algorithme ?
           </h2>
           <p className="font-inter text-sm text-muted-foreground leading-relaxed mb-8 max-w-md">
-            Submit your game data and let our predictive engine score it against the leaderboard.
-            The top performers are updated monthly — could your game be next?
+            Soumettez les données de votre jeu et laissez notre moteur prédictif l'évaluer face au classement.
+            Les meilleurs sont mis à jour chaque mois — et si c'était votre tour ?
           </p>
           <button
             className="px-6 py-3 font-headline font-bold text-sm tracking-wide transition-all duration-300 hover:opacity-90 active:scale-95"
@@ -39,7 +39,7 @@ export default function LeaderboardCTA() {
               color:      'var(--primary-foreground)',
             }}
           >
-            Submit Game Data
+            Soumettre mon jeu
           </button>
         </div>
 

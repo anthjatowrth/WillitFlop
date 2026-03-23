@@ -139,7 +139,7 @@ export default function GameDatabasePage() {
   // ── Render ────────────────────────────────────────────────────────────
 
   return (
-    <div className="linear-grid min-h-full">
+    <div className="technical-grid min-h-full">
       <div className="max-w-screen-2xl mx-auto px-6 py-12">
 
         {/* ── Section 1 — Editorial Header ─────────────────────────── */}
@@ -160,7 +160,7 @@ export default function GameDatabasePage() {
             </span>
           </div>
 
-          <h1 className="font-headline font-black tracking-tighter text-5xl text-foreground leading-none">
+          <h1 className="font-headline font-black tracking-tighter text-7xl text-foreground leading-none">
             NOTRE CATALOGUE 
             <span style={{ color: 'var(--primary)' }}> INDIE GAMES</span>
           </h1>

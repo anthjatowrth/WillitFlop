@@ -71,7 +71,7 @@ export async function checkLeaderboardEligibility({ verdict, proba }) {
  * @param {string|null} creator_name - Pseudo saisi par l'utilisateur
  * @returns {boolean} true si le jeu a été inscrit, false sinon
  */
-export async function saveToLeaderboard({ verdict, proba, metacritic_score, answers, coverBlob, creator_name = null }) {
+export async function saveToLeaderboard({ verdict, proba, metacritic_score, answers, coverBlob, creator_name = null, review_text = null, review_source = null }) {
   const period = getCurrentPeriod()
   const gameName = answers.gameName?.trim() || 'Jeu sans nom'
 
@@ -122,6 +122,8 @@ export async function saveToLeaderboard({ verdict, proba, metacritic_score, answ
     metacritic_score: metacritic_score != null ? Math.round(metacritic_score) : null,
     cover_url:        coverUrl,
     creator_name:     creator_name || null,
+    review_text:      review_text  || null,
+    review_source:    review_source || null,
   }
 
   // Moins de 5 entrées → on insère directement
@@ -194,11 +196,13 @@ function entryToCard(entry, index) {
     tags:     tags.length > 0 ? tags : undefined,
     creator:  entry.creator_name ?? null,
     // Extra fields for the hover detail panel
-    proba:    entry.proba ?? null,
-    pricing:  entry.pricing ?? null,
-    verdict:  entry.verdict ?? null,
-    genre:    entry.genre ?? null,
-    universe: entry.universe ?? null,
-    metacritic: entry.metacritic_score ?? null,
+    proba:         entry.proba ?? null,
+    pricing:       entry.pricing ?? null,
+    verdict:       entry.verdict ?? null,
+    genre:         entry.genre ?? null,
+    universe:      entry.universe ?? null,
+    metacritic:    entry.metacritic_score ?? null,
+    review_text:   entry.review_text   ?? null,
+    review_source: entry.review_source ?? null,
   }
 }

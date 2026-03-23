@@ -10,7 +10,6 @@ select
 
     -- Features booléennes
     g.is_free,
-    g.has_dlc,
     g.is_early_access,
 
     -- Features multi-label (MultiLabelBinarizer côté sklearn)
