@@ -2,7 +2,7 @@ export default function Footer() {
     return (
       <footer className="w-full flex items-start justify-between px-8 py-6 border-t border-gray-200 bg-[#EEECE6] gap-8">
         {/* Logo + présentation */}
-        <div className="flex flex-col gap-2 max-w-md">
+        <div className="flex flex-col gap-2 max-w-[240px]">
           <div className="text-xs font-bold tracking-widest uppercase">
             <span className="text-black">WILL</span>
             <span className="text-primary">I</span>

@@ -28,7 +28,7 @@ export default function FlopLeaderboard({ games, loading }) {
         )}
 
         {!loading && games.map((game) => (
-          <GameRankCard key={game.rank} variant="flop" {...game} />
+          <GameRankCard key={game.rank} variant="flop" panelSide="left" {...game} />
         ))}
       </div>
     </div>

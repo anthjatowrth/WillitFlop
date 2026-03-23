@@ -165,12 +165,18 @@ export default function GameDatabasePage() {
             <span style={{ color: 'var(--primary)' }}> INDIE GAMES</span>
           </h1>
 
-          <p className="mt-3 font-inter text-sm text-muted-foreground max-w-xl">
+          <p className="mt-3 font-inter text-sm text-muted-foreground max-w-2xl">
             Notre catalogue réunit {totalGamesCount > 0 ? totalGamesCount.toLocaleString() : 'plus de seize mille'} jeux
             publiés sur Steam. Nous avons
             fait le choix de nous concentrer sur la scène indé : des créations portées par des studios de
             petite taille, souvent fondés sur une vision forte et des prises de risque assumées, exactement
-            le type de projets que nous aimons analyser. Nous rappelons que notre site n'a pas pour objectif de représenter tous les jeux de la scène indé (voir données). Utilisez les filtres pour explorer 
+            le type de projets que nous aimons analyser. Nous rappelons que notre site n'a pas pour objectif de représenter tous les jeux de la scène indé{' '}
+            <a
+              href="/#data-filter"
+              className="text-primary underline underline-offset-2 hover:opacity-75 transition-opacity"
+            >
+              (voir données)
+            </a>. Utilisez les filtres pour explorer
             et trouvez le titre qui vous inspire.
           </p>
         </section>

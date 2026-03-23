@@ -193,5 +193,12 @@ function entryToCard(entry, index) {
     image:    entry.cover_url ?? null,
     tags:     tags.length > 0 ? tags : undefined,
     creator:  entry.creator_name ?? null,
+    // Extra fields for the hover detail panel
+    proba:    entry.proba ?? null,
+    pricing:  entry.pricing ?? null,
+    verdict:  entry.verdict ?? null,
+    genre:    entry.genre ?? null,
+    universe: entry.universe ?? null,
+    metacritic: entry.metacritic_score ?? null,
   }
 }

@@ -26,7 +26,7 @@ const STEPS = [
 
 export default function HowItWorks() {
   return (
-    <section className="w-full" style={{ background: 'var(--wif-bg2)', padding: '80px 48px' }}>
+    <section className="w-full" style={{ padding: '80px 48px' }}>
       <div className="max-w-4xl mx-auto">
 
         <div className="wif-section-label">Fonctionnement</div>

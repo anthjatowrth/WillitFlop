@@ -1,7 +1,11 @@
 /**
  * GameRankCard — core reusable card for both success and flop leaderboards.
  * Rank 1 is visually dominant with a crown; ranks 2–5 show image + details too.
+ * Shows a GameDetailPanel on hover when extra game data is available.
  */
+import { useState } from 'react'
+import GameDetailPanel from './GameDetailPanel'
+
 export default function GameRankCard({
   rank,
   title,
@@ -11,9 +15,20 @@ export default function GameRankCard({
   tags,
   creator,
   variant = 'success',
+  panelSide = 'right',
+  // Detail panel fields
+  proba,
+  pricing,
+  verdict,
+  genre,
+  universe,
+  metacritic,
 }) {
+  const [hovered, setHovered] = useState(false)
   const isFirst   = rank === 1;
   const isSuccess = variant === 'success';
+
+  const detailGame = { title, image, tags, creator, proba, pricing, verdict, genre, universe, metacritic }
 
   /* ── Border-left color ─────────────────────────────────────────── */
   const borderStyle = (() => {
@@ -88,7 +103,11 @@ export default function GameRankCard({
       : '0 0 12px rgba(139,94,60,0.45)';
 
     return (
-      <div className="relative">
+      <div
+        className="relative"
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
         {/* Crown badge — floats above the card */}
         <div className="flex justify-start pl-8 mb-[-10px] relative z-20 pointer-events-none select-none">
           <span
@@ -103,7 +122,7 @@ export default function GameRankCard({
         </div>
 
         <div
-          className={`relative group overflow-hidden bg-card scale-[1.02] p-8 transition-all duration-300 ${haloBase} ${haloHover}`}
+          className={`relative group bg-card scale-[1.02] p-8 transition-all duration-300 ${haloBase} ${haloHover}`}
           style={borderStyle}
         >
           {/* Decorative background icon */}
@@ -189,6 +208,9 @@ export default function GameRankCard({
             </div>
           )}
         </div>
+
+        {/* Hover detail panel */}
+        <GameDetailPanel game={detailGame} side={panelSide} visible={hovered} variant={variant} />
       </div>
     );
   }
@@ -196,52 +218,61 @@ export default function GameRankCard({
   /* ── Ranks 2–5 — image + details ───────────────────────────────── */
   return (
     <div
-      className="group flex items-center gap-4 bg-card p-4 transition-all duration-300 hover:bg-surface-container-low"
-      style={borderStyle}
+      className="relative"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
-      {/* Rank number — large faded */}
-      <span
-        className="font-headline text-3xl font-black w-8 shrink-0 text-center select-none"
-        style={{ color: rankColor }}
+      <div
+        className="group flex items-center gap-4 bg-card p-4 transition-all duration-300 hover:bg-surface-container-low"
+        style={borderStyle}
       >
-        {rank}
-      </span>
-
-      {/* Thumbnail */}
-      <Thumbnail size="sm" />
-
-      {/* Title + creator + subtitle */}
-      <div className="flex-1 min-w-0">
-        <h3 className="font-headline text-base font-bold tracking-tight text-foreground truncate">
-          {title}
-        </h3>
-        {creator && (
-          <p
-            className="font-label text-[10px] tracking-widest uppercase font-bold truncate"
-            style={{ color: isSuccess ? 'var(--color-gold)' : 'var(--tertiary)' }}
-          >
-            by {creator}
-          </p>
-        )}
-        {subtitle && (
-          <p className="font-inter text-xs text-muted-foreground mt-0.5 truncate">
-            {subtitle}
-          </p>
-        )}
-      </div>
-
-      {/* Score */}
-      <div className="text-right shrink-0">
+        {/* Rank number — large faded */}
         <span
-          className="font-headline text-xl font-bold"
-          style={{ color: isSuccess ? 'var(--primary)' : 'var(--tertiary)' }}
+          className="font-headline text-3xl font-black w-8 shrink-0 text-center select-none"
+          style={{ color: rankColor }}
         >
-          {score}
+          {rank}
         </span>
-        <span className="font-label text-[9px] text-muted-foreground block tracking-widest uppercase">
-          /100
-        </span>
+
+        {/* Thumbnail */}
+        <Thumbnail size="sm" />
+
+        {/* Title + creator + subtitle */}
+        <div className="flex-1 min-w-0">
+          <h3 className="font-headline text-base font-bold tracking-tight text-foreground truncate">
+            {title}
+          </h3>
+          {creator && (
+            <p
+              className="font-label text-[10px] tracking-widest uppercase font-bold truncate"
+              style={{ color: isSuccess ? 'var(--color-gold)' : 'var(--tertiary)' }}
+            >
+              by {creator}
+            </p>
+          )}
+          {subtitle && (
+            <p className="font-inter text-xs text-muted-foreground mt-0.5 truncate">
+              {subtitle}
+            </p>
+          )}
+        </div>
+
+        {/* Score */}
+        <div className="text-right shrink-0">
+          <span
+            className="font-headline text-xl font-bold"
+            style={{ color: isSuccess ? 'var(--primary)' : 'var(--tertiary)' }}
+          >
+            {score}
+          </span>
+          <span className="font-label text-[9px] text-muted-foreground block tracking-widest uppercase">
+            /100
+          </span>
+        </div>
       </div>
+
+      {/* Hover detail panel */}
+      <GameDetailPanel game={detailGame} side={panelSide} visible={hovered} />
     </div>
   );
 }

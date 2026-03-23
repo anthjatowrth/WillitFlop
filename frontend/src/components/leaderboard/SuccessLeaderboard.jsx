@@ -28,7 +28,7 @@ export default function SuccessLeaderboard({ games, loading }) {
         )}
 
         {!loading && games.map((game) => (
-          <GameRankCard key={game.rank} variant="success" {...game} />
+          <GameRankCard key={game.rank} variant="success" panelSide="right" {...game} />
         ))}
       </div>
     </div>

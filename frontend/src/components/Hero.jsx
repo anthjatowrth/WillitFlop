@@ -1,9 +1,31 @@
-import { Link } from 'react-router-dom'
-
-const STATS = [
-  { value: '50 000+', label: 'jeux analysés' },
-  { value: '< 1 min', label: 'pour un résultat' },
-  { value: 'IA + Data', label: 'modèle hybride' },
+const FEATURES = [
+  {
+    icon: '◈',
+    value: 'Database 50 000+',
+    title: 'Catalogue de jeux',
+    desc: 'Base de données exhaustive avec fiches détaillées, notes, genres et historique de ventes pour chaque jeu indépendant.',
+    accent: 'var(--wif-pink)',
+    bg: 'color-mix(in srgb, var(--wif-pink) 6%, var(--wif-bg))',
+    border: 'color-mix(in srgb, var(--wif-pink) 30%, transparent)',
+  },
+  {
+    icon: '◉',
+    value: 'Market Intel',
+    title: 'Étude de marché',
+    desc: 'Dashboard interactif avec la shape du marché, les tendances et les clés de succès des jeux indépendants.',
+    accent: 'color-mix(in srgb, var(--wif-pink) 50%, var(--wif-cyan))',
+    bg: 'color-mix(in srgb, var(--wif-cyan) 4%, color-mix(in srgb, var(--wif-pink) 4%, var(--wif-bg)))',
+    border: 'color-mix(in srgb, var(--wif-pink) 30%, color-mix(in srgb, var(--wif-cyan) 30%, transparent))',
+  },
+  {
+    icon: '▶',
+    value: 'Will It Flop ?',
+    title: 'Testez votre jeu',
+    desc: "Créez votre concept de jeu fictif et découvrez s'il a une chance de réussir commercialement grâce à notre IA.",
+    accent: 'var(--wif-cyan)',
+    bg: 'color-mix(in srgb, var(--wif-cyan) 6%, var(--wif-bg))',
+    border: 'color-mix(in srgb, var(--wif-cyan) 30%, transparent)',
+  },
 ]
 
 export default function Hero() {
@@ -35,52 +57,50 @@ export default function Hero() {
       {/* Platform tagline */}
       <p
         className="font-space-mono uppercase tracking-[0.3em]"
-        style={{ fontSize: '0.72rem', color: 'var(--wif-gray)', marginBottom: '40px', letterSpacing: '0.28em' }}
+        style={{ fontSize: '0.72rem', color: 'var(--wif-gray)', marginBottom: '52px', letterSpacing: '0.28em' }}
       >
         LA SUCCESS STORY DES JEUX INDÉPENDANTS
       </p>
 
-      {/* Stats rapides */}
-      <div
-        className="flex items-center justify-center flex-wrap gap-0 mb-10"
-        style={{
-          border: '1px solid var(--wif-border)',
-          borderRadius: '10px',
-          overflow: 'hidden',
-          background: 'var(--wif-bg2)',
-        }}
-      >
-        {STATS.map((s, i) => (
+      {/* Feature cards */}
+      <div className="flex items-stretch justify-center flex-wrap gap-4" style={{ maxWidth: '860px', width: '100%' }}>
+        {FEATURES.map((f) => (
           <div
-            key={s.label}
-            className="flex flex-col items-center px-7 py-4"
+            key={f.title}
+            className="flex flex-col text-left"
             style={{
-              borderRight: i < STATS.length - 1 ? '1px solid var(--wif-border)' : 'none',
+              flex: '1 1 240px',
+              maxWidth: '280px',
+              border: `1px solid ${f.border}`,
+              borderRadius: '12px',
+              background: f.bg,
+              padding: '24px 20px 20px',
             }}
           >
-            <span className="font-orbitron font-black text-primary" style={{ fontSize: '1.05rem', letterSpacing: '-0.01em' }}>
-              {s.value}
-            </span>
-            <span className="font-space-mono uppercase text-muted-foreground" style={{ fontSize: '0.55rem', letterSpacing: '0.18em', marginTop: '2px' }}>
-              {s.label}
-            </span>
+            <div className="flex items-center gap-2 mb-3">
+              <span style={{ color: f.accent, fontSize: '1rem', lineHeight: 1 }}>{f.icon}</span>
+              <span
+                className="font-orbitron font-black"
+                style={{ fontSize: '0.8rem', color: f.accent, letterSpacing: '0.04em' }}
+              >
+                {f.value}
+              </span>
+            </div>
+            <p
+              className="font-orbitron font-bold text-foreground"
+              style={{ fontSize: '0.82rem', letterSpacing: '0.02em', marginBottom: '10px' }}
+            >
+              {f.title}
+            </p>
+            <p
+              className="font-exo text-muted-foreground"
+              style={{ fontSize: '0.76rem', lineHeight: 1.55 }}
+            >
+              {f.desc}
+            </p>
           </div>
         ))}
       </div>
-
-      {/* CTA principal */}
-      <Link
-        to="/minigame"
-        className="inline-flex items-center gap-2 font-space-mono text-xs uppercase tracking-[0.2em] px-10 py-4 bg-primary text-white hover:bg-primary/90 transition-all duration-200 active:scale-95"
-        style={{ borderRadius: 0, marginBottom: '20px' }}
-      >
-        → Tester mon jeu
-      </Link>
-
-      {/* Sous-texte rassurant */}
-      <p className="font-exo text-muted-foreground" style={{ fontSize: '0.78rem' }}>
-        Gratuit · Aucun compte requis · Résultat immédiat
-      </p>
     </section>
   )
 }

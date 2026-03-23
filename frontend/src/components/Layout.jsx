@@ -19,10 +19,10 @@ export default function Layout() {
       </main>
 
       {/* ── Footer ────────────────────────────────────────────────── */}
-      <footer className="bg-surface-container-low grid grid-cols-1 md:grid-cols-5 gap-8 w-full px-8 py-12 mt-auto border-t border-border/20">
+      <footer className="bg-surface-container-low grid grid-cols-1 md:grid-cols-4 gap-24 w-full px-8 py-12 mt-auto border-t border-border/20">
 
-        {/* Col 1-2 — Brand */}
-        <div className="md:col-span-2">
+        {/* Col 1 — Brand */}
+        <div className="md:col-span-1">
           <Logo className="text-sm" />
           <p className="text-muted-foreground font-inter text-xs leading-relaxed tracking-wider mt-4">
             Anthony Jato Wirth et Pierre Guerlais, étudiants à la Wild Code School, passionnés de data et de jeux vidéo.
