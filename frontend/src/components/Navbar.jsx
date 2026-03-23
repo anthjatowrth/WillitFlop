@@ -49,9 +49,7 @@ export default function Navbar() {
 
         {/* Right — CTA + dark mode toggle */}
         <div className="flex items-center gap-4">
-          <button className="px-4 py-2 text-sm font-bold text-foreground/60 hover:bg-muted transition-all duration-200 rounded-sm">
-            Connexion
-          </button>
+
           <NavLink
             to="/minigame"
             className="px-5 py-2 bg-primary text-primary-foreground font-bold text-sm rounded-sm shadow-lg active:scale-95 duration-100"
