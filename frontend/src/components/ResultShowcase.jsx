@@ -16,13 +16,11 @@ const MOCK = {
     { label: 'Mode',       value: 'Solo, Co-op en ligne' },
     { label: 'Polish',     value: 'AA Indé' },
     { label: 'Langues',    value: '8 langues' },
-    { label: 'DLC',        value: 'Oui' },
   ],
   factors: [
     { label: 'Mécaniques en vogue (roguelike, deckbuilding…)', positive: true },
     { label: 'Prix accessible : 19.99€', positive: true },
     { label: '8 langues — large audience', positive: true },
-    { label: 'DLC prévu — revenus additionnels', positive: true },
     { label: 'Solo uniquement — pas de multijoueur', positive: false },
   ],
 }

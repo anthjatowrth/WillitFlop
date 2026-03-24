@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '../components/ui/button'
 import { Badge } from '../components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card'
 import { buildImagePrompt } from '../utils/promptBuilder'
 import { saveToLeaderboard, checkLeaderboardEligibility } from '../api/leaderboard'
+import { generateFakeReview } from '../utils/groqReview'
 import SlotMachine from '../components/minigame/SlotMachine'
 import DevSlider from '../components/minigame/DevSlider'
-import LanguageQuiz from '../components/minigame/LanguageQuiz'
+import TranslationBlitz from '../components/minigame/TranslationBlitz'
 import imgAction from '../assets/action.png'
 import imgAventure from '../assets/aventure.png'
 import imgStrategy from '../assets/strategy.png'
@@ -49,6 +50,11 @@ import imgSoulsLike from '../assets/Souls-like.png'
 import imgSandbox from '../assets/Sandbox.png'
 import imgTowerDefense from '../assets/tower_defense.png'
 import imgMetroidvania from '../assets/metroidvania.png'
+import imgSoloGamer from '../assets/sologamer.png'
+import imgCoopLocal from '../assets/coop local.png'
+import imgPveOnline from '../assets/pve online.png'
+import imgPvpOnline from '../assets/pvp online.png'
+import imgModGame from '../assets/modgame.png'
 
 const GENRE_IMAGES = {
   'Action / Combat': imgAction,
@@ -83,6 +89,14 @@ const CAMERA_IMAGES = {
   'Point & Click': imgPointClick,
 }
 
+const CATEGORIES_IMAGES = {
+  'Solo uniquement': imgSoloGamer,
+  'Co-op local': imgCoopLocal,
+  'Co-op en ligne': imgPveOnline,
+  'PvP compétitif': imgPvpOnline,
+  'Workshop / Mods': imgModGame,
+}
+
 const MECHANICS_IMAGES = {
   'Roguelike / Roguelite': imgRoguelike,
   'Open World': imgOpenWorld,
@@ -115,7 +129,7 @@ const QUESTIONS = [
     key: 'genre',
     type: 'genre-grid',
     label: 'Quelle est la famille de ton jeu ?',
-    sublabel: 'Choix unique — il détermine les tags inférés',
+    sublabel: 'Choix unique : cette étape détermine les tags inférés',
     options: [
       'Action / Combat',
       'Exploration / Aventure',
@@ -150,7 +164,7 @@ const QUESTIONS = [
     key: 'mechanics',
     type: 'ambiance-grid',
     label: 'Comment joue-t-on à ton jeu ?',
-    sublabel: 'Choix unique — la mécanique principale de ton jeu',
+    sublabel: 'Choix unique : la mécanique principale de ton jeu',
     options: [
       'Roguelike / Roguelite',
       'Open World',
@@ -172,7 +186,7 @@ const QUESTIONS = [
     key: 'visualStyle',
     type: 'visual-grid',
     label: 'Quel est le style graphique de ton jeu ?',
-    sublabel: 'Choix unique — impacte le style de la jaquette générée',
+    sublabel: 'Choix unique : impacte la méthode graphique générée',
     options: [
       'Pixel Art / Rétro',
       'Cell Shading / Cartoon',
@@ -198,7 +212,7 @@ const QUESTIONS = [
   },
   {
     key: 'categories',
-    type: 'multi',
+    type: 'categories-carousel',
     label: 'Qui va jouer et comment ?',
     sublabel: 'Plusieurs choix possibles',
     options: [
@@ -213,18 +227,13 @@ const QUESTIONS = [
     key: 'pricing',
     type: 'slotmachine',
     label: 'Quel est le prix de ton jeu ?',
-    sublabel: 'Lance la machine — le marché décide.',
+    sublabel: 'Lance la machine : le marché décide !',
   },
   {
     key: 'devLevel',
     type: 'devslider',
-    label: "Combien d'amour as-tu mis dans ton jeu ?",
-    sublabel: 'Glisse le curseur pour définir ton niveau de polish.',
-  },
-  {
-    key: 'hasDLC',
-    type: 'yesno',
-    label: 'Ton jeu aura-t-il des DLC ou du contenu payant ?',
+    label: "Dans quels conditions ton jeu a été développé ?",
+    sublabel: 'Choisis un "studio" pour définir ton niveau de polish.',
   },
   {
     key: 'languages',
@@ -260,7 +269,6 @@ const INITIAL_ANSWERS = {
   categories: [],
   pricing: null,
   devLevel: 1,
-  hasDLC: null,
   languages: null,
   description: '',
   gameName: '',
@@ -280,6 +288,7 @@ export default function MiniGame() {
   const [leaderboardAdded, setLeaderboardAdded] = useState(false)
   const [showCreatorModal, setShowCreatorModal] = useState(false)
   const [pendingLeaderboard, setPendingLeaderboard] = useState(null)
+  const [reviewData, setReviewData] = useState(null)
 
   const question = QUESTIONS[currentStep]
   const totalSteps = QUESTIONS.length
@@ -318,7 +327,7 @@ export default function MiniGame() {
     const value = answers[q.key]
     if (q.optional) return true
     if (q.type === 'text') return value.trim().length > 0
-    if (q.type === 'multi' || q.type === 'ambiance-grid') return value.length > 0
+    if (q.type === 'multi' || q.type === 'ambiance-grid' || q.type === 'categories-carousel') return value.length > 0
     if (q.type === 'camera-grid' || q.type === 'visual-grid') return value !== ''
     if (q.type === 'yesno') return value !== null
     if (q.type === 'slotmachine') return value !== null
@@ -337,6 +346,10 @@ export default function MiniGame() {
       return
     }
     setCurrentStep(prev => prev + 1)
+  }
+
+  const handleBack = () => {
+    if (currentStep > 0) setCurrentStep(prev => prev - 1)
   }
 
   // -------------------------------------------------------------------------
@@ -436,7 +449,6 @@ export default function MiniGame() {
     return {
       price_eur,
       is_free,
-      has_dlc: a.hasDLC,
       is_early_access: false,
       achievement_count,
       nb_supported_languages: a.languages ?? 3,
@@ -526,7 +538,12 @@ export default function MiniGame() {
   const handleCreatorSubmit = async (creatorName) => {
     setShowCreatorModal(false)
     if (!pendingLeaderboard) return
-    const added = await saveToLeaderboard({ ...pendingLeaderboard, creator_name: creatorName || null })
+    const added = await saveToLeaderboard({
+      ...pendingLeaderboard,
+      creator_name:  creatorName || null,
+      review_text:   reviewData?.text   ?? null,
+      review_source: reviewData?.source ?? null,
+    })
     setLeaderboardAdded(added)
     setPendingLeaderboard(null)
   }
@@ -544,6 +561,7 @@ export default function MiniGame() {
     setLeaderboardAdded(false)
     setShowCreatorModal(false)
     setPendingLeaderboard(null)
+    setReviewData(null)
   }
 
   // -------------------------------------------------------------------------
@@ -563,13 +581,16 @@ export default function MiniGame() {
         {!result && !isLoading && (
           <section className="mb-10 text-center">
             <span className="font-label text-[10px] tracking-[0.3em] uppercase text-primary block mb-4">
-              Game Predictor · IA 84.2%
+              Notre algorithme est fiable à 84,2 % !
             </span>
-            <h1 className="font-headline text-5xl md:text-6xl font-extrabold tracking-tighter text-foreground mb-3">
-              Will It <span style={{ color: 'var(--wif-pink)' }}>Flop</span> ?
+            <h1 className="font-orbitron font-bold tracking-widest uppercase text-5xl md:text-6xl mb-3">
+              <span style={{ color: 'var(--wif-ink)' }}>WILL</span>
+              <span style={{ color: 'var(--wif-pink)' }}>IT</span>
+              <span style={{ color: 'var(--wif-ink)' }}>FLOP</span>
+              <span className="font-headline font-extrabold tracking-tighter" style={{ color: 'var(--wif-ink)' }}> ?</span>
             </h1>
             <p className="text-muted-foreground font-label text-xs tracking-wider">
-              12 questions — notre algorithme prédit le destin de ton jeu
+              Réponds aux 12 questions et notre algorithme prédit le destin de ton jeu
             </p>
           </section>
         )}
@@ -577,12 +598,20 @@ export default function MiniGame() {
         {/* ── Chargement ──────────────────────────────────────────── */}
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-40 gap-6">
-            <div
-              className="w-14 h-14 rounded-full border-4 border-border animate-spin"
-              style={{ borderTopColor: 'var(--wif-pink)' }}
+            <img
+              src="/src/assets/loading.gif"
+              alt="Chargement"
+              className="w-32 h-32 object-contain"
+              style={{ imageRendering: 'pixelated' }}
             />
-            <p className="font-label text-[10px] tracking-[0.35em] uppercase text-muted-foreground animate-pulse">
-              Analyse en cours…
+            <p
+              className="text-[13px] tracking-[0.25em] uppercase animate-pulse"
+              style={{
+                fontFamily: '"Press Start 2P", monospace',
+                color: 'var(--wif-pink)',
+              }}
+            >
+              Simulation en cours…
             </p>
           </div>
         )}
@@ -611,15 +640,16 @@ export default function MiniGame() {
             imageLoading={imageLoading}
             leaderboardAdded={leaderboardAdded}
             onReset={handleReset}
+            onReviewReady={setReviewData}
           />
         )}
 
         {/* ── Questionnaire ───────────────────────────────────────── */}
         {!result && !isLoading && !error && (
-          <div className={`${question?.type === 'ambiance-grid' ? 'max-w-4xl' : question?.type === 'camera-grid' ? 'max-w-xl' : 'max-w-xl'} mx-auto space-y-5`}>
+          <div className="max-w-4xl mx-auto space-y-5">
             <ProgressBar current={currentStep + 1} total={totalSteps} />
 
-            <Card>
+            <Card className="h-[560px] flex flex-col overflow-hidden">
               <CardHeader>
                 <span className="font-label text-[10px] tracking-[0.3em] uppercase text-primary">
                   Question {currentStep + 1} / {totalSteps}
@@ -632,133 +662,158 @@ export default function MiniGame() {
                 )}
               </CardHeader>
 
-              <CardContent className="space-y-4">
-                {/* Texte libre */}
-                {question.type === 'text' && (
-                  <textarea
-                    className="w-full min-h-[100px] rounded-lg border bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary font-exo"
-                    placeholder={question.placeholder}
-                    value={answers[question.key]}
-                    onChange={handleTextChange}
-                  />
-                )}
+              <CardContent className="flex-1 flex flex-col">
+                <div className="flex-1 flex flex-col">
+                  {/* Texte libre */}
+                  {question.type === 'text' && (
+                    <textarea
+                      className="flex-1 w-full rounded-lg border bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary font-exo"
+                      placeholder={question.placeholder}
+                      value={answers[question.key]}
+                      onChange={handleTextChange}
+                    />
+                  )}
 
-                {/* Grille illustrée — genre */}
-                {question.type === 'genre-grid' && (
-                  <GenreGrid
-                    options={question.options}
-                    selected={answers[question.key]}
-                    onSelect={handleSingleSelect}
-                  />
-                )}
+                  {/* Grille illustrée — genre */}
+                  {question.type === 'genre-grid' && (
+                    <GenreGrid
+                      options={question.options}
+                      selected={answers[question.key]}
+                      onSelect={handleSingleSelect}
+                    />
+                  )}
 
-                {/* Grille illustrée — ambiance */}
-                {question.type === 'ambiance-grid' && (
-                  <AmbianceGrid
-                    options={question.options}
-                    selected={answers[question.key]}
-                    onToggle={handleMultiToggle}
-                    maxSelect={question.maxSelect}
-                    images={question.images ?? AMBIANCE_IMAGES}
-                  />
-                )}
+                  {/* Grille illustrée — ambiance */}
+                  {question.type === 'ambiance-grid' && (
+                    <AmbianceGrid
+                      options={question.options}
+                      selected={answers[question.key]}
+                      onToggle={handleMultiToggle}
+                      maxSelect={question.maxSelect}
+                      images={question.images ?? AMBIANCE_IMAGES}
+                    />
+                  )}
 
-                {/* Carousel — style graphique */}
-                {question.type === 'visual-grid' && (
-                  <GenreGrid
-                    options={question.options}
-                    selected={answers[question.key]}
-                    onSelect={handleSingleSelect}
-                    images={VISUAL_STYLE_IMAGES}
-                  />
-                )}
+                  {/* Carousel — style graphique */}
+                  {question.type === 'visual-grid' && (
+                    <GenreGrid
+                      options={question.options}
+                      selected={answers[question.key]}
+                      onSelect={handleSingleSelect}
+                      images={VISUAL_STYLE_IMAGES}
+                    />
+                  )}
 
-                {/* Carousel — vue caméra */}
-                {question.type === 'camera-grid' && (
-                  <GenreGrid
-                    options={question.options}
-                    selected={answers[question.key]}
-                    onSelect={handleSingleSelect}
-                    images={CAMERA_IMAGES}
-                  />
-                )}
+                  {/* Carousel — vue caméra */}
+                  {question.type === 'camera-grid' && (
+                    <GenreGrid
+                      options={question.options}
+                      selected={answers[question.key]}
+                      onSelect={handleSingleSelect}
+                      images={CAMERA_IMAGES}
+                    />
+                  )}
 
-                {/* Choix unique */}
-                {question.type === 'single' && (
-                  <OptionGrid
-                    options={question.options}
-                    selected={answers[question.key]}
-                    onSelect={handleSingleSelect}
-                    multi={false}
-                  />
-                )}
+                  {/* Choix unique */}
+                  {question.type === 'single' && (
+                    <OptionGrid
+                      options={question.options}
+                      selected={answers[question.key]}
+                      onSelect={handleSingleSelect}
+                      multi={false}
+                    />
+                  )}
 
-                {/* Multi-sélection */}
-                {question.type === 'multi' && (
-                  <OptionGrid
-                    options={question.options}
-                    selected={answers[question.key]}
-                    onSelect={handleMultiToggle}
-                    multi={true}
-                    maxSelect={question.maxSelect}
-                  />
-                )}
+                  {/* Multi-sélection */}
+                  {question.type === 'multi' && (
+                    <OptionGrid
+                      options={question.options}
+                      selected={answers[question.key]}
+                      onSelect={handleMultiToggle}
+                      multi={true}
+                      maxSelect={question.maxSelect}
+                    />
+                  )}
 
-                {/* Oui / Non */}
-                {question.type === 'yesno' && (
-                  <div className="flex gap-3">
-                    {[{ label: 'Oui', value: true }, { label: 'Non', value: false }].map(({ label, value }) => (
-                      <button
-                        key={label}
-                        onClick={() => handleSingleSelect(value)}
-                        className="flex-1 rounded-lg border-2 py-4 text-sm font-semibold transition-all font-label tracking-widest uppercase"
-                        style={
-                          answers[question.key] === value
-                            ? { borderColor: 'var(--wif-pink)', background: 'var(--wif-pink)', color: '#fff' }
-                            : { borderColor: 'var(--wif-border)', background: 'transparent', color: 'var(--wif-ink)' }
-                        }
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                  {/* Carousel multi-sélection — catégories */}
+                  {question.type === 'categories-carousel' && (
+                    <CategoriesCarousel
+                      options={question.options}
+                      selected={answers[question.key]}
+                      onToggle={handleMultiToggle}
+                    />
+                  )}
 
-                {/* Machine à sous — prix */}
-                {question.type === 'slotmachine' && (
-                  <SlotMachine
-                    onSelect={(v) => setAnswers(prev => ({ ...prev, pricing: v }))}
-                  />
-                )}
+                  {/* Oui / Non */}
+                  {question.type === 'yesno' && (
+                    <div className="flex gap-3">
+                      {[{ label: 'Oui', value: true }, { label: 'Non', value: false }].map(({ label, value }) => (
+                        <button
+                          key={label}
+                          onClick={() => handleSingleSelect(value)}
+                          className="flex-1 rounded-lg border-2 py-4 text-sm font-semibold transition-all font-label tracking-widest uppercase"
+                          style={
+                            answers[question.key] === value
+                              ? { borderColor: 'var(--wif-pink)', background: 'var(--wif-pink)', color: '#fff' }
+                              : { borderColor: 'var(--wif-border)', background: 'transparent', color: 'var(--wif-ink)' }
+                          }
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
 
-                {/* Slider de polish dev */}
-                {question.type === 'devslider' && (
-                  <DevSlider
-                    value={answers.devLevel}
-                    onSelect={(v) => setAnswers(prev => ({ ...prev, devLevel: v }))}
-                  />
-                )}
+                  {/* Machine à sous — prix */}
+                  {question.type === 'slotmachine' && (
+                    <SlotMachine
+                      onSelect={(v) => setAnswers(prev => ({ ...prev, pricing: v }))}
+                    />
+                  )}
 
-                {/* Quiz des langues */}
-                {question.type === 'languagequiz' && (
-                  <LanguageQuiz
-                    onSelect={(v) => setAnswers(prev => ({ ...prev, languages: v }))}
-                  />
-                )}
+                  {/* Slider de polish dev */}
+                  {question.type === 'devslider' && (
+                    <DevSlider
+                      value={answers.devLevel}
+                      onSelect={(v) => setAnswers(prev => ({ ...prev, devLevel: v }))}
+                    />
+                  )}
 
-                {/* Bouton navigation */}
-                <div className="pt-2">
-                  <Button
-                    className="w-full"
-                    size="lg"
-                    onClick={handleNext}
-                    disabled={!canProceed()}
-                  >
-                    {currentStep === totalSteps - 1 ? 'Lancer la prédiction →' : 'Suivant →'}
-                  </Button>
+                  {/* Quiz des langues */}
+                  {question.type === 'languagequiz' && (
+                    <TranslationBlitz
+                      onComplete={(_score, languageCount) => setAnswers(prev => ({ ...prev, languages: languageCount }))}
+                    />
+                  )}
                 </div>
               </CardContent>
             </Card>
+
+            {/* Boutons navigation — grille 2 colonnes fixes pour éviter tout décalage */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                {currentStep > 0 && (
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={handleBack}
+                    className="w-full"
+                  >
+                    ← Retour
+                  </Button>
+                )}
+              </div>
+              <div>
+                <Button
+                  className="w-full"
+                  size="lg"
+                  onClick={handleNext}
+                  disabled={!canProceed()}
+                >
+                  {currentStep === totalSteps - 1 ? 'Lancer la prédiction →' : 'Suivant →'}
+                </Button>
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -811,7 +866,7 @@ function GenreGrid({ options, selected, onSelect, images = GENRE_IMAGES }) {
   return (
     <div className="flex flex-col gap-3 select-none">
       {/* Grande image centrale */}
-      <div className="relative w-full overflow-hidden rounded-xl" style={{ aspectRatio: '16/7' }}>
+      <div className="relative w-full overflow-hidden rounded-xl h-[300px]">
         <img
           key={focusedOption}
           src={images[focusedOption]}
@@ -937,6 +992,118 @@ function AmbianceGrid({ options, selected, onToggle, maxSelect, images = AMBIANC
 }
 
 // ---------------------------------------------------------------------------
+// Carousel multi-sélection — catégories de jeu (Q6)
+// ---------------------------------------------------------------------------
+function CategoriesCarousel({ options, selected, onToggle }) {
+  const [focusIdx, setFocusIdx] = useState(0)
+  const focusedOption = options[focusIdx]
+  const isSelectedFocused = selected.includes(focusedOption)
+
+  function go(dir) {
+    setFocusIdx(i => (i + dir + options.length) % options.length)
+  }
+
+  return (
+    <div className="flex flex-col gap-3 select-none">
+      {/* Grande image centrale */}
+      <div
+        className="relative w-full overflow-hidden rounded-xl h-[300px] cursor-pointer"
+        onClick={() => onToggle(focusedOption)}
+      >
+        <img
+          key={focusedOption}
+          src={CATEGORIES_IMAGES[focusedOption]}
+          alt={focusedOption}
+          className="w-full h-full object-cover transition-all duration-300"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+
+        {/* Nom */}
+        <div className="absolute bottom-0 left-0 right-0 px-5 pb-4 flex items-end justify-between">
+          <span className="font-label tracking-widest uppercase text-white text-lg font-bold drop-shadow-lg">
+            {focusedOption}
+          </span>
+          {isSelectedFocused && (
+            <span
+              className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
+              style={{ background: 'var(--wif-pink)' }}
+            >
+              ✓
+            </span>
+          )}
+        </div>
+
+        {/* Bordure de sélection */}
+        {isSelectedFocused && (
+          <div
+            className="absolute inset-0 rounded-xl pointer-events-none"
+            style={{ border: '3px solid var(--wif-pink)' }}
+          />
+        )}
+
+        {/* Flèches */}
+        <button
+          onClick={e => { e.stopPropagation(); go(-1) }}
+          className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all"
+          style={{ background: 'rgba(0,0,0,0.45)', color: 'white', backdropFilter: 'blur(4px)' }}
+        >
+          ‹
+        </button>
+        <button
+          onClick={e => { e.stopPropagation(); go(1) }}
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all"
+          style={{ background: 'rgba(0,0,0,0.45)', color: 'white', backdropFilter: 'blur(4px)' }}
+        >
+          ›
+        </button>
+      </div>
+
+      {/* Strip de miniatures */}
+      <div className="flex gap-1.5">
+        {options.map((option, idx) => {
+          const isFocused = idx === focusIdx
+          const isSelected = selected.includes(option)
+          return (
+            <button
+              key={option}
+              onClick={() => { setFocusIdx(idx); onToggle(option) }}
+              className="relative flex-1 rounded-lg overflow-hidden transition-all duration-200"
+              style={{
+                aspectRatio: '3/2',
+                minWidth: 0,
+                border: isSelected
+                  ? '2px solid var(--wif-pink)'
+                  : isFocused
+                  ? '2px solid rgba(255,255,255,0.5)'
+                  : '2px solid var(--wif-border)',
+                opacity: isFocused || isSelected ? 1 : 0.55,
+                transform: isFocused ? 'scale(1.06)' : 'scale(1)',
+              }}
+            >
+              <img src={CATEGORIES_IMAGES[option]} alt={option} className="w-full h-full object-cover" />
+              {isSelected && (
+                <div
+                  className="absolute top-1 right-1 w-4 h-4 rounded-full flex items-center justify-center text-white text-[9px] font-bold"
+                  style={{ background: 'var(--wif-pink)' }}
+                >
+                  ✓
+                </div>
+              )}
+            </button>
+          )
+        })}
+      </div>
+
+      {selected.length > 0 && (
+        <p className="text-right font-label text-[10px] tracking-widest uppercase" style={{ color: 'var(--wif-muted)' }}>
+          {selected.length} sélectionné{selected.length > 1 ? 's' : ''}
+        </p>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Grille d'options (single ou multi)
 // ---------------------------------------------------------------------------
 function OptionGrid({ options, selected, onSelect, multi, maxSelect }) {
@@ -971,7 +1138,7 @@ function OptionGrid({ options, selected, onSelect, multi, maxSelect }) {
 // ---------------------------------------------------------------------------
 // Écran de résultat
 // ---------------------------------------------------------------------------
-function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded, onReset }) {
+function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded, onReset, onReviewReady }) {
   const { verdict, proba, metacritic_score } = result
   const isTop = verdict === 'Top!'
   const pct = parseFloat(((proba ?? 0) * 100).toFixed(1))
@@ -979,6 +1146,17 @@ function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded,
   const polishLabels = ['Garage', 'Studio Indé', 'AA Indé', 'Polished Gem']
 
   const accentColor = isTop ? 'var(--wif-success)' : 'var(--wif-danger)'
+
+  const [review, setReview] = useState(null)
+  const [reviewLoading, setReviewLoading] = useState(true)
+
+  useEffect(() => {
+    setReviewLoading(true)
+    generateFakeReview({ verdict, metacritic_score, answers })
+      .then(r => { setReview(r); onReviewReady?.(r) })
+      .catch(() => setReview(null))
+      .finally(() => setReviewLoading(false))
+  }, [verdict, metacritic_score, answers])
 
   return (
     <div className="space-y-8">
@@ -1060,9 +1238,21 @@ function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded,
               {answers.gameName && answers.gameName !== 'Unnamed Game' && (
                 <p className="font-headline font-bold text-3xl leading-tight mb-2">{answers.gameName}</p>
               )}
-              <p className="font-inter text-sm text-muted-foreground italic">
-                Analyse narrative en cours de développement — bientôt une accroche générée par IA pour décrire le positionnement de votre jeu.
-              </p>
+              {reviewLoading && (
+                <p className="font-inter text-sm text-muted-foreground italic animate-pulse">
+                  Génération de la critique…
+                </p>
+              )}
+              {!reviewLoading && review && (
+                <div>
+                  <p className="font-inter text-sm text-foreground/85 italic leading-relaxed">
+                    « {review.text} »
+                  </p>
+                  <p className="font-label text-[10px] tracking-widest uppercase text-muted-foreground mt-2">
+                    — {review.source}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Étiquette de prix */}
@@ -1109,7 +1299,6 @@ function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded,
                 <SummaryRow label="Mode"    value={answers.categories?.join(', ')} />
                 <SummaryRow label="Polish"  value={polishLabels[answers.devLevel] ?? null} />
                 <SummaryRow label="Langues" value={answers.languages ? `${answers.languages} langues` : null} />
-                <SummaryRow label="DLC"     value={answers.hasDLC === true ? 'Oui' : answers.hasDLC === false ? 'Non' : null} />
               </div>
             </div>
           </div>
@@ -1156,12 +1345,6 @@ function getFactors(answers) {
     else if (answers.languages <= 2)
       factors.push({ label: `${answers.languages} langue(s) — audience limitée`, positive: false })
   }
-
-  // DLC
-  if (answers.hasDLC === true)
-    factors.push({ label: 'DLC prévu — revenus additionnels', positive: true })
-  else if (answers.hasDLC === false)
-    factors.push({ label: 'Pas de DLC prévu', positive: false })
 
   // Mécaniques tendances vs niches exigeantes
   const trendingMechanics = ['Roguelike / Roguelite', 'Deckbuilding', 'Metroidvania']

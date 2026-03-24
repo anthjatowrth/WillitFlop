@@ -11,6 +11,10 @@ __pycache__/
 *.json
 *.csv
 
+# ML artifacts (exceptions — committed intentionally)
+!ml/artifacts/cv_results.json
+!ml/artifacts/train_metrics.json
+
 # IDE
 .vscode/
 .idea/

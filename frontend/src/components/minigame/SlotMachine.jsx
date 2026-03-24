@@ -1,16 +1,15 @@
 import { useState, useEffect, useRef } from 'react'
 
 const REELS = [
-  { id: 'audience', label: 'Audience', values: ['Niche / Culte', 'Grand public', 'Premium / AA'] },
-  { id: 'duration', label: 'Durée', values: ['Court < 5h', 'Moyen 5-20h', 'Long 20h+', 'Infini'] },
-  { id: 'positioning', label: 'Positionnement', values: ['Budget', 'Standard', 'Premium'] },
+  { id: 'audience', label: 'Audience', values: ['Niche / Culte', 'Grand public', 'AA'] },
+  { id: 'duration', label: 'Durée Jeu', values: ['Court < 5h', 'Moyen 5-20h', 'Long 20h+', 'Infini'] },
+  { id: 'positioning', label: 'Positionnement', values: ['Premier Prix', 'Standard', 'Premium'] },
 ]
 
-const PRICE_CHIPS = [0, 4.99, 9.99, 14.99, 19.99, 24.99]
 
 function resolvePrice(audience, duration, positioning) {
-  if (audience === 'Niche / Culte' && positioning === 'Budget') return 0
-  if (positioning === 'Budget') return 4.99
+  if (audience === 'Niche / Culte' && positioning === 'Premier Prix') return 0
+  if (positioning === 'Premier Prix') return 4.99
   if (audience === 'Niche / Culte' && (duration === 'Court < 5h' || duration === 'Moyen 5-20h')) return 9.99
   if (audience === 'Niche / Culte') return 14.99
   if (audience === 'Grand public' && duration === 'Court < 5h') return 9.99
@@ -18,9 +17,48 @@ function resolvePrice(audience, duration, positioning) {
   if (audience === 'Grand public' && duration === 'Moyen 5-20h' && positioning === 'Premium') return 19.99
   if (audience === 'Grand public' && duration === 'Long 20h+') return 19.99
   if (audience === 'Grand public' && duration === 'Infini') return 14.99
-  if (audience === 'Premium / AA' && positioning === 'Premium') return 24.99
-  if (audience === 'Premium / AA' && positioning === 'Standard') return 19.99
+  if (audience === 'AA' && positioning === 'Premium') return 24.99
+  if (audience === 'AA' && positioning === 'Standard') return 19.99
   return 9.99
+}
+
+function explainPrice(audience, duration, positioning) {
+  const reasons = []
+
+  if (positioning === 'Premier Prix') {
+    if (audience === 'Niche / Culte') {
+      reasons.push({ icon: '🎯', text: 'Audience niche + premier prix → distribué gratuitement pour maximiser la visibilité.' })
+    } else {
+      reasons.push({ icon: '💸', text: "Premier prix → prix d'entrée bas pour maximiser le volume de ventes." })
+    }
+    return reasons
+  }
+
+  if (audience === 'Niche / Culte') {
+    reasons.push({ icon: '🎯', text: 'Audience niche : communauté restreinte mais passionnée, volume limité → prix modéré.' })
+  } else if (audience === 'Grand public') {
+    reasons.push({ icon: '🌍', text: 'Grand public : large audience, bon équilibre accessibilité et valeur perçue.' })
+  } else {
+    reasons.push({ icon: '🏆', text: 'Marché AA : joueurs habitués à payer pour la qualité de production.' })
+  }
+
+  if (duration === 'Court < 5h') {
+    reasons.push({ icon: '⏱️', text: 'Durée courte : contenu limité, prix plafonné pour ne pas rebuter l\'acheteur.' })
+  } else if (duration === 'Moyen 5-20h') {
+    reasons.push({ icon: '⏳', text: 'Durée moyenne : bon rapport heure de jeu / prix, plage intermédiaire justifiée.' })
+  } else if (duration === 'Long 20h+') {
+    reasons.push({ icon: '📖', text: 'Longue durée : contenu dense, valeur perçue élevée → prix premium justifié.' })
+  } else {
+    reasons.push({ icon: '♾️', text: 'Jeu infini (GaaS) : monétisation continue, prix d\'entrée modéré pour favoriser l\'adoption.' })
+  }
+
+  if (positioning === 'Standard') {
+    reasons.push({ icon: '⚖️', text: 'Positionnement standard : milieu de gamme, accessible à la majorité des joueurs.' })
+  } else {
+    reasons.push({ icon: '✨', text: 'Positionnement premium : qualité de production élevée → prix fort assumé.' })
+  }
+
+  return reasons
 }
 
 export default function SlotMachine({ onSelect }) {
@@ -28,8 +66,7 @@ export default function SlotMachine({ onSelect }) {
   const [stoppedMask, setStoppedMask] = useState([false, false, false])
   const [displayIdx, setDisplayIdx] = useState([0, 0, 0])
   const [price, setPrice] = useState(null)
-  const [relaunches, setRelaunches] = useState(1)
-  const [manualPrice, setManualPrice] = useState(null)
+  const [relaunches, setRelaunches] = useState(2)
   const [accepted, setAccepted] = useState(false)
 
   const spinIntervalRef = useRef(null)
@@ -48,7 +85,6 @@ export default function SlotMachine({ onSelect }) {
     setPhase('spinning')
     setStoppedMask([false, false, false])
     setPrice(null)
-    setManualPrice(null)
 
     spinIntervalRef.current = setInterval(() => {
       setDisplayIdx(prev => [
@@ -88,11 +124,11 @@ export default function SlotMachine({ onSelect }) {
     }, 1800))
   }
 
-  const effectivePrice = manualPrice !== null ? manualPrice : price
+  const effectivePrice = price
 
   const reelBoxStyle = (ri) => ({
-    width: '100px',
-    height: '56px',
+    width: '140px',
+    height: '72px',
     background: '#0a0a0f',
     borderRadius: '8px',
     border: `2px solid ${phase === 'done' && stoppedMask[ri] ? 'var(--wif-pink)' : 'var(--wif-border)'}`,
@@ -103,15 +139,23 @@ export default function SlotMachine({ onSelect }) {
     transition: 'border-color 0.3s',
   })
 
+  const currentValues = phase === 'done' ? {
+    audience: REELS[0].values[displayIdx[0]],
+    duration: REELS[1].values[displayIdx[1]],
+    positioning: REELS[2].values[displayIdx[2]],
+  } : null
+  const explanations = currentValues ? explainPrice(currentValues.audience, currentValues.duration, currentValues.positioning) : []
+
   return (
+    <div style={{ display: 'flex', flexDirection: 'row', gap: '24px', alignItems: 'flex-start', justifyContent: 'center' }}>
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
       {/* Reels */}
       <div style={{
         display: 'flex',
-        gap: '8px',
+        gap: '12px',
         background: 'var(--wif-bg3)',
-        borderRadius: '12px',
-        padding: '16px',
+        borderRadius: '14px',
+        padding: '20px',
         border: '2px solid var(--wif-border)',
       }}>
         {REELS.map((reel, ri) => {
@@ -119,7 +163,7 @@ export default function SlotMachine({ onSelect }) {
           return (
             <div key={reel.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
               <span style={{
-                fontSize: '9px',
+                fontSize: '10px',
                 letterSpacing: '0.2em',
                 textTransform: 'uppercase',
                 color: 'var(--wif-ink)',
@@ -131,7 +175,7 @@ export default function SlotMachine({ onSelect }) {
                 <span
                   className="font-orbitron"
                   style={{
-                    fontSize: '10px',
+                    fontSize: '12px',
                     fontWeight: 700,
                     color: stoppedMask[ri] ? 'var(--wif-pink)' : '#888',
                     textAlign: 'center',
@@ -159,8 +203,8 @@ export default function SlotMachine({ onSelect }) {
             color: phase === 'spinning' ? '#888' : '#fff',
             border: 'none',
             borderRadius: '8px',
-            padding: '12px 32px',
-            fontSize: '16px',
+            padding: '14px 40px',
+            fontSize: '18px',
             fontWeight: 700,
             cursor: phase === 'spinning' ? 'not-allowed' : 'pointer',
             transition: 'all 0.2s',
@@ -175,7 +219,7 @@ export default function SlotMachine({ onSelect }) {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', width: '100%' }}>
           <div style={{ textAlign: 'center', animation: 'slotFadeIn 0.4s ease-out' }}>
             <span style={{
-              fontSize: '9px',
+              fontSize: '10px',
               letterSpacing: '0.3em',
               textTransform: 'uppercase',
               color: 'var(--wif-ink)',
@@ -186,33 +230,10 @@ export default function SlotMachine({ onSelect }) {
             </span>
             <div
               className="font-orbitron"
-              style={{ fontSize: '42px', fontWeight: 900, color: 'var(--wif-pink)', lineHeight: 1.2 }}
+              style={{ fontSize: '52px', fontWeight: 900, color: 'var(--wif-pink)', lineHeight: 1.2 }}
             >
               {effectivePrice === 0 ? 'GRATUIT' : `${effectivePrice}€`}
             </div>
-          </div>
-
-          {/* Manual override chips */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'center' }}>
-            {PRICE_CHIPS.map(chip => (
-              <button
-                key={chip}
-                onClick={() => setManualPrice(chip)}
-                style={{
-                  padding: '4px 12px',
-                  borderRadius: '999px',
-                  border: `1.5px solid ${effectivePrice === chip ? 'var(--wif-pink)' : 'var(--wif-border)'}`,
-                  background: effectivePrice === chip ? 'var(--wif-pink)' : 'transparent',
-                  color: effectivePrice === chip ? '#fff' : 'var(--wif-ink)',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s',
-                }}
-              >
-                {chip === 0 ? 'Gratuit' : `${chip}€`}
-              </button>
-            ))}
           </div>
 
           {/* Relaunch + Accept */}
@@ -222,17 +243,17 @@ export default function SlotMachine({ onSelect }) {
                 onClick={() => { setRelaunches(r => r - 1); setAccepted(false); spin() }}
                 style={{
                   flex: 1,
-                  padding: '10px',
+                  padding: '12px',
                   borderRadius: '8px',
                   border: '1.5px solid var(--wif-border)',
                   background: 'transparent',
                   color: 'var(--wif-ink)',
-                  fontSize: '13px',
+                  fontSize: '14px',
                   fontWeight: 600,
                   cursor: 'pointer',
                 }}
               >
-                🔄 Relancer (1×)
+                🔄 Relancer ({relaunches}× restant{relaunches > 1 ? 's' : ''})
               </button>
             )}
             <button
@@ -240,12 +261,12 @@ export default function SlotMachine({ onSelect }) {
               disabled={accepted}
               style={{
                 flex: 2,
-                padding: '12px',
+                padding: '14px',
                 borderRadius: '8px',
                 border: 'none',
                 background: accepted ? 'var(--wif-border)' : 'var(--wif-pink)',
                 color: '#fff',
-                fontSize: '14px',
+                fontSize: '15px',
                 fontWeight: 700,
                 cursor: accepted ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s',
@@ -266,5 +287,40 @@ export default function SlotMachine({ onSelect }) {
         }
       `}</style>
     </div>
+
+    {/* Panneau explicatif — visible uniquement quand le résultat est tombé */}
+    {phase === 'done' && explanations.length > 0 && (
+      <div style={{
+        minWidth: '260px',
+        maxWidth: '300px',
+        background: 'var(--wif-bg3)',
+        border: '1.5px solid var(--wif-border)',
+        borderRadius: '14px',
+        padding: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        animation: 'slotFadeIn 0.4s ease-out',
+      }}>
+        <span style={{
+          fontSize: '9px',
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+          color: 'var(--wif-ink)',
+          opacity: 0.5,
+        }}>
+          Pourquoi ce prix ?
+        </span>
+        {explanations.map((reason, i) => (
+          <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+            <span style={{ fontSize: '16px', flexShrink: 0 }}>{reason.icon}</span>
+            <span style={{ fontSize: '12px', color: 'var(--wif-ink)', opacity: 0.75, lineHeight: 1.5 }}>
+              {reason.text}
+            </span>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
   )
 }

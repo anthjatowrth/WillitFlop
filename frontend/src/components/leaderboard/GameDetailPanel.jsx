@@ -133,6 +133,26 @@ export default function GameDetailPanel({ game, side, visible, variant = 'succes
         </div>
       </div>
 
+      {/* ── Review IA ── */}
+      {game.review_text && (
+        <div
+          className="px-4 py-3"
+          style={{ borderTop: `1px solid ${accentColor}30`, background: `${accentColor}06` }}
+        >
+          <p className="font-inter text-xs text-foreground/80 italic leading-relaxed line-clamp-3">
+            « {game.review_text} »
+          </p>
+          {game.review_source && (
+            <p
+              className="font-label text-[8px] tracking-widest uppercase mt-1.5"
+              style={{ color: accentColor }}
+            >
+              — {game.review_source}
+            </p>
+          )}
+        </div>
+      )}
+
       {/* ── Bas: genre, univers, tags ── */}
       {(game.genre || game.universe || (game.tags && game.tags.length > 0)) && (
         <div

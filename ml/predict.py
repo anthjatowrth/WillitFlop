@@ -16,7 +16,6 @@ Usage (library) :
     result = predict({
         "price_eur": 14.99,
         "is_free": False,
-        "has_dlc": False,
         "is_early_access": False,
         "achievement_count": 20,
         "nb_supported_languages": 5,
@@ -89,7 +88,6 @@ def predict(game: dict) -> dict:
         Clés reconnues :
           price_eur              (float)  : prix en euros, ex: 14.99
           is_free                (bool)   : True si le jeu est gratuit
-          has_dlc                (bool)   : True si des DLC sont prévus
           is_early_access        (bool)   : True si early access
           achievement_count      (int)    : nombre de succès Steam
           nb_supported_languages (int)    : nombre de langues supportées
@@ -111,7 +109,6 @@ def predict(game: dict) -> dict:
     defaults = {
         "price_eur":               9.99,
         "is_free":                 False,
-        "has_dlc":                 False,
         "is_early_access":         False,
         "achievement_count":       0,
         "nb_supported_languages":  1,
@@ -162,7 +159,6 @@ if __name__ == "__main__":
             "game": {
                 "price_eur": 59.99,
                 "is_free": False,
-                "has_dlc": True,
                 "is_early_access": False,
                 "achievement_count": 50,
                 "nb_supported_languages": 12,
@@ -180,7 +176,6 @@ if __name__ == "__main__":
             "game": {
                 "price_eur": 0.0,
                 "is_free": True,
-                "has_dlc": False,
                 "is_early_access": False,
                 "achievement_count": 5,
                 "nb_supported_languages": 2,
@@ -195,7 +190,6 @@ if __name__ == "__main__":
             "game": {
                 "price_eur": 19.99,
                 "is_free": False,
-                "has_dlc": False,
                 "is_early_access": True,
                 "achievement_count": 0,
                 "nb_supported_languages": 4,

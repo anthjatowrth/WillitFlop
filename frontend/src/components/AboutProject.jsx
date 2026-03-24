@@ -8,7 +8,6 @@ const IN_SCOPE = [
   'Prix de vente',
   'Modes de jeu (solo, multi…)',
   'Support linguistique',
-  'Contenu post-lancement (DLC)',
   'Niveau de polish perçu',
 ]
 
