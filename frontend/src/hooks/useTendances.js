@@ -1,6 +1,18 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../api/client'
 
+// Récupère toutes les lignes d'une table via pages parallèles
+async function fetchAllPaged(table, cols, pageSize = 1000) {
+  const { count } = await supabase.from(table).select(cols, { count: 'exact', head: true })
+  if (!count) return []
+  const results = await Promise.all(
+    Array.from({ length: Math.ceil(count / pageSize) }, (_, i) =>
+      supabase.from(table).select(cols).range(i * pageSize, (i + 1) * pageSize - 1)
+    )
+  )
+  return results.flatMap(r => r.data || [])
+}
+
 export function useTendances() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -12,22 +24,20 @@ export function useTendances() {
         setLoading(true)
 
         // Parallel fetches pour les performances
+        const gameCols = 'app_id, name, release_date, is_free, is_successful, metacritic_score, price_eur, owners_midpoint, review_wilson_score, header_image, review_total_positive, review_total'
+
         const [
           { count: totalGames },
-          { data: gamesRaw },
-          { data: genreRaw },
-          { data: categoryRaw },
-          { data: tagRaw },
+          gamesRaw,
+          genreRaw,
+          categoryRaw,
+          tagRaw,
         ] = await Promise.all([
           supabase.from('games').select('*', { count: 'exact', head: true }),
-          supabase
-            .from('games')
-            .select('app_id, name, release_date, is_free, is_successful, metacritic_score, price_eur, owners_midpoint, review_wilson_score, header_image, review_total_positive, review_total')
-            .order('review_wilson_score', { ascending: false })
-            .limit(10000),
-          supabase.from('game_genres').select('app_id, genre_name').limit(50000),
-          supabase.from('game_categories').select('category_name').limit(50000),
-          supabase.from('game_tags').select('tag_name, votes').limit(50000),
+          fetchAllPaged('games', gameCols),
+          fetchAllPaged('game_genres', 'app_id, genre_name'),
+          fetchAllPaged('game_categories', 'category_name'),
+          fetchAllPaged('game_tags', 'tag_name, votes'),
         ])
 
         // ── Genre distribution ───────────────────────────────────
@@ -187,6 +197,7 @@ export function useTendances() {
         // ── Top jeux ─────────────────────────────────────────────
         const topGames = (gamesRaw || [])
           .filter(g => g.review_wilson_score > 0 && g.name)
+          .sort((a, b) => (b.review_wilson_score || 0) - (a.review_wilson_score || 0))
           .slice(0, 25)
 
         // ── Taux de succès par score Metacritic ──────────────────
