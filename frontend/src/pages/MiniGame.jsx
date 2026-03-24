@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '../components/ui/button'
 import { Badge } from '../components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card'
@@ -8,53 +8,53 @@ import { generateFakeReview } from '../utils/groqReview'
 import SlotMachine from '../components/minigame/SlotMachine'
 import DevSlider from '../components/minigame/DevSlider'
 import TranslationBlitz from '../components/minigame/TranslationBlitz'
-import imgAction from '../assets/action.png'
-import imgAventure from '../assets/aventure.png'
-import imgStrategy from '../assets/strategy.png'
-import imgRpg from '../assets/rpg.png'
-import imgPlatformer from '../assets/platformer.png'
-import imgSimulation from '../assets/simulation.png'
-import imgHorreur from '../assets/horreur.png'
-import imgNarratif from '../assets/narratif.png'
-import imgDark from '../assets/dark.png'
-import imgCozy from '../assets/cozy.png'
-import imgScifi from '../assets/scifi.png'
-import imgFantasy from '../assets/fantasy.png'
-import imgCyberpunk from '../assets/cyberpunk.png'
-import imgPostapo from '../assets/postapo.png'
-import imgHumour from '../assets/humour.png'
-import imgHorreurpsy from '../assets/horreurpsy.png'
-import imgHistorique from '../assets/historique.png'
-import imgAnime from '../assets/anime.png'
-import imgFps from '../assets/fps.png'
-import imgThirdPerson from '../assets/third-person.png'
-import imgIsometric from '../assets/isometric.png'
-import imgDefilement from '../assets/defilementlateral.png'
-import imgTopDown from '../assets/top_vuedessus.png'
-import imgPointClick from '../assets/pointnclick.png'
-import imgPixelArt from '../assets/pixelart.png'
-import imgCellShading from '../assets/cellshading.png'
-import img3DRealistic from '../assets/3Drealistic.png'
-import imgLowPoly from '../assets/lowpoly.png'
-import imgAquarelle from '../assets/aquarelle.png'
-import imgMinimalist from '../assets/minimalistflat.png'
-import imgRoguelike from '../assets/Roguelike.png'
-import imgOpenWorld from '../assets/open_world.png'
-import imgStoryRich from '../assets/story_rich.png'
-import imgCraftSurvie from '../assets/Craft_survie.png'
-import imgTourParTour from '../assets/tour_par_tour.png'
-import imgActionRapide from '../assets/Action_rapide.png'
-import imgPuzzle from '../assets/puzzle.png'
-import imgDeckbuilding from '../assets/Deckbuilding.png'
-import imgSoulsLike from '../assets/Souls-like.png'
-import imgSandbox from '../assets/Sandbox.png'
-import imgTowerDefense from '../assets/tower_defense.png'
-import imgMetroidvania from '../assets/metroidvania.png'
-import imgSoloGamer from '../assets/sologamer.png'
-import imgCoopLocal from '../assets/coop local.png'
-import imgPveOnline from '../assets/pve online.png'
-import imgPvpOnline from '../assets/pvp online.png'
-import imgModGame from '../assets/modgame.png'
+import imgAction from '../assets/action.webp'
+import imgAventure from '../assets/aventure.webp'
+import imgStrategy from '../assets/strategy.webp'
+import imgRpg from '../assets/rpg.webp'
+import imgPlatformer from '../assets/platformer.webp'
+import imgSimulation from '../assets/simulation.webp'
+import imgHorreur from '../assets/horreur.webp'
+import imgNarratif from '../assets/narratif.webp'
+import imgDark from '../assets/dark.webp'
+import imgCozy from '../assets/cozy.webp'
+import imgScifi from '../assets/scifi.webp'
+import imgFantasy from '../assets/fantasy.webp'
+import imgCyberpunk from '../assets/cyberpunk.webp'
+import imgPostapo from '../assets/postapo.webp'
+import imgHumour from '../assets/humour.webp'
+import imgHorreurpsy from '../assets/horreurpsy.webp'
+import imgHistorique from '../assets/historique.webp'
+import imgAnime from '../assets/anime.webp'
+import imgFps from '../assets/fps.webp'
+import imgThirdPerson from '../assets/third-person.webp'
+import imgIsometric from '../assets/isometric.webp'
+import imgDefilement from '../assets/defilementlateral.webp'
+import imgTopDown from '../assets/top_vuedessus.webp'
+import imgPointClick from '../assets/pointnclick.webp'
+import imgPixelArt from '../assets/pixelart.webp'
+import imgCellShading from '../assets/cellshading.webp'
+import img3DRealistic from '../assets/3Drealistic.webp'
+import imgLowPoly from '../assets/lowpoly.webp'
+import imgAquarelle from '../assets/aquarelle.webp'
+import imgMinimalist from '../assets/minimalistflat.webp'
+import imgRoguelike from '../assets/Roguelike.webp'
+import imgOpenWorld from '../assets/open_world.webp'
+import imgStoryRich from '../assets/story_rich.webp'
+import imgCraftSurvie from '../assets/Craft_survie.webp'
+import imgTourParTour from '../assets/tour_par_tour.webp'
+import imgActionRapide from '../assets/Action_rapide.webp'
+import imgPuzzle from '../assets/puzzle.webp'
+import imgDeckbuilding from '../assets/Deckbuilding.webp'
+import imgSoulsLike from '../assets/Souls-like.webp'
+import imgSandbox from '../assets/Sandbox.webp'
+import imgTowerDefense from '../assets/tower_defense.webp'
+import imgMetroidvania from '../assets/metroidvania.webp'
+import imgSoloGamer from '../assets/sologamer.webp'
+import imgCoopLocal from '../assets/coop local.webp'
+import imgPveOnline from '../assets/pve online.webp'
+import imgPvpOnline from '../assets/pvp online.webp'
+import imgModGame from '../assets/modgame.webp'
 
 const GENRE_IMAGES = {
   'Action / Combat': imgAction,
@@ -289,6 +289,7 @@ export default function MiniGame() {
   const [showCreatorModal, setShowCreatorModal] = useState(false)
   const [pendingLeaderboard, setPendingLeaderboard] = useState(null)
   const [reviewData, setReviewData] = useState(null)
+  const [reviewLoading, setReviewLoading] = useState(false)
 
   const question = QUESTIONS[currentStep]
   const totalSteps = QUESTIONS.length
@@ -519,6 +520,16 @@ export default function MiniGame() {
       setResult(data)
       if (imageBlob) setImageUrl(URL.createObjectURL(imageBlob))
 
+      // Génère la review avant de vérifier l'éligibilité pour éviter la race condition
+      // (le modal peut être soumis avant que ResultCard ait fini de générer la review)
+      setReviewLoading(true)
+      let review = null
+      try {
+        review = await generateFakeReview({ verdict: data.verdict, metacritic_score: data.metacritic_score, answers: rawAnswers })
+      } catch { /* silencieux */ }
+      setReviewData(review)
+      setReviewLoading(false)
+
       const eligible = await checkLeaderboardEligibility({ verdict: data.verdict, proba: data.proba })
       if (eligible) {
         setPendingLeaderboard({ verdict: data.verdict, proba: data.proba, metacritic_score: data.metacritic_score, answers: rawAnswers, coverBlob: imageBlob })
@@ -562,6 +573,7 @@ export default function MiniGame() {
     setShowCreatorModal(false)
     setPendingLeaderboard(null)
     setReviewData(null)
+    setReviewLoading(false)
   }
 
   // -------------------------------------------------------------------------
@@ -640,7 +652,8 @@ export default function MiniGame() {
             imageLoading={imageLoading}
             leaderboardAdded={leaderboardAdded}
             onReset={handleReset}
-            onReviewReady={setReviewData}
+            review={reviewData}
+            reviewLoading={reviewLoading}
           />
         )}
 
@@ -1138,7 +1151,7 @@ function OptionGrid({ options, selected, onSelect, multi, maxSelect }) {
 // ---------------------------------------------------------------------------
 // Écran de résultat
 // ---------------------------------------------------------------------------
-function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded, onReset, onReviewReady }) {
+function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded, onReset, review, reviewLoading }) {
   const { verdict, proba, metacritic_score } = result
   const isTop = verdict === 'Top!'
   const pct = parseFloat(((proba ?? 0) * 100).toFixed(1))
@@ -1146,17 +1159,6 @@ function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded,
   const polishLabels = ['Garage', 'Studio Indé', 'AA Indé', 'Polished Gem']
 
   const accentColor = isTop ? 'var(--wif-success)' : 'var(--wif-danger)'
-
-  const [review, setReview] = useState(null)
-  const [reviewLoading, setReviewLoading] = useState(true)
-
-  useEffect(() => {
-    setReviewLoading(true)
-    generateFakeReview({ verdict, metacritic_score, answers })
-      .then(r => { setReview(r); onReviewReady?.(r) })
-      .catch(() => setReview(null))
-      .finally(() => setReviewLoading(false))
-  }, [verdict, metacritic_score, answers])
 
   return (
     <div className="space-y-8">

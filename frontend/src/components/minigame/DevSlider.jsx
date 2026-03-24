@@ -1,7 +1,7 @@
-import imgGarage   from '../../assets/garagedev.png'
-import imgIndie    from '../../assets/indiestudio.png'
-import imgAA       from '../../assets/AAstudio.png'
-import imgPolished from '../../assets/polishedgem.png'
+import imgGarage   from '../../assets/garagedev.webp'
+import imgIndie    from '../../assets/indiestudio.webp'
+import imgAA       from '../../assets/AAstudio.webp'
+import imgPolished from '../../assets/polishedgem.webp'
 
 const LEVELS = [
   { index: 0, label: 'Garage',       desc: '1 dev, 6 mois, du café',        img: imgGarage   },
