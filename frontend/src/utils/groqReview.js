@@ -58,7 +58,8 @@ Règles strictes :
 - La review doit être en français, percutante, dans le style d'un magazine ou site de jeux vidéo.
 - Mentionne 1 ou 2 éléments concrets issus des caractéristiques du jeu.
 - Termine par un mot-verdict stylisé entre parenthèses (ex: (Incontournable.), (À éviter.), (Passable.), (Chef-d'œuvre !), (Décevant.), etc.)
-- Ne cite jamais le nom d'un vrai jeu ni d'une vraie série.`
+- Ne cite jamais le nom d'un vrai jeu ni d'une vraie série.
+- Soit FUN, je veux une critique originale, n'hé"site pas à être créatif et à utiliser des tournures de phrases accrocheuses, des métaphores, de l'humour, etc. L'objectif est d'obtenir une review qui pourrait faire le buzz sur les réseaux sociaux, pas une critique académique.  `
 }
 
 /**

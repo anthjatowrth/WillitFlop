@@ -57,7 +57,7 @@ export default function GameDatabasePage() {
   const [playMode, setPlayMode]     = useState('') // '' | 'solo' | 'multi' | 'coop'
   const [letterFilter, setLetter]   = useState('A') // '' | 'A'-'Z' | '#'
   const [sortBy, setSortBy]         = useState('alpha') // 'alpha' | 'owners' | 'metacritic'
-  const [viewMode, setViewMode]     = useState('grid') // 'grid' | 'list'
+  const [viewMode, setViewMode] = useState('grid') // 'grid' | 'list'
 
   // Total unfiltered count for the intro text
   const [totalGamesCount, setTotalGamesCount] = useState(0)
@@ -318,7 +318,7 @@ export default function GameDatabasePage() {
           )}
         </section>
 
-        {/* ── Section 3 — Game Cards ───────────────────────────────── */}
+        {/* ── Section 4 — Game Cards ───────────────────────────────── */}
         <section className="mb-10">
 
           {/* Error state */}
@@ -417,7 +417,7 @@ export default function GameDatabasePage() {
           )}
         </section>
 
-        {/* ── Section 4 — Pagination ───────────────────────────────── */}
+        {/* ── Section 5 — Pagination ───────────────────────────────── */}
         {!error && totalPages > 1 && (
           <section className="flex flex-col items-center gap-6">
 
