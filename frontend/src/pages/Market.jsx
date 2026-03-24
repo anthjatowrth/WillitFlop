@@ -3,6 +3,7 @@
  * Dashboard analytique interactif alimenté par Supabase.
  */
 import { useState, useCallback } from 'react'
+import TagAnalytics from '../components/database/TagAnalytics'
 import {
   AreaChart, Area,
   BarChart, Bar,
@@ -22,10 +23,10 @@ const C = [
 ]
 
 const TABS = [
-  { id: 'apercu',    label: 'Vue d\'ensemble', icon: 'dashboard' },
-  { id: 'genres',    label: 'Genres & Catégories', icon: 'category' },
-  { id: 'succes',    label: 'Succès & Performance', icon: 'trending_up' },
-  { id: 'topjeux',   label: 'Top Jeux', icon: 'military_tech' },
+  { id: 'apercu',  label: 'Vue d\'ensemble',    icon: 'dashboard' },
+  { id: 'genres',  label: 'Genres & Catégories', icon: 'category' },
+  { id: 'succes',  label: 'Succès & Performance', icon: 'trending_up' },
+  { id: 'tags',    label: 'Analyse par tags',    icon: 'bar_chart' },
 ]
 
 const fmt = n => typeof n === 'number' ? n.toLocaleString('fr-FR') : n
@@ -539,156 +540,6 @@ export default function Market() {
     )
   }
 
-  // ── Tab : Top Jeux ───────────────────────────────────────────────
-  function TopJeuxTab() {
-    const [sort, setSort] = useState('review_wilson_score')
-    const sorted = [...data.topGames].sort((a, b) => (b[sort] || 0) - (a[sort] || 0))
-    const maxScore = Math.max(...sorted.map(g => g.review_wilson_score || 0))
-
-    const cols = [
-      { key: 'name',                label: 'Jeu',         sortable: false },
-      { key: 'review_wilson_score', label: 'Score Wilson', sortable: true },
-      { key: 'metacritic_score',    label: 'Metacritic',  sortable: true },
-      { key: 'owners_midpoint',     label: 'Propriétaires', sortable: true },
-      { key: 'price_eur',           label: 'Prix',         sortable: true },
-    ]
-
-    return (
-      <div className="space-y-6">
-        <Section
-          title={`Top ${sorted.length} jeux — Score Wilson`}
-          subtitle="Cliquez sur un en-tête de colonne pour changer le tri"
-        >
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border/30">
-                  <th className="py-3 px-3 font-inter text-[10px] uppercase tracking-widest text-muted-foreground text-left w-8">#</th>
-                  {cols.map(col => (
-                    <th key={col.key}
-                      className={`py-3 px-3 font-inter text-[10px] uppercase tracking-widest text-left ${col.sortable ? 'cursor-pointer hover:text-primary transition-colors' : 'text-muted-foreground'} ${sort === col.key ? 'text-primary' : 'text-muted-foreground'}`}
-                      onClick={() => col.sortable && setSort(col.key)}
-                    >
-                      {col.label} {col.sortable && sort === col.key && '▼'}
-                    </th>
-                  ))}
-                  <th className="py-3 px-3 font-inter text-[10px] uppercase tracking-widest text-muted-foreground text-left">
-                    Succès
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {sorted.map((g, i) => (
-                  <tr key={g.app_id}
-                    className="border-b border-border/10 hover:bg-muted/40 transition-colors group"
-                  >
-                    <td className="py-3 px-3">
-                      {i < 3 ? (
-                        <span className="font-space-grotesk font-bold text-sm"
-                          style={{ color: i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : '#CD7F32' }}>
-                          {i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}
-                        </span>
-                      ) : (
-                        <span className="font-mono text-xs text-muted-foreground">{i + 1}</span>
-                      )}
-                    </td>
-                    <td className="py-3 px-3">
-                      <div className="flex items-center gap-3">
-                        {g.header_image && (
-                          <img src={g.header_image} alt="" className="w-12 h-7 object-cover rounded-sm opacity-80 group-hover:opacity-100 transition-opacity" />
-                        )}
-                        <span className="font-space-grotesk text-sm font-medium text-foreground max-w-[200px] truncate">
-                          {g.name}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-20 h-1.5 bg-border/30 rounded-full overflow-hidden">
-                          <div className="h-full rounded-full bg-primary"
-                            style={{ width: `${((g.review_wilson_score || 0) / maxScore) * 100}%` }} />
-                        </div>
-                        <span className="font-mono text-xs text-foreground">
-                          {g.review_wilson_score?.toFixed(3) ?? '—'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-3">
-                      <span className="font-space-grotesk text-sm font-bold"
-                        style={{ color: g.metacritic_score >= 80 ? 'var(--wif-success)' : g.metacritic_score >= 60 ? 'var(--wif-warn)' : 'var(--wif-gray)' }}>
-                        {g.metacritic_score > 0 ? g.metacritic_score : '—'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3">
-                      <span className="font-inter text-xs text-muted-foreground">
-                        {g.owners_midpoint ? `${fmt(g.owners_midpoint)}` : '—'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3">
-                      <span className="font-inter text-xs">
-                        {g.is_free ? (
-                          <span className="text-accent font-bold">Gratuit</span>
-                        ) : g.price_eur != null ? (
-                          `${g.price_eur.toFixed(2)} €`
-                        ) : '—'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3">
-                      {g.is_successful === true && (
-                        <span className="font-inter text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-sm"
-                          style={{ background: 'rgba(0,122,76,0.12)', color: 'var(--wif-success)' }}>
-                          Oui
-                        </span>
-                      )}
-                      {g.is_successful === false && (
-                        <span className="font-inter text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-sm"
-                          style={{ background: 'rgba(232,0,90,0.1)', color: 'var(--wif-pink)' }}>
-                          Non
-                        </span>
-                      )}
-                      {(g.is_successful === null || g.is_successful === undefined) && (
-                        <span className="font-inter text-[10px] text-muted-foreground">—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Section>
-
-        {/* Tags cloud — top 30 */}
-        <Section title="Nuage de tags les plus votés" subtitle="Les 30 tags les plus présents, taille proportionnelle aux votes">
-          <div className="flex flex-wrap gap-2 py-2">
-            {data.tagDistribution.map((tag, i) => {
-              const max = data.tagDistribution[0]?.value || 1
-              const ratio = tag.value / max
-              const size = Math.round(10 + ratio * 14)
-              const opacity = 0.4 + ratio * 0.6
-              return (
-                <span
-                  key={tag.name}
-                  title={`${tag.name} — ${fmt(tag.value)} votes`}
-                  className="cursor-default transition-all duration-200 hover:scale-110 hover:opacity-100"
-                  style={{
-                    fontSize: `${size}px`,
-                    fontFamily: 'Space Grotesk',
-                    fontWeight: 700,
-                    color: C[i % C.length],
-                    opacity,
-                    padding: '2px 6px',
-                    lineHeight: 1.3,
-                  }}
-                >
-                  {tag.name}
-                </span>
-              )
-            })}
-          </div>
-        </Section>
-      </div>
-    )
-  }
 
   // ── Rendu principal ──────────────────────────────────────────────
   return (
@@ -774,10 +625,10 @@ export default function Market() {
 
       {/* Tab content */}
       <div>
-        {activeTab === 'apercu'  && <AperçuTab />}
-        {activeTab === 'genres'  && <GenresTab />}
-        {activeTab === 'succes'  && <SuccesTab />}
-        {activeTab === 'topjeux' && <TopJeuxTab />}
+        {activeTab === 'apercu' && <AperçuTab />}
+        {activeTab === 'genres' && <GenresTab />}
+        {activeTab === 'succes' && <SuccesTab />}
+        {activeTab === 'tags'   && <TagAnalytics />}
       </div>
     </div>
   )
