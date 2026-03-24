@@ -2,10 +2,6 @@ import requests
 
 
 def fetch_steamspy_data(app_id: int) -> dict | None:
-    """
-    Récupère les estimations commerciales et les tags depuis SteamSpy.
-    Retourne None si l'app_id est inconnu ou en cas d'erreur.
-    """
     resp = requests.get(
         "https://steamspy.com/api.php",
         params={"request": "appdetails", "appid": app_id},
@@ -29,7 +25,6 @@ def fetch_steamspy_data(app_id: int) -> dict | None:
 
 
 def _parse_owners(owners_str: str) -> tuple[int | None, int | None]:
-    """Parse '200,000 .. 500,000' → (200000, 500000)"""
     if not owners_str:
         return None, None
     parts = owners_str.replace(",", "").split("..")
