@@ -139,7 +139,7 @@ export default function GameDetailPanel({ game, side, visible, variant = 'succes
           className="px-4 py-3"
           style={{ borderTop: `1px solid ${accentColor}30`, background: `${accentColor}06` }}
         >
-          <p className="font-inter text-xs text-foreground/80 italic leading-relaxed line-clamp-3">
+          <p className="font-inter text-xs text-foreground/80 italic leading-relaxed">
             « {game.review_text} »
           </p>
           {game.review_source && (

@@ -543,25 +543,41 @@ export default function Market() {
 
   // ── Rendu principal ──────────────────────────────────────────────
   return (
-    <div className="max-w-screen-2xl mx-auto px-6 py-12">
+    <div className="technical-grid min-h-full"><div className="max-w-screen-2xl mx-auto px-6 py-12">
 
-      {/* Header */}
-      <section className="mb-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      {/* ── Section 1 — Hero Header ──────────────────────────────── */}
+      <section
+        className="mb-10 pl-5"
+        style={{ borderLeft: '3px solid var(--primary)' }}
+      >
+        <div className="flex items-center gap-2 mb-4">
+          <span
+            className="w-2 h-2 rounded-full"
+            style={{ background: 'var(--primary)' }}
+          />
+          <span className="font-label text-[10px] tracking-[0.3em] uppercase text-muted-foreground">
+            Terminal / Tendances_Marché
+          </span>
+        </div>
+
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
           <div>
-            <span className="font-inter text-xs tracking-widest uppercase text-primary font-bold mb-2 block">
-              Terminal / Tendances_Marché
-            </span>
-            <h1 className="font-space-grotesk text-5xl font-bold tracking-tight text-foreground">
-              Tendances
+            <h1 className="font-headline font-black tracking-tighter text-7xl text-foreground leading-none">
+              TENDANCES{' '}
+              <span style={{ color: 'var(--primary)' }}>DU MARCHÉ</span>
             </h1>
-            <p className="font-manrope text-muted-foreground mt-4 max-w-2xl leading-relaxed">
+            <p className="mt-3 font-inter text-sm text-muted-foreground max-w-2xl">
               Analyse complète de la base de données Steam — genres, catégories, taux de succès,
               distribution des prix et top jeux, en temps réel depuis Supabase.
             </p>
           </div>
-          <div className="flex flex-col gap-2 items-end">
-            <div className="bg-surface-container px-4 py-2 flex items-center gap-2">
+
+          {/* Badge jeux indexés */}
+          <div className="shrink-0 flex flex-col gap-2 items-end">
+            <div
+              className="px-4 py-2 flex items-center gap-2"
+              style={{ background: 'var(--card)', borderLeft: '4px solid var(--primary)' }}
+            >
               <span className="material-symbols-outlined text-tertiary" style={{ fontSize: '18px' }}>database</span>
               <span className="font-inter text-[10px] font-bold uppercase tracking-tighter">
                 {fmt(data.totalGames)} jeux indexés
@@ -630,6 +646,6 @@ export default function Market() {
         {activeTab === 'succes' && <SuccesTab />}
         {activeTab === 'tags'   && <TagAnalytics />}
       </div>
-    </div>
+    </div></div>
   )
 }

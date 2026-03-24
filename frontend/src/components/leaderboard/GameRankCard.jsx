@@ -23,12 +23,14 @@ export default function GameRankCard({
   genre,
   universe,
   metacritic,
+  review_text,
+  review_source,
 }) {
   const [hovered, setHovered] = useState(false)
   const isFirst   = rank === 1;
   const isSuccess = variant === 'success';
 
-  const detailGame = { title, image, tags, creator, proba, pricing, verdict, genre, universe, metacritic }
+  const detailGame = { title, image, tags, creator, proba, pricing, verdict, genre, universe, metacritic, review_text, review_source }
 
   /* ── Border-left color ─────────────────────────────────────────── */
   const borderStyle = (() => {
