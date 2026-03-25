@@ -80,7 +80,7 @@ function RateDot(props) {
 }
 
 // ── Carte chart ───────────────────────────────────────────────────────
-function ChartCard({ step, title, subtitle, data, color }) {
+export function ChartCard({ step, title, subtitle, data, color }) {
   if (!data || data.length === 0) return null
 
   // Axe count : arrondi au millier supérieur pour un axe propre

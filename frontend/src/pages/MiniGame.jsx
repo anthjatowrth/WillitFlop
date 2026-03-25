@@ -667,7 +667,7 @@ export default function MiniGame() {
           <div className="max-w-4xl mx-auto space-y-5">
             <ProgressBar current={currentStep + 1} total={totalSteps} />
 
-            <Card className="h-[640px] flex flex-col overflow-hidden">
+            <Card className="flex flex-col overflow-hidden">
               <CardHeader>
                 <span className="font-label text-[10px] tracking-[0.3em] uppercase text-primary">
                   Question {currentStep + 1} / {totalSteps}
@@ -680,8 +680,8 @@ export default function MiniGame() {
                 )}
               </CardHeader>
 
-              <CardContent className="flex-1 flex flex-col">
-                <div className="flex-1 flex flex-col">
+              <CardContent className="flex flex-col">
+                <div className="flex flex-col">
                   {/* Texte libre */}
                   {question.type === 'text' && (
                     <textarea
@@ -893,7 +893,7 @@ function GenreGrid({ options, selected, onSelect, images = GENRE_IMAGES }) {
   return (
     <div className="flex flex-col gap-3 select-none">
       {/* Grande image centrale */}
-      <div className="relative w-full overflow-hidden rounded-xl h-[300px]">
+      <div className="relative w-full overflow-hidden rounded-xl h-[340px]">
         <img
           key={focusedOption}
           src={images[focusedOption]}
@@ -1158,7 +1158,7 @@ function CategoriesCarousel({ options, selected, onToggle }) {
     <div className="flex flex-col gap-3 select-none">
       {/* Grande image centrale */}
       <div
-        className="relative w-full overflow-hidden rounded-xl h-[300px] cursor-pointer"
+        className="relative w-full overflow-hidden rounded-xl h-[340px] cursor-pointer"
         onClick={() => onToggle(focusedOption)}
       >
         <img

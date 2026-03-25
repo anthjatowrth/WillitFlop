@@ -3,7 +3,7 @@
  * Dashboard analytique EDA alimenté par Supabase.
  */
 import { useState } from 'react'
-import TagAnalytics from '../components/database/TagAnalytics'
+import { ChartCard } from '../components/database/TagAnalytics'
 import {
   Area,
   BarChart, Bar,
@@ -24,10 +24,10 @@ const C = [
 ]
 
 const TABS = [
-  { id: 'apercu',        label: 'Vue d\'ensemble',    icon: 'dashboard' },
-  { id: 'distributions', label: 'Distributions',       icon: 'bar_chart' },
-  { id: 'succes',        label: 'Facteurs de Succès',  icon: 'query_stats' },
-  { id: 'tags',          label: 'Analyse par Tags',    icon: 'label' },
+  { id: 'apercu',        label: 'Vue d\'ensemble',     icon: 'dashboard' },
+  { id: 'distributions', label: 'Distributions',        icon: 'bar_chart' },
+  { id: 'succes',        label: 'Analyse par Tags',     icon: 'label' },
+  { id: 'tags',          label: 'Analyse de sentiment', icon: 'psychology' },
 ]
 
 const fmt    = n => typeof n === 'number' ? n.toLocaleString('fr-FR') : n
@@ -95,38 +95,29 @@ function StatBox({ items }) {
   )
 }
 
-// ── Insight callout ───────────────────────────────────────────────────
-function Insight({ icon, text, color = 'var(--wif-cyan)' }) {
-  return (
-    <div
-      className="flex items-start gap-3 p-3 border border-border/20 mt-4"
-      style={{ borderLeft: `3px solid ${color}` }}
-    >
-      <span className="material-symbols-outlined text-base shrink-0" style={{ color }}>{icon}</span>
-      <p className="font-inter text-xs text-muted-foreground leading-relaxed">{text}</p>
-    </div>
-  )
-}
 
-// ── Tooltip custom générique ──────────────────────────────────────────
-function Tip({ active, payload, label, unit = '' }) {
-  if (!active || !payload?.length) return null
-  return (
-    <div
-      style={{ background: 'var(--wif-bg)', border: '1px solid var(--wif-border)' }}
-      className="px-4 py-3 shadow-2xl rounded-sm"
-    >
-      {label !== undefined && label !== '' && (
-        <p className="font-inter text-[10px] uppercase tracking-widest text-muted-foreground mb-2">{label}</p>
-      )}
-      {payload.map((e, i) => (
-        <p key={i} className="font-space-grotesk text-sm font-bold" style={{ color: e.color || e.fill || 'var(--wif-ink)' }}>
-          {e.name !== 'value' && e.name !== 'count' ? `${e.name} : ` : ''}
-          {fmt(e.value)}{unit}
-        </p>
-      ))}
+// ── Insight Box — analyse contextuelle ───────────────────────────────
+function InsightBox({ icon = 'insights', title, children, standalone = false }) {
+  const inner = (
+    <div className="flex gap-4">
+      <span
+        className="material-symbols-outlined shrink-0 mt-0.5"
+        style={{ fontSize: '18px', color: 'var(--wif-cyan)' }}
+      >
+        {icon}
+      </span>
+      <div className="flex-1">
+        {title && (
+          <p className="font-space-grotesk text-sm font-bold text-foreground mb-1.5">{title}</p>
+        )}
+        <p className="font-inter text-sm text-muted-foreground leading-relaxed">{children}</p>
+      </div>
     </div>
   )
+  if (standalone) {
+    return <div className="bg-card border border-border/30 p-6">{inner}</div>
+  }
+  return <div className="mt-5 pt-5 border-t border-border/30">{inner}</div>
 }
 
 // ── Chargement ────────────────────────────────────────────────────────
@@ -163,8 +154,18 @@ function BubbleDot({ cx, cy, fill }) {
   )
 }
 
-function SuccesTab({ data, successPct }) {
+const CHARTS_CONFIG = [
+  { key: 'genre',    step: 'Q1 / 6', title: 'Famille de ton jeu',     subtitle: 'Genres Steam — volume et taux de succès',          color: '#E8005A' },
+  { key: 'ambiance', step: 'Q2 / 6', title: 'Ambiance de l\'univers', subtitle: "Tags d'univers — volume et taux de succès",        color: '#9B59B6' },
+  { key: 'gameplay', step: 'Q3 / 6', title: 'Comment joue-t-on ?',   subtitle: 'Mécaniques & gameplay — volume et taux de succès', color: '#007A8C' },
+  { key: 'visual',   step: 'Q4 / 6', title: 'Style graphique',        subtitle: 'Tags visuels — volume et taux de succès',          color: '#E67E22' },
+  { key: 'camera',   step: 'Q5 / 6', title: 'Vue caméra principale',  subtitle: 'Tags perspective — volume et taux de succès',      color: '#4A90E2' },
+  { key: 'playmode', step: 'Q6 / 6', title: 'Mode de jeu',            subtitle: 'Catégories Steam — volume et taux de succès',      color: '#007A4C' },
+]
+
+function SuccesTab({ successPct }) {
   const { data: tagData, loading: tagLoading } = useTagAnalytics()
+  const [selectedChart, setSelectedChart] = useState(0)
 
   // Log-transformation pour étaler l'axe X
   const logCats = tagData ? TAG_CATS.map(cat => ({
@@ -192,32 +193,10 @@ function SuccesTab({ data, successPct }) {
   const sortedRates = [...rawRates].sort((a, b) => a - b)
   const medianRate  = sortedRates.length > 0 ? sortedRates[Math.floor(sortedRates.length / 2)] : successPct
 
-  const topByRate  = [...allLogTags].sort((a, b) => b.successRate - a.successRate)[0]
   const topByCount = [...allLogTags].sort((a, b) => b.count - a.count)[0]
-  const topPrice   = [...data.priceSuccessRate].sort((a, b) => b.successRate - a.successRate)[0]
-  const topMeta    = [...data.metacSuccessRate].sort((a, b) => b.successRate - a.successRate)[0]
 
   return (
     <div className="space-y-6">
-
-      {/* ── Insights ── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Insight icon="emoji_events" color="var(--wif-pink)"
-          text={topByRate
-            ? `Tag le plus efficace : "${topByRate.fullName || topByRate.name}" (${topByRate.cat}) → ${topByRate.successRate}% de succès`
-            : '—'}
-        />
-        <Insight icon="payments" color="var(--wif-cyan)"
-          text={topPrice
-            ? `Prix optimal : "${topPrice.name}" → ${topPrice.successRate}% de succès (N = ${fmt(topPrice.total)})`
-            : '—'}
-        />
-        <Insight icon="star" color="var(--wif-warn)"
-          text={topMeta
-            ? `Metacritic "${topMeta.name}" → ${topMeta.successRate}% de succès`
-            : '—'}
-        />
-      </div>
 
       {/* ── Scatter : matrice de positionnement des tags ── */}
       <Section
@@ -237,23 +216,23 @@ function SuccesTab({ data, successPct }) {
                 {/* ── Quadrants colorés ── */}
                 <ReferenceArea
                   x1={minLogCount} x2={avgLogCount} y1={medianRate} y2={maxRate}
-                  fill="#007A4C" fillOpacity={0.08}
-                  label={{ value: 'Niche efficace ↑', position: 'insideTopLeft', fontSize: 10, fill: '#007A4C', fontWeight: 700 }}
+                  fill="#007A4C" fillOpacity={0.13}
+                  label={{ value: 'Niche Efficace', position: 'insideTopLeft', fontSize: 32, fill: '#007A4C', fillOpacity: 0.80, fontWeight: 900, opacity: 0.90 }}
                 />
                 <ReferenceArea
                   x1={avgLogCount} x2={maxLogCount} y1={medianRate} y2={maxRate}
-                  fill="#E8005A" fillOpacity={0.08}
-                  label={{ value: '★ Stars', position: 'insideTopRight', fontSize: 10, fill: '#E8005A', fontWeight: 700 }}
+                  fill="#E8005A" fillOpacity={0.13}
+                  label={{ value: '★ Stars', position: 'insideTopRight', fontSize: 32, fill: '#E8005A', fontWeight: 900, opacity: 0.90 }}
                 />
                 <ReferenceArea
                   x1={minLogCount} x2={avgLogCount} y1={minRate} y2={medianRate}
-                  fill="#888" fillOpacity={0.04}
-                  label={{ value: 'Zone morte ↓', position: 'insideBottomLeft', fontSize: 10, fill: '#888' }}
+                  fill="#888" fillOpacity={0.08}
+                  label={{ value: 'Zone Morte', position: 'insideBottomLeft', fontSize: 32, fill: '#888', fontWeight: 900, opacity: 0.90 }}
                 />
                 <ReferenceArea
                   x1={avgLogCount} x2={maxLogCount} y1={minRate} y2={medianRate}
-                  fill="#E67E22" fillOpacity={0.07}
-                  label={{ value: 'Piège populaire ↓', position: 'insideBottomRight', fontSize: 10, fill: '#E67E22' }}
+                  fill="#E67E22" fillOpacity={0.12}
+                  label={{ value: 'Piège Populaire', position: 'insideBottomRight', fontSize: 32, fill: '#E67E22', fontWeight: 900, opacity: 0.90 }}
                 />
 
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--wif-border)" opacity={0.6} />
@@ -267,8 +246,8 @@ function SuccesTab({ data, successPct }) {
                     const n = Math.round(10 ** v)
                     return n >= 1000 ? `${(n / 1000).toFixed(0)}k` : `${n}`
                   }}
-                  tick={{ fontSize: 10, fill: 'var(--wif-gray)' }}
-                  label={{ value: 'Popularité — nombre de jeux portant ce tag (log)', position: 'insideBottom', offset: -20, fontSize: 10, fill: 'var(--wif-gray)' }}
+                  tick={{ fontSize: 12, fill: 'var(--wif-gray)' }}
+                  label={{ value: 'Popularité — nombre de jeux portant ce tag (log)', position: 'insideBottom', offset: -20, fontSize: 12, fill: 'var(--wif-gray)' }}
                 />
                 <YAxis
                   type="number"
@@ -276,8 +255,8 @@ function SuccesTab({ data, successPct }) {
                   name="Taux de succès"
                   domain={[minRate, maxRate]}
                   unit="%"
-                  tick={{ fontSize: 10, fill: 'var(--wif-gray)' }}
-                  label={{ value: '% succès', angle: -90, position: 'insideLeft', offset: 14, fontSize: 10, fill: 'var(--wif-gray)' }}
+                  tick={{ fontSize: 12, fill: 'var(--wif-gray)' }}
+                  label={{ value: '% succès', angle: -90, position: 'insideLeft', offset: 14, fontSize: 12, fill: 'var(--wif-gray)' }}
                 />
 
                 {/* Lignes séparant les quadrants */}
@@ -288,7 +267,7 @@ function SuccesTab({ data, successPct }) {
                 <ReferenceLine
                   y={medianRate}
                   stroke="var(--wif-warn)" strokeWidth={1.5} strokeDasharray="6 3"
-                  label={{ value: `Md. ${medianRate}%`, position: 'insideTopRight', fontSize: 9, fill: 'var(--wif-warn)' }}
+                  label={{ value: `Md. ${medianRate}%`, position: 'insideTopRight', fontSize: 12, fill: 'var(--wif-warn)' }}
                 />
 
                 <Tooltip
@@ -344,12 +323,12 @@ function SuccesTab({ data, successPct }) {
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-2">
               {TAG_CATS.map(cat => (
                 <div key={cat.key} className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
-                  <span className="font-inter text-xs text-muted-foreground">{cat.label}</span>
+                  <div className="w-3.5 h-3.5 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+                  <span className="font-inter text-sm text-muted-foreground">{cat.label}</span>
                 </div>
               ))}
               {topByCount && (
-                <span className="ml-auto font-inter text-[10px] text-muted-foreground/60">
+                <span className="ml-auto font-inter text-xs text-muted-foreground/60">
                   Tag le plus mainstream : <strong className="text-foreground">{topByCount.fullName || topByCount.name}</strong> ({fmt(topByCount.count)} jeux)
                 </span>
               )}
@@ -358,76 +337,45 @@ function SuccesTab({ data, successPct }) {
         )}
       </Section>
 
-      {/* ── Prix × succès & Metacritic × succès ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* ── Graphiques par catégorie de tag — sélecteur interactif ── */}
+      <Section
+        title="Analyse par catégorie de tags"
+        subtitle="Sélectionnez une dimension pour explorer le volume et le taux de succès"
+      >
+        {/* Boutons sélecteur */}
+        <div className="flex flex-wrap gap-2 mb-5">
+          {CHARTS_CONFIG.map((c, i) => (
+            <button
+              key={c.key}
+              onClick={() => setSelectedChart(i)}
+              className="px-3 py-1.5 font-inter text-xs font-bold uppercase tracking-widest border transition-all duration-150"
+              style={
+                selectedChart === i
+                  ? { backgroundColor: c.color, borderColor: c.color, color: '#fff' }
+                  : { borderColor: 'var(--wif-border)', color: 'var(--wif-gray)' }
+              }
+            >
+              {c.title}
+            </button>
+          ))}
+        </div>
 
-        <Section title="Taux de succès par tranche de prix" subtitle="Corrélation prix → succès commercial">
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={data.priceSuccessRate} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--wif-border)" />
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'var(--wif-gray)' }} />
-              <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: 'var(--wif-gray)' }} unit="%" />
-              <ReferenceLine y={successPct} stroke="var(--wif-warn)" strokeDasharray="5 3"
-                label={{ value: `${successPct}%`, position: 'insideTopRight', fontSize: 10, fill: 'var(--wif-warn)' }} />
-              <Tooltip
-                content={({ active, payload, label }) => {
-                  if (!active || !payload?.length) return null
-                  const d = payload[0]?.payload
-                  return (
-                    <div style={{ background: 'var(--wif-bg)', border: '1px solid var(--wif-border)' }}
-                      className="px-4 py-3 shadow-2xl rounded-sm">
-                      <p className="font-inter text-[10px] uppercase tracking-widest text-muted-foreground mb-1">{label}</p>
-                      <p className="font-space-grotesk text-sm font-bold" style={{ color: rateColor(d?.successRate) }}>
-                        {d?.successRate}%
-                      </p>
-                      <p className="font-inter text-xs text-muted-foreground">N = {fmt(d?.total)}</p>
-                    </div>
-                  )
-                }}
-              />
-              <Bar dataKey="successRate" name="Taux succès" radius={[4, 4, 0, 0]}>
-                {data.priceSuccessRate.map((d, i) => (
-                  <Cell key={i} fill={rateColor(d.successRate)} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </Section>
+        {/* Chart sélectionné */}
+        {tagLoading ? (
+          <div className="h-64 flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : tagData ? (
+          <ChartCard
+            step={CHARTS_CONFIG[selectedChart].step}
+            title={CHARTS_CONFIG[selectedChart].title}
+            subtitle={CHARTS_CONFIG[selectedChart].subtitle}
+            data={tagData[CHARTS_CONFIG[selectedChart].key]}
+            color={CHARTS_CONFIG[selectedChart].color}
+          />
+        ) : null}
+      </Section>
 
-        <Section title="Taux de succès par score Metacritic" subtitle="Corrélation note critique → succès commercial">
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={data.metacSuccessRate} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--wif-border)" />
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'var(--wif-gray)' }} />
-              <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: 'var(--wif-gray)' }} unit="%" />
-              <ReferenceLine y={successPct} stroke="var(--wif-warn)" strokeDasharray="5 3"
-                label={{ value: `${successPct}%`, position: 'insideTopRight', fontSize: 10, fill: 'var(--wif-warn)' }} />
-              <Tooltip
-                content={({ active, payload, label }) => {
-                  if (!active || !payload?.length) return null
-                  const d = payload[0]?.payload
-                  return (
-                    <div style={{ background: 'var(--wif-bg)', border: '1px solid var(--wif-border)' }}
-                      className="px-4 py-3 shadow-2xl rounded-sm">
-                      <p className="font-inter text-[10px] uppercase tracking-widest text-muted-foreground mb-1">{label}</p>
-                      <p className="font-space-grotesk text-sm font-bold" style={{ color: rateColor(d?.successRate) }}>
-                        {d?.successRate}%
-                      </p>
-                      <p className="font-inter text-xs text-muted-foreground">N = {fmt(d?.total)}</p>
-                    </div>
-                  )
-                }}
-              />
-              <Bar dataKey="successRate" name="Taux succès" radius={[4, 4, 0, 0]}>
-                {data.metacSuccessRate.map((d, i) => (
-                  <Cell key={i} fill={rateColor(d.successRate)} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </Section>
-
-      </div>
     </div>
   )
 }
@@ -453,20 +401,6 @@ export default function Market() {
 
   // ── TAB 1 : Vue d'ensemble ───────────────────────────────────────
   function AperçuTab() {
-    // Pareto des genres — calcul côté client
-    const total = data.genreDistribution.reduce((s, g) => s + g.value, 0)
-    let cum = 0
-    const paretoData = data.genreDistribution.slice(0, 20).map(g => {
-      cum += g.value
-      return {
-        name: g.name.length > 14 ? g.name.slice(0, 14) + '…' : g.name,
-        fullName: g.name,
-        value: g.value,
-        cumPct: parseFloat((cum / total * 100).toFixed(1)),
-      }
-    })
-    const genres80 = paretoData.findIndex(d => d.cumPct >= 80) + 1
-
     return (
       <div className="space-y-6">
 
@@ -666,35 +600,476 @@ export default function Market() {
           )
         })()}
 
+        {/* ── Twitch Live Snapshot ── */}
+        <Section
+          title="Présence Twitch du catalogue"
+          subtitle="Viewers & streams actifs au dernier snapshot — données live actualisées en continu"
+          badge={data.twitchFetchedAt ? `Snapshot ${data.twitchFetchedAt}` : 'Live'}
+        >
+          {/* KPIs inline */}
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            {[
+              {
+                label: 'Jeux sur Twitch',
+                value: `${data.twitchCoverage}%`,
+                sub: `${fmt(data.twitchCount)} jeux représentés`,
+                color: '#9B59B6',
+              },
+              {
+                label: 'Viewers live',
+                value: fmt(data.twitchTotalViewers),
+                sub: 'spectateurs au snapshot',
+                color: '#E8005A',
+              },
+              {
+                label: 'Succès Twitch vs sans',
+                value: `+${data.twitchSuccessRate - data.nonTwitchSuccessRate}pts`,
+                sub: `${data.twitchSuccessRate}% vs ${data.nonTwitchSuccessRate}%`,
+                color: '#007A4C',
+              },
+            ].map((k, i) => (
+              <div key={i} className="bg-background/50 border border-border/20 p-4"
+                style={{ borderLeft: `3px solid ${k.color}` }}>
+                <p className="font-inter text-[10px] uppercase tracking-widest text-muted-foreground mb-1">{k.label}</p>
+                <p className="font-space-grotesk text-2xl font-bold leading-none" style={{ color: k.color }}>{k.value}</p>
+                <p className="font-inter text-xs text-muted-foreground mt-1">{k.sub}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Bar chart horizontal — top genres par viewers */}
+          {data.twitchByGenre.length > 0 ? (
+            <>
+              <p className="font-inter text-xs text-muted-foreground mb-3 uppercase tracking-widest">
+                Top genres — viewers Twitch cumulés
+              </p>
+              <ResponsiveContainer width="100%" height={data.twitchByGenre.length * 38 + 20}>
+                <BarChart
+                  data={data.twitchByGenre}
+                  layout="vertical"
+                  margin={{ top: 0, right: 60, left: 8, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="gradTwitch" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%"   stopColor="#9B59B6" stopOpacity={0.9} />
+                      <stop offset="100%" stopColor="#E8005A" stopOpacity={0.7} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--wif-border)" horizontal={false} />
+                  <XAxis
+                    type="number"
+                    tick={{ fontSize: 12, fill: 'var(--wif-gray)' }}
+                    tickFormatter={v => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={110}
+                    tick={{ fontSize: 12, fill: 'var(--wif-gray)' }}
+                  />
+                  <Tooltip
+                    cursor={{ fill: 'var(--wif-border)', fillOpacity: 0.15 }}
+                    content={({ active, payload }) => {
+                      if (!active || !payload?.length) return null
+                      const d = payload[0]?.payload
+                      return (
+                        <div style={{ background: 'var(--wif-bg)', border: '2px solid #9B59B6' }}
+                          className="px-4 py-3 shadow-2xl rounded-sm min-w-40">
+                          <p className="font-inter text-[10px] uppercase tracking-widest font-bold mb-1" style={{ color: '#9B59B6' }}>
+                            {d?.name}
+                          </p>
+                          <p className="font-space-grotesk text-base font-bold text-foreground">
+                            {fmt(d?.viewers)} viewers
+                          </p>
+                          <p className="font-inter text-xs text-muted-foreground">{fmt(d?.games)} jeux</p>
+                        </div>
+                      )
+                    }}
+                  />
+                  <Bar dataKey="viewers" name="Viewers" fill="url(#gradTwitch)" radius={[0, 4, 4, 0]}>
+                    {data.twitchByGenre.map((_, i) => (
+                      <Cell key={i} fill="url(#gradTwitch)" fillOpacity={1 - i * 0.06} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </>
+          ) : (
+            <p className="font-inter text-sm text-muted-foreground text-center py-8">Aucune donnée Twitch disponible</p>
+          )}
+        </Section>
+
+      </div>
+    )
+  }
+
+  // ── TAB 2 : Distributions EDA ────────────────────────────────────
+  function DistributionsTab() {
+    // Pareto des genres — trimé à la zone 80% + 2 barres après
+    const paretoTotal = data.genreDistribution.reduce((s, g) => s + g.value, 0)
+    let parCum = 0
+    const allParetoData = data.genreDistribution.slice(0, 20).map(g => {
+      parCum += g.value
+      return {
+        name: g.name.length > 14 ? g.name.slice(0, 14) + '…' : g.name,
+        fullName: g.name,
+        value: g.value,
+        cumPct: parseFloat((parCum / paretoTotal * 100).toFixed(1)),
+      }
+    })
+    const cutoffIdx  = allParetoData.findIndex(d => d.cumPct >= 80)
+    const paretoData = allParetoData.slice(0, cutoffIdx >= 0 ? cutoffIdx + 3 : allParetoData.length)
+    const genres80   = cutoffIdx + 1
+
+    // Merge distribution + taux de succès par bucket (buckets alignés dans le hook)
+    const priceSuccessMap = Object.fromEntries((data.priceSuccessRate || []).map(d => [d.name, d.successRate]))
+    const priceData = data.priceDistribution.map(d => ({ ...d, successRate: priceSuccessMap[d.name] ?? null }))
+
+    const metacSuccessMap = Object.fromEntries((data.metacSuccessRate || []).map(d => [d.name, d.successRate]))
+    const metacData = data.metacriticDistribution.map(d => ({ ...d, successRate: metacSuccessMap[d.name] ?? null }))
+
+    return (
+      <div className="space-y-6">
+
+        {/* ── Distribution des prix + Metacritic côte à côte ── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <Section
+            title="Distribution des prix"
+            subtitle="Répartition par tranche tarifaire · taux de succès par tranche"
+            badge={`μ = ${fmtEur(data.avgPricePaid)}  ·  Md = ${fmtEur(data.medianPricePaid)}`}
+          >
+            <ResponsiveContainer width="100%" height={230}>
+              <ComposedChart data={priceData} margin={{ top: 10, right: 40, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--wif-border)" />
+                <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'var(--wif-gray)' }} />
+                <YAxis
+                  yAxisId="count"
+                  tick={{ fontSize: 11, fill: 'var(--wif-gray)' }}
+                  tickFormatter={v => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}
+                />
+                <YAxis
+                  yAxisId="rate"
+                  orientation="right"
+                  domain={[0, 100]}
+                  unit="%"
+                  tick={{ fontSize: 11, fill: '#007A4C' }}
+                />
+                <ReferenceLine
+                  yAxisId="rate" y={successPct}
+                  stroke="var(--wif-warn)" strokeDasharray="5 3"
+                  label={{ value: `${successPct}%`, position: 'insideTopRight', fontSize: 11, fill: 'var(--wif-warn)' }}
+                />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null
+                    const count = payload.find(p => p.dataKey === 'value')
+                    const rate  = payload.find(p => p.dataKey === 'successRate')
+                    return (
+                      <div style={{ background: 'var(--wif-bg)', border: '1px solid var(--wif-border)' }}
+                        className="px-4 py-3 shadow-2xl rounded-sm">
+                        <p className="font-inter text-[10px] uppercase tracking-widest text-muted-foreground mb-2">{label}</p>
+                        {count && <p className="font-space-grotesk text-sm font-bold text-foreground">{fmt(count.value)} jeux</p>}
+                        {rate?.value != null && (
+                          <p className="font-space-grotesk text-sm font-bold" style={{ color: rateColor(rate.value) }}>
+                            {rate.value}% succès
+                          </p>
+                        )}
+                      </div>
+                    )
+                  }}
+                />
+                <Bar yAxisId="count" dataKey="value" name="Jeux" radius={[4, 4, 0, 0]} maxBarSize={44}>
+                  {priceData.map((_, i) => (
+                    <Cell key={i} fill={C[i % C.length]} fillOpacity={0.85} />
+                  ))}
+                </Bar>
+                <Line
+                  yAxisId="rate"
+                  type="monotone" dataKey="successRate"
+                  stroke="#007A4C" strokeWidth={2.5}
+                  dot={{ r: 4, fill: '#007A4C', stroke: 'var(--card)', strokeWidth: 2 }}
+                  activeDot={{ r: 7 }}
+                  connectNulls={false}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+            <div className="flex items-center gap-6 mt-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-0.5 rounded-full" style={{ backgroundColor: '#007A4C' }} />
+                <span className="font-inter text-[10px] text-muted-foreground uppercase tracking-widest">% succès (axe droit)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-3 rounded-sm shrink-0" style={{ backgroundColor: C[0], opacity: 0.85 }} />
+                <span className="font-inter text-[10px] text-muted-foreground uppercase tracking-widest">Nb jeux (axe gauche)</span>
+              </div>
+            </div>
+            <StatBox items={[
+              { label: 'Moyenne',  value: fmtEur(data.avgPricePaid),    color: 'var(--wif-pink)' },
+              { label: 'Médiane', value: fmtEur(data.medianPricePaid), color: 'var(--wif-cyan)' },
+              { label: 'Gratuits', value: fmt(data.freePaid[0]?.value), color: 'var(--wif-gray)' },
+              { label: 'Payants',  value: fmt(data.freePaid[1]?.value), color: 'var(--wif-gray)' },
+            ]} />
+          </Section>
+
+          <Section
+            title="Distribution Metacritic"
+            subtitle="Notes critiques — jeux couverts par Metacritic · taux de succès par tranche"
+            badge={`μ = ${data.avgMetacritic}  ·  Md = ${data.medianMetacritic}  ·  ${data.pctWithMetacritic}%`}
+          >
+            <ResponsiveContainer width="100%" height={230}>
+              <ComposedChart data={metacData} margin={{ top: 10, right: 40, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--wif-border)" />
+                <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'var(--wif-gray)' }} />
+                <YAxis
+                  yAxisId="count"
+                  tick={{ fontSize: 11, fill: 'var(--wif-gray)' }}
+                  tickFormatter={v => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}
+                />
+                <YAxis
+                  yAxisId="rate"
+                  orientation="right"
+                  domain={[0, 100]}
+                  unit="%"
+                  tick={{ fontSize: 11, fill: '#4A90E2' }}
+                />
+                <ReferenceLine
+                  yAxisId="rate" y={successPct}
+                  stroke="var(--wif-warn)" strokeDasharray="5 3"
+                  label={{ value: `${successPct}%`, position: 'insideTopRight', fontSize: 11, fill: 'var(--wif-warn)' }}
+                />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null
+                    const count = payload.find(p => p.dataKey === 'value')
+                    const rate  = payload.find(p => p.dataKey === 'successRate')
+                    return (
+                      <div style={{ background: 'var(--wif-bg)', border: '1px solid var(--wif-border)' }}
+                        className="px-4 py-3 shadow-2xl rounded-sm">
+                        <p className="font-inter text-[10px] uppercase tracking-widest text-muted-foreground mb-2">{label}</p>
+                        {count && <p className="font-space-grotesk text-sm font-bold text-foreground">{fmt(count.value)} jeux</p>}
+                        {rate?.value != null && (
+                          <p className="font-space-grotesk text-sm font-bold" style={{ color: rateColor(rate.value) }}>
+                            {rate.value}% succès
+                          </p>
+                        )}
+                      </div>
+                    )
+                  }}
+                />
+                <Bar yAxisId="count" dataKey="value" name="Jeux" radius={[4, 4, 0, 0]} maxBarSize={44}>
+                  {metacData.map((_, i) => (
+                    <Cell key={i} fill={C[i % C.length]} fillOpacity={0.85} />
+                  ))}
+                </Bar>
+                <Line
+                  yAxisId="rate"
+                  type="monotone" dataKey="successRate"
+                  stroke="#4A90E2" strokeWidth={2.5}
+                  dot={{ r: 4, fill: '#4A90E2', stroke: 'var(--card)', strokeWidth: 2 }}
+                  activeDot={{ r: 7 }}
+                  connectNulls={false}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+            <div className="flex items-center gap-6 mt-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-0.5 rounded-full" style={{ backgroundColor: '#4A90E2' }} />
+                <span className="font-inter text-[10px] text-muted-foreground uppercase tracking-widest">% succès (axe droit)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-3 rounded-sm shrink-0" style={{ backgroundColor: C[0], opacity: 0.85 }} />
+                <span className="font-inter text-[10px] text-muted-foreground uppercase tracking-widest">Nb jeux (axe gauche)</span>
+              </div>
+            </div>
+            <StatBox items={[
+              { label: 'Score moyen',  value: data.avgMetacritic,           color: 'var(--wif-warn)' },
+              { label: 'Score médian', value: data.medianMetacritic,        color: 'var(--wif-cyan)' },
+              { label: 'Couverture',   value: `${data.pctWithMetacritic}%`, color: 'var(--wif-gray)' },
+            ]} />
+          </Section>
+
+        </div>
+
+        {/* ── Playtime × succès + Achievements × succès ── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <Section
+            title="Durée de jeu (playtime)"
+            subtitle="Distribution des jeux par durée médiane · lien avec le taux de succès"
+            badge={`N = ${fmt(data.playtimeDistribution.reduce((s, d) => s + d.count, 0))}`}
+          >
+            <ResponsiveContainer width="100%" height={230}>
+              <ComposedChart data={data.playtimeDistribution} margin={{ top: 10, right: 40, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--wif-border)" />
+                <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'var(--wif-gray)' }} />
+                <YAxis
+                  yAxisId="count"
+                  tick={{ fontSize: 11, fill: 'var(--wif-gray)' }}
+                  tickFormatter={v => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}
+                />
+                <YAxis
+                  yAxisId="rate"
+                  orientation="right"
+                  domain={[0, 100]}
+                  unit="%"
+                  tick={{ fontSize: 11, fill: '#007A8C' }}
+                />
+                <ReferenceLine
+                  yAxisId="rate" y={successPct}
+                  stroke="var(--wif-warn)" strokeDasharray="5 3"
+                  label={{ value: `${successPct}%`, position: 'insideTopRight', fontSize: 11, fill: 'var(--wif-warn)' }}
+                />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null
+                    const count = payload.find(p => p.dataKey === 'count')
+                    const rate  = payload.find(p => p.dataKey === 'successRate')
+                    return (
+                      <div style={{ background: 'var(--wif-bg)', border: '1px solid var(--wif-border)' }}
+                        className="px-4 py-3 shadow-2xl rounded-sm">
+                        <p className="font-inter text-[10px] uppercase tracking-widest text-muted-foreground mb-2">{label}</p>
+                        {count && <p className="font-space-grotesk text-sm font-bold text-foreground">{fmt(count.value)} jeux</p>}
+                        {rate?.value != null && (
+                          <p className="font-space-grotesk text-sm font-bold" style={{ color: rateColor(rate.value) }}>
+                            {rate.value}% succès
+                          </p>
+                        )}
+                      </div>
+                    )
+                  }}
+                />
+                <Bar yAxisId="count" dataKey="count" name="Jeux" radius={[4, 4, 0, 0]} maxBarSize={44}>
+                  {data.playtimeDistribution.map((_, i) => (
+                    <Cell key={i} fill={C[i % C.length]} fillOpacity={0.85} />
+                  ))}
+                </Bar>
+                <Line
+                  yAxisId="rate"
+                  type="monotone" dataKey="successRate"
+                  stroke="#007A8C" strokeWidth={2.5}
+                  dot={{ r: 4, fill: '#007A8C', stroke: 'var(--card)', strokeWidth: 2 }}
+                  activeDot={{ r: 7 }}
+                  connectNulls={false}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+            <div className="flex items-center gap-6 mt-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-0.5 rounded-full" style={{ backgroundColor: '#007A8C' }} />
+                <span className="font-inter text-[10px] text-muted-foreground uppercase tracking-widest">% succès (axe droit)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-3 rounded-sm shrink-0" style={{ backgroundColor: C[0], opacity: 0.85 }} />
+                <span className="font-inter text-[10px] text-muted-foreground uppercase tracking-widest">Nb jeux (axe gauche)</span>
+              </div>
+            </div>
+          </Section>
+
+          <Section
+            title="Taux de débloquage des succès"
+            subtitle="Médiane d'unlock rate par tranche · lien avec le taux de succès"
+            badge={`N = ${fmt(data.achievementDistribution.reduce((s, d) => s + d.count, 0))}`}
+          >
+            <ResponsiveContainer width="100%" height={230}>
+              <ComposedChart data={data.achievementDistribution} margin={{ top: 10, right: 40, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--wif-border)" />
+                <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'var(--wif-gray)' }} />
+                <YAxis
+                  yAxisId="count"
+                  tick={{ fontSize: 11, fill: 'var(--wif-gray)' }}
+                  tickFormatter={v => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}
+                />
+                <YAxis
+                  yAxisId="rate"
+                  orientation="right"
+                  domain={[0, 100]}
+                  unit="%"
+                  tick={{ fontSize: 11, fill: '#9B59B6' }}
+                />
+                <ReferenceLine
+                  yAxisId="rate" y={successPct}
+                  stroke="var(--wif-warn)" strokeDasharray="5 3"
+                  label={{ value: `${successPct}%`, position: 'insideTopRight', fontSize: 11, fill: 'var(--wif-warn)' }}
+                />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null
+                    const count = payload.find(p => p.dataKey === 'count')
+                    const rate  = payload.find(p => p.dataKey === 'successRate')
+                    return (
+                      <div style={{ background: 'var(--wif-bg)', border: '1px solid var(--wif-border)' }}
+                        className="px-4 py-3 shadow-2xl rounded-sm">
+                        <p className="font-inter text-[10px] uppercase tracking-widest text-muted-foreground mb-2">{label}</p>
+                        {count && <p className="font-space-grotesk text-sm font-bold text-foreground">{fmt(count.value)} jeux</p>}
+                        {rate?.value != null && (
+                          <p className="font-space-grotesk text-sm font-bold" style={{ color: rateColor(rate.value) }}>
+                            {rate.value}% succès
+                          </p>
+                        )}
+                      </div>
+                    )
+                  }}
+                />
+                <Bar yAxisId="count" dataKey="count" name="Jeux" radius={[4, 4, 0, 0]} maxBarSize={44}>
+                  {data.achievementDistribution.map((_, i) => (
+                    <Cell key={i} fill={C[(i + 4) % C.length]} fillOpacity={0.85} />
+                  ))}
+                </Bar>
+                <Line
+                  yAxisId="rate"
+                  type="monotone" dataKey="successRate"
+                  stroke="#9B59B6" strokeWidth={2.5}
+                  dot={{ r: 4, fill: '#9B59B6', stroke: 'var(--card)', strokeWidth: 2 }}
+                  activeDot={{ r: 7 }}
+                  connectNulls={false}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+            <div className="flex items-center gap-6 mt-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-0.5 rounded-full" style={{ backgroundColor: '#9B59B6' }} />
+                <span className="font-inter text-[10px] text-muted-foreground uppercase tracking-widest">% succès (axe droit)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-3 rounded-sm shrink-0" style={{ backgroundColor: C[4], opacity: 0.85 }} />
+                <span className="font-inter text-[10px] text-muted-foreground uppercase tracking-widest">Nb jeux (axe gauche)</span>
+              </div>
+            </div>
+          </Section>
+
+        </div>
+
         {/* ── Pareto genres ── */}
         <Section
           title="Analyse de Pareto — Répartition des genres"
-          subtitle={`Principe 80/20 appliqué au catalogue : ${genres80} genres concentrent 80% des publications`}
+          subtitle={`Principe 80/20 : ${genres80} genres concentrent 80% des publications Steam`}
           badge="Pareto 80/20"
         >
-          <ResponsiveContainer width="100%" height={320}>
+          <ResponsiveContainer width="100%" height={300}>
             <ComposedChart data={paretoData} margin={{ top: 10, right: 60, left: 10, bottom: 50 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--wif-border)" />
               <XAxis
                 dataKey="name"
-                tick={{ fontSize: 10, fill: 'var(--wif-gray)', angle: -35, textAnchor: 'end' }}
+                tick={{ fontSize: 11, fill: 'var(--wif-gray)', angle: -35, textAnchor: 'end' }}
                 height={60}
               />
               <YAxis
                 yAxisId="count"
-                tick={{ fontSize: 10, fill: 'var(--wif-gray)' }}
+                tick={{ fontSize: 12, fill: 'var(--wif-gray)' }}
+                tickFormatter={v => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}
               />
               <YAxis
                 yAxisId="pct"
                 orientation="right"
                 domain={[0, 100]}
-                tick={{ fontSize: 10, fill: 'var(--wif-cyan)' }}
+                tick={{ fontSize: 12, fill: 'var(--wif-cyan)' }}
                 unit="%"
               />
               <ReferenceLine
                 yAxisId="pct" y={80}
                 stroke="var(--wif-warn)" strokeDasharray="5 3"
-                label={{ value: '80 %', position: 'insideTopRight', fontSize: 10, fill: 'var(--wif-warn)' }}
+                label={{ value: '80 %', position: 'insideTopRight', fontSize: 12, fill: 'var(--wif-warn)' }}
               />
               <Tooltip
                 content={({ active, payload }) => {
@@ -731,147 +1106,22 @@ export default function Market() {
               />
             </ComposedChart>
           </ResponsiveContainer>
-          <Insight
-            icon="lightbulb"
-            color="var(--wif-warn)"
-            text={`Règle de Pareto : ${genres80} genres (barres roses) regroupent 80% du catalogue. Les barres grises forment la longue traîne — nombreux en genres, faibles en volume individuel.`}
-          />
-        </Section>
-
-      </div>
-    )
-  }
-
-  // ── TAB 2 : Distributions EDA ────────────────────────────────────
-  function DistributionsTab() {
-    return (
-      <div className="space-y-6">
-
-        {/* ── Distribution des prix ── */}
-        <Section
-          title="Distribution des prix (histogramme)"
-          subtitle="Répartition des jeux par tranche tarifaire — variable quantitative discrétisée"
-          badge={`μ = ${fmtEur(data.avgPricePaid)}  ·  Md = ${fmtEur(data.medianPricePaid)}`}
-        >
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={data.priceDistribution} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--wif-border)" />
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'var(--wif-gray)' }} />
-              <YAxis tick={{ fontSize: 10, fill: 'var(--wif-gray)' }} />
-              <Tooltip content={<Tip />} />
-              <Bar dataKey="value" name="Jeux" radius={[4, 4, 0, 0]}>
-                {data.priceDistribution.map((_, i) => (
-                  <Cell key={i} fill={C[i % C.length]} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-          <StatBox items={[
-            { label: 'Moyenne (payants)',  value: fmtEur(data.avgPricePaid),    color: 'var(--wif-pink)' },
-            { label: 'Médiane (payants)',  value: fmtEur(data.medianPricePaid), color: 'var(--wif-cyan)' },
-            { label: 'Jeux gratuits',      value: fmt(data.freePaid[0]?.value), color: 'var(--wif-gray)' },
-            { label: 'Jeux payants',       value: fmt(data.freePaid[1]?.value), color: 'var(--wif-gray)' },
-          ]} />
-          <Insight
-            icon="info"
-            color="var(--wif-cyan)"
-            text="La différence entre moyenne et médiane indique une asymétrie droite (skewness positif) : quelques jeux premium tirent la moyenne vers le haut. La médiane est plus représentative du prix typique."
-          />
-        </Section>
-
-        {/* ── Distribution Metacritic ── */}
-        <Section
-          title="Distribution des scores Metacritic (histogramme)"
-          subtitle="Notes critiques agrégées — uniquement les jeux couverts par Metacritic"
-          badge={`μ = ${data.avgMetacritic}  ·  Md = ${data.medianMetacritic}  ·  Couverture ${data.pctWithMetacritic}%`}
-        >
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={data.metacriticDistribution} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-              <defs>
-                <linearGradient id="gradMeta" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%"   stopColor="#CC1A1A" />
-                  <stop offset="50%"  stopColor="#E67E22" />
-                  <stop offset="100%" stopColor="#007A4C" />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--wif-border)" />
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'var(--wif-gray)' }} />
-              <YAxis tick={{ fontSize: 10, fill: 'var(--wif-gray)' }} />
-              <Tooltip content={<Tip />} />
-              <Bar dataKey="value" name="Jeux" fill="url(#gradMeta)" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-          <StatBox items={[
-            { label: 'Score moyen',          value: data.avgMetacritic,        color: 'var(--wif-warn)' },
-            { label: 'Score médian',          value: data.medianMetacritic,     color: 'var(--wif-cyan)' },
-            { label: 'Couverture Metacritic', value: `${data.pctWithMetacritic}%`, color: 'var(--wif-gray)' },
-          ]} />
-          <Insight
-            icon="warning"
-            color="var(--wif-warn)"
-            text={`Biais de sélection : seulement ${data.pctWithMetacritic}% du catalogue a un score Metacritic. Les jeux notés sont sur-représentés par les titres à forte visibilité. Toute corrélation avec le succès doit être interprétée avec précaution.`}
-          />
-        </Section>
-
-        {/* ── Répartition Free/Paid + Succès global ── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-          <Section title="Répartition Gratuit / Payant" subtitle="Structure tarifaire du catalogue Steam">
-            <div className="space-y-5 mt-2">
-              {data.freePaid.map((item, i) => {
-                const pct = data.sampleSize > 0 ? Math.round(item.value / data.sampleSize * 100) : 0
-                const colors = ['#007A8C', '#E8005A']
-                return (
-                  <div key={i}>
-                    <div className="flex justify-between items-center mb-1.5">
-                      <span className="font-inter text-sm text-foreground">{item.name}</span>
-                      <div className="flex items-center gap-3">
-                        <span className="font-space-grotesk text-base font-bold">{fmt(item.value)}</span>
-                        <span className="font-inter text-[10px] text-muted-foreground w-8 text-right">{pct}%</span>
-                      </div>
-                    </div>
-                    <div className="h-2.5 bg-border/30 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full transition-all"
-                        style={{ width: `${pct}%`, backgroundColor: colors[i] }} />
-                    </div>
-                  </div>
-                )
-              })}
+          <div className="flex items-center gap-6 mt-3">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: '#E8005A' }} />
+              <span className="font-inter text-sm text-muted-foreground">Genres dans le top 80%</span>
             </div>
-          </Section>
-
-          <Section title="Succès global du catalogue" subtitle="Label is_successful dans la base de données">
-            <div className="space-y-5 mt-2">
-              {data.successDistribution.map(item => {
-                const pct = (data.successCount + data.failCount) > 0
-                  ? Math.round(item.value / (data.successCount + data.failCount) * 100)
-                  : 0
-                return (
-                  <div key={item.name}>
-                    <div className="flex justify-between items-center mb-1.5">
-                      <span className="font-inter text-sm text-foreground">{item.name}</span>
-                      <div className="flex items-center gap-3">
-                        <span className="font-space-grotesk text-base font-bold" style={{ color: item.color }}>
-                          {fmt(item.value)}
-                        </span>
-                        <span className="font-inter text-[10px] text-muted-foreground w-8 text-right">{pct}%</span>
-                      </div>
-                    </div>
-                    <div className="h-2.5 bg-border/30 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full"
-                        style={{ width: `${pct}%`, backgroundColor: item.color }} />
-                    </div>
-                  </div>
-                )
-              })}
-              <div className="pt-3 border-t border-border/30">
-                <p className="font-inter text-[10px] uppercase tracking-widest text-muted-foreground">Taux de succès global</p>
-                <p className="font-space-grotesk text-3xl font-bold" style={{ color: 'var(--wif-success)' }}>{successPct}%</p>
-              </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: '#888' }} />
+              <span className="font-inter text-sm text-muted-foreground">Longue traîne</span>
             </div>
-          </Section>
+            <div className="flex items-center gap-2 ml-2">
+              <div className="w-8 h-0.5 rounded-full" style={{ backgroundColor: 'var(--wif-cyan)' }} />
+              <span className="font-inter text-sm text-muted-foreground">% cumulé (axe droit)</span>
+            </div>
+          </div>
+        </Section>
 
-        </div>
       </div>
     )
   }
@@ -968,8 +1218,14 @@ export default function Market() {
         <div>
           {activeTab === 'apercu'        && <AperçuTab />}
           {activeTab === 'distributions' && <DistributionsTab />}
-          {activeTab === 'succes'        && <SuccesTab data={data} successPct={successPct} />}
-          {activeTab === 'tags'          && <TagAnalytics />}
+          {activeTab === 'succes'        && <SuccesTab successPct={successPct} />}
+          {activeTab === 'tags'          && (
+            <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
+              <span className="material-symbols-outlined text-5xl text-muted-foreground/30">psychology</span>
+              <p className="font-space-grotesk text-lg font-bold text-muted-foreground/50">Analyse de sentiment</p>
+              <p className="font-inter text-xs text-muted-foreground/40 uppercase tracking-widest">Bientôt disponible</p>
+            </div>
+          )}
         </div>
 
       </div>

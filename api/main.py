@@ -27,13 +27,13 @@ from ml.predict import predict
 
 app = FastAPI(title="WillitFlop API")
 
-origins = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_methods=["POST", "GET"],
-    allow_headers=["Content-Type"],
+    allow_methods=["POST", "GET", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 

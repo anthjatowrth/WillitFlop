@@ -24,7 +24,7 @@ export function useTendances() {
         setLoading(true)
 
         // Parallel fetches pour les performances
-        const gameCols = 'app_id, name, release_date, is_free, is_successful, metacritic_score, price_eur, owners_midpoint, review_wilson_score, header_image, review_total_positive, review_total'
+        const gameCols = 'app_id, name, release_date, is_free, is_successful, metacritic_score, price_eur, owners_midpoint, review_wilson_score, header_image, review_total_positive, review_total, is_on_twitch, twitch_streams_count, twitch_viewers_count, twitch_fetched_at, spy_median_playtime, achievement_median_unlock_rate'
 
         const [
           { count: totalGames },
@@ -198,15 +198,14 @@ export function useTendances() {
 
         // ── Distribution des prix ────────────────────────────────
         const priceBuckets = {
-          'Gratuit': 0, '< 5€': 0, '5–10€': 0, '10–20€': 0, '20–30€': 0, '> 30€': 0,
+          'Gratuit': 0, '< 5€': 0, '5–10€': 0, '10–20€': 0, '> 20€': 0,
         }
         gamesRaw?.forEach(g => {
           if (g.is_free || g.price_eur === 0) priceBuckets['Gratuit']++
           else if (g.price_eur < 5) priceBuckets['< 5€']++
           else if (g.price_eur < 10) priceBuckets['5–10€']++
           else if (g.price_eur < 20) priceBuckets['10–20€']++
-          else if (g.price_eur < 30) priceBuckets['20–30€']++
-          else priceBuckets['> 30€']++
+          else priceBuckets['> 20€']++
         })
         const priceDistribution = Object.entries(priceBuckets).map(([name, value]) => ({ name, value }))
 
@@ -252,6 +251,101 @@ export function useTendances() {
             total,
           }))
 
+        // ── Twitch stats ─────────────────────────────────────────
+        const twitchGames = gamesRaw.filter(g => g.is_on_twitch === true)
+        const twitchCoverage = gamesRaw.length > 0 ? Math.round(twitchGames.length / gamesRaw.length * 100) : 0
+        const twitchTotalViewers = twitchGames.reduce((s, g) => s + (g.twitch_viewers_count || 0), 0)
+        const twitchTotalStreams  = twitchGames.reduce((s, g) => s + (g.twitch_streams_count  || 0), 0)
+
+        const twitchSuccBuckets = { twitch: { total: 0, success: 0 }, other: { total: 0, success: 0 } }
+        gamesRaw.forEach(g => {
+          if (g.is_successful === null || g.is_successful === undefined) return
+          const key = g.is_on_twitch ? 'twitch' : 'other'
+          twitchSuccBuckets[key].total++
+          if (g.is_successful) twitchSuccBuckets[key].success++
+        })
+        const twitchSuccessRate    = twitchSuccBuckets.twitch.total > 0
+          ? Math.round(twitchSuccBuckets.twitch.success / twitchSuccBuckets.twitch.total * 100) : 0
+        const nonTwitchSuccessRate = twitchSuccBuckets.other.total > 0
+          ? Math.round(twitchSuccBuckets.other.success / twitchSuccBuckets.other.total * 100) : 0
+
+        const viewersByAppId = new Map(
+          gamesRaw
+            .filter(g => g.is_on_twitch && (g.twitch_viewers_count || 0) > 0)
+            .map(g => [g.app_id, g.twitch_viewers_count])
+        )
+        const genreTwitchAccum = {}
+        genreRaw.forEach(({ app_id, genre_name }) => {
+          const v = viewersByAppId.get(app_id) || 0
+          if (!genreTwitchAccum[genre_name]) genreTwitchAccum[genre_name] = { viewers: 0, games: 0 }
+          genreTwitchAccum[genre_name].viewers += v
+          genreTwitchAccum[genre_name].games++
+        })
+        const twitchByGenre = Object.entries(genreTwitchAccum)
+          .filter(([, d]) => d.viewers > 0)
+          .map(([name, d]) => ({ name, viewers: d.viewers, games: d.games }))
+          .sort((a, b) => b.viewers - a.viewers)
+          .slice(0, 10)
+
+        const latestFetch = twitchGames.map(g => g.twitch_fetched_at).filter(Boolean).sort().at(-1)
+        const twitchFetchedAt = latestFetch ? new Date(latestFetch).toLocaleDateString('fr-FR') : null
+
+        // ── Distribution playtime × succès ──────────────────────
+        const playtimeBuckets = {
+          '< 2h': { total: 0, success: 0 },
+          '2–5h': { total: 0, success: 0 },
+          '5–10h': { total: 0, success: 0 },
+          '10–20h': { total: 0, success: 0 },
+          '20–50h': { total: 0, success: 0 },
+          '50h+': { total: 0, success: 0 },
+        }
+        gamesRaw?.forEach(g => {
+          if (g.spy_median_playtime == null || g.spy_median_playtime <= 0) return
+          const m = g.spy_median_playtime
+          let bucket
+          if (m < 120) bucket = '< 2h'
+          else if (m < 300) bucket = '2–5h'
+          else if (m < 600) bucket = '5–10h'
+          else if (m < 1200) bucket = '10–20h'
+          else if (m < 3000) bucket = '20–50h'
+          else bucket = '50h+'
+          playtimeBuckets[bucket].total++
+          if (g.is_successful) playtimeBuckets[bucket].success++
+        })
+        const playtimeDistribution = Object.entries(playtimeBuckets).map(([name, { total, success }]) => ({
+          name,
+          count: total,
+          successRate: total >= 5 ? Math.round((success / total) * 100) : null,
+        }))
+
+        // ── Distribution achievement unlock rate × succès ────────
+        const achBuckets = {
+          '< 10%': { total: 0, success: 0 },
+          '10–25%': { total: 0, success: 0 },
+          '25–50%': { total: 0, success: 0 },
+          '50–75%': { total: 0, success: 0 },
+          '75%+': { total: 0, success: 0 },
+        }
+        gamesRaw?.forEach(g => {
+          if (g.achievement_median_unlock_rate == null) return
+          const r = g.achievement_median_unlock_rate
+          // Normalize: if max > 1, assume it's already a percentage; otherwise 0–1 → 0–100
+          const pct = r > 1 ? r : r * 100
+          let bucket
+          if (pct < 10) bucket = '< 10%'
+          else if (pct < 25) bucket = '10–25%'
+          else if (pct < 50) bucket = '25–50%'
+          else if (pct < 75) bucket = '50–75%'
+          else bucket = '75%+'
+          achBuckets[bucket].total++
+          if (g.is_successful) achBuckets[bucket].success++
+        })
+        const achievementDistribution = Object.entries(achBuckets).map(([name, { total, success }]) => ({
+          name,
+          count: total,
+          successRate: total >= 5 ? Math.round((success / total) * 100) : null,
+        }))
+
         // ── Top jeux ─────────────────────────────────────────────
         const topGames = (gamesRaw || [])
           .filter(g => g.review_wilson_score > 0 && g.name)
@@ -260,7 +354,8 @@ export function useTendances() {
 
         // ── Taux de succès par score Metacritic ──────────────────
         const metacSuccessBuckets = {
-          '< 60': { total: 0, success: 0 },
+          '< 50': { total: 0, success: 0 },
+          '50–59': { total: 0, success: 0 },
           '60–69': { total: 0, success: 0 },
           '70–79': { total: 0, success: 0 },
           '80–89': { total: 0, success: 0 },
@@ -270,7 +365,8 @@ export function useTendances() {
           if (g.is_successful === null || !g.metacritic_score) return
           const s = g.metacritic_score
           let bucket
-          if (s < 60) bucket = '< 60'
+          if (s < 50) bucket = '< 50'
+          else if (s < 60) bucket = '50–59'
           else if (s < 70) bucket = '60–69'
           else if (s < 80) bucket = '70–79'
           else if (s < 90) bucket = '80–89'
@@ -312,6 +408,16 @@ export function useTendances() {
           avgPricePaid,
           medianPricePaid,
           releaseByMonth,
+          twitchCoverage,
+          twitchTotalViewers,
+          twitchTotalStreams,
+          twitchSuccessRate,
+          nonTwitchSuccessRate,
+          twitchByGenre,
+          twitchFetchedAt,
+          twitchCount: twitchGames.length,
+          playtimeDistribution,
+          achievementDistribution,
         })
       } catch (err) {
         setError(err.message)
