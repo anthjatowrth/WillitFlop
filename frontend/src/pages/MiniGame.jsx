@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Button } from '../components/ui/button'
 import { Badge } from '../components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card'
@@ -97,6 +97,11 @@ const CATEGORIES_IMAGES = {
   'Workshop / Mods': imgModGame,
 }
 
+const MECHANICS_OBJECT_POSITION = {
+  'Craft / Survie': 'bottom',
+  'Tower Defense': 'bottom',
+}
+
 const MECHANICS_IMAGES = {
   'Roguelike / Roguelite': imgRoguelike,
   'Open World': imgOpenWorld,
@@ -162,7 +167,7 @@ const QUESTIONS = [
   },
   {
     key: 'mechanics',
-    type: 'ambiance-grid',
+    type: 'mechanics-grid',
     label: 'Comment joue-t-on à ton jeu ?',
     sublabel: 'Choix unique : la mécanique principale de ton jeu',
     options: [
@@ -328,7 +333,7 @@ export default function MiniGame() {
     const value = answers[q.key]
     if (q.optional) return true
     if (q.type === 'text') return value.trim().length > 0
-    if (q.type === 'multi' || q.type === 'ambiance-grid' || q.type === 'categories-carousel') return value.length > 0
+    if (q.type === 'multi' || q.type === 'ambiance-grid' || q.type === 'mechanics-grid' || q.type === 'categories-carousel') return value.length > 0
     if (q.type === 'camera-grid' || q.type === 'visual-grid') return value !== ''
     if (q.type === 'yesno') return value !== null
     if (q.type === 'slotmachine') return value !== null
@@ -662,7 +667,7 @@ export default function MiniGame() {
           <div className="max-w-4xl mx-auto space-y-5">
             <ProgressBar current={currentStep + 1} total={totalSteps} />
 
-            <Card className="h-[560px] flex flex-col overflow-hidden">
+            <Card className="h-[640px] flex flex-col overflow-hidden">
               <CardHeader>
                 <span className="font-label text-[10px] tracking-[0.3em] uppercase text-primary">
                   Question {currentStep + 1} / {totalSteps}
@@ -704,6 +709,15 @@ export default function MiniGame() {
                       onToggle={handleMultiToggle}
                       maxSelect={question.maxSelect}
                       images={question.images ?? AMBIANCE_IMAGES}
+                    />
+                  )}
+
+                  {/* Carousel avec preview — mécanique principale */}
+                  {question.type === 'mechanics-grid' && (
+                    <MechanicsGrid
+                      options={question.options}
+                      selected={answers[question.key]}
+                      onToggle={handleMultiToggle}
                     />
                   )}
 
@@ -939,6 +953,130 @@ function GenreGrid({ options, selected, onSelect, images = GENRE_IMAGES }) {
             </button>
           )
         })}
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Carousel avec preview — sélection de mécanique (Q3, choix unique)
+// ---------------------------------------------------------------------------
+function MechanicsGrid({ options, selected, onToggle, images = MECHANICS_IMAGES }) {
+  const selectedVal = selected[0] ?? null
+  const initialIdx = selectedVal ? options.indexOf(selectedVal) : 0
+  const [focusIdx, setFocusIdx] = useState(initialIdx >= 0 ? initialIdx : 0)
+  const [thumbStyle, setThumbStyle] = useState({ width: '50%', left: '0%' })
+  const stripRef = useRef(null)
+
+  const focusedOption = options[focusIdx]
+
+  function go(dir) {
+    setFocusIdx(i => (i + dir + options.length) % options.length)
+  }
+
+  function pickThumb(idx) {
+    setFocusIdx(idx)
+    onToggle(options[idx])
+  }
+
+  function handleScroll(e) {
+    const el = e.currentTarget
+    const { scrollLeft, scrollWidth, clientWidth } = el
+    const thumbWidth = (clientWidth / scrollWidth) * 100
+    const thumbLeft = (scrollLeft / scrollWidth) * 100
+    setThumbStyle({ width: `${thumbWidth}%`, left: `${thumbLeft}%` })
+  }
+
+  // Init thumb size + auto-scroll to focused item
+  useEffect(() => {
+    const el = stripRef.current
+    if (!el) return
+    const { scrollWidth, clientWidth } = el
+    const thumbWidth = (clientWidth / scrollWidth) * 100
+    setThumbStyle(prev => ({ ...prev, width: `${thumbWidth}%` }))
+  }, [])
+
+  useEffect(() => {
+    const el = stripRef.current
+    if (!el) return
+    const buttons = el.querySelectorAll('button')
+    if (buttons[focusIdx]) {
+      buttons[focusIdx].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+    }
+  }, [focusIdx])
+
+  return (
+    <div className="flex flex-col gap-3 select-none">
+      {/* Grande image centrale */}
+      <div className="relative w-full overflow-hidden rounded-xl h-[380px]">
+        <img
+          key={focusedOption}
+          src={images[focusedOption]}
+          alt={focusedOption}
+          className="w-full h-full object-cover transition-all duration-300"
+          style={{ objectPosition: MECHANICS_OBJECT_POSITION[focusedOption] ?? 'center' }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 px-5 pb-4">
+          <span className="font-label tracking-widest uppercase text-white text-lg font-bold drop-shadow-lg">
+            {focusedOption}
+          </span>
+        </div>
+        <button
+          onClick={() => go(-1)}
+          className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all"
+          style={{ background: 'rgba(0,0,0,0.45)', color: 'white', backdropFilter: 'blur(4px)' }}
+        >
+          ‹
+        </button>
+        <button
+          onClick={() => go(1)}
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all"
+          style={{ background: 'rgba(0,0,0,0.45)', color: 'white', backdropFilter: 'blur(4px)' }}
+        >
+          ›
+        </button>
+      </div>
+
+      {/* Strip de miniatures scrollable */}
+      <div
+        ref={stripRef}
+        className="flex gap-1.5 overflow-x-auto"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        onScroll={handleScroll}
+      >
+        {options.map((option, idx) => {
+          const isFocused = idx === focusIdx
+          const isSelected = option === selectedVal
+          return (
+            <button
+              key={option}
+              onClick={() => pickThumb(idx)}
+              className="rounded-lg overflow-hidden transition-all duration-200 flex-shrink-0"
+              style={{
+                width: '110px',
+                aspectRatio: '3/2',
+                border: isFocused
+                  ? '2px solid var(--wif-pink)'
+                  : isSelected
+                  ? '2px solid rgba(255,20,147,0.4)'
+                  : '2px solid var(--wif-border)',
+                opacity: isFocused ? 1 : 0.6,
+                transform: isFocused ? 'scale(1.06)' : 'scale(1)',
+              }}
+            >
+              <img src={images[option]} alt={option} className="w-full h-full object-cover" />
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Indicateur de scroll */}
+      <div className="relative w-full h-1 rounded-full" style={{ background: 'var(--wif-border)' }}>
+        <div
+          className="absolute top-0 h-full rounded-full transition-all duration-150"
+          style={{ background: 'var(--wif-pink)', width: thumbStyle.width, left: thumbStyle.left }}
+        />
       </div>
     </div>
   )
