@@ -98,19 +98,60 @@ export function useTendances() {
           .sort((a, b) => b.value - a.value)
           .slice(0, 30)
 
-        // ── Jeux par année ───────────────────────────────────────
+        // ── Jeux par année + taux de succès par année ───────────
         const yearMap = {}
+        const yearSuccessMap = {}
         gamesRaw?.forEach(g => {
           if (g.release_date) {
             const year = new Date(g.release_date).getFullYear()
             if (year >= 2010 && year <= 2025) {
               yearMap[year] = (yearMap[year] || 0) + 1
+              if (g.is_successful !== null && g.is_successful !== undefined) {
+                if (!yearSuccessMap[year]) yearSuccessMap[year] = { success: 0, total: 0 }
+                yearSuccessMap[year].total++
+                if (g.is_successful) yearSuccessMap[year].success++
+              }
             }
           }
         })
         const gamesPerYear = Object.entries(yearMap)
-          .map(([year, count]) => ({ year: year.toString(), count }))
+          .map(([year, count]) => {
+            const ys = yearSuccessMap[parseInt(year)]
+            return {
+              year: year.toString(),
+              count,
+              successRate: ys && ys.total >= 10
+                ? Math.round((ys.success / ys.total) * 100)
+                : null,
+            }
+          })
           .sort((a, b) => parseInt(a.year) - parseInt(b.year))
+
+        // ── Saisonnalité — publications & succès par mois (Jan–Déc) ──
+        const MONTH_LABELS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc']
+        const monthMap = {}
+        const monthSuccessMap = {}
+        gamesRaw?.forEach(g => {
+          if (!g.release_date) return
+          const d = new Date(g.release_date)
+          if (isNaN(d.getTime())) return
+          const m = d.getMonth() // 0–11
+          const yr = d.getFullYear()
+          if (yr < 2010 || yr > 2025) return
+          monthMap[m] = (monthMap[m] || 0) + 1
+          if (g.is_successful !== null && g.is_successful !== undefined) {
+            if (!monthSuccessMap[m]) monthSuccessMap[m] = { success: 0, total: 0 }
+            monthSuccessMap[m].total++
+            if (g.is_successful) monthSuccessMap[m].success++
+          }
+        })
+        const releaseByMonth = Array.from({ length: 12 }, (_, i) => ({
+          month: MONTH_LABELS[i],
+          count: monthMap[i] || 0,
+          successRate: monthSuccessMap[i]?.total >= 20
+            ? Math.round((monthSuccessMap[i].success / monthSuccessMap[i].total) * 100)
+            : null,
+        }))
 
         // ── Gratuit vs Payant ────────────────────────────────────
         let freeCount = 0, paidCount = 0
@@ -132,10 +173,27 @@ export function useTendances() {
           { name: 'Échecs', value: failCount, color: '#E8005A' },
         ]
 
-        // ── Score Metacritic moyen ───────────────────────────────
+        // ── Score Metacritic moyen + médiane + couverture ────────
         const withScore = gamesRaw?.filter(g => g.metacritic_score > 0) || []
         const avgMetacritic = withScore.length > 0
           ? Math.round(withScore.reduce((s, g) => s + g.metacritic_score, 0) / withScore.length)
+          : 0
+        const sortedMeta = [...withScore].map(g => g.metacritic_score).sort((a, b) => a - b)
+        const medianMetacritic = sortedMeta.length > 0
+          ? sortedMeta[Math.floor(sortedMeta.length / 2)]
+          : 0
+        const pctWithMetacritic = gamesRaw?.length > 0
+          ? Math.round((withScore.length / gamesRaw.length) * 100)
+          : 0
+
+        // ── Stats prix (jeux payants) ─────────────────────────
+        const paidGames = gamesRaw?.filter(g => !g.is_free && g.price_eur > 0) || []
+        const avgPricePaid = paidGames.length > 0
+          ? parseFloat((paidGames.reduce((s, g) => s + g.price_eur, 0) / paidGames.length).toFixed(2))
+          : 0
+        const sortedPrices = [...paidGames].map(g => g.price_eur).sort((a, b) => a - b)
+        const medianPricePaid = sortedPrices.length > 0
+          ? parseFloat(sortedPrices[Math.floor(sortedPrices.length / 2)].toFixed(2))
           : 0
 
         // ── Distribution des prix ────────────────────────────────
@@ -249,6 +307,11 @@ export function useTendances() {
           sampleSize: gamesRaw?.length || 0,
           uniqueGenres: Object.keys(genreCountsMap).length,
           uniqueCategories: Object.keys(categoryCountsMap).length,
+          medianMetacritic,
+          pctWithMetacritic,
+          avgPricePaid,
+          medianPricePaid,
+          releaseByMonth,
         })
       } catch (err) {
         setError(err.message)
