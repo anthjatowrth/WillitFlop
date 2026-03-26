@@ -335,6 +335,9 @@ function SuccesTab({ successPct }) {
             </div>
           </>
         )}
+        <InsightBox icon="scatter_plot" title="Comprendre la matrice : quatre zones, quatre stratégies">
+          Ce graphique est l'un des plus stratégiques de l'application. Chaque point représente un tag — une caractéristique de votre jeu — positionné selon deux axes : sa popularité (combien de jeux le portent) et son taux de succès historique. Les <strong>Stars</strong> en haut à droite sont populaires et performantes, mais ultra-compétitives. Les <strong>Niches Efficaces</strong> en haut à gauche sont les pépites : peu de jeux les portent, mais ceux qui le font réussissent souvent — idéal pour se différencier. Le <strong>Piège Populaire</strong> en bas à droite est la zone à éviter : des caractéristiques très usitées dont le taux de succès reste médiocre, souvent parce que le marché est saturé. La <strong>Zone Morte</strong> concentre les tags rares ET peu performants. La meilleure stratégie de positionnement combine généralement une "Star" pour la crédibilité et une "Niche Efficace" pour se démarquer.
+        </InsightBox>
       </Section>
 
       {/* ── Graphiques par catégorie de tag — sélecteur interactif ── */}
@@ -374,6 +377,9 @@ function SuccesTab({ successPct }) {
             color={CHARTS_CONFIG[selectedChart].color}
           />
         ) : null}
+        <InsightBox icon="label" title="Lire le succès à travers les mécaniques">
+          Chaque dimension — ambiance, gameplay, visuel, caméra, mode de jeu — raconte une histoire différente sur ce que les joueurs plébiscitent réellement. Certaines mécaniques affichent des taux de succès bien au-dessus de la moyenne, non pas parce qu'elles sont objectivement "meilleures", mais parce qu'elles répondent à des attentes précises et documentées d'une communauté fidèle. À l'inverse, des approches très courantes peuvent souffrir d'un excès d'offre : le marché est saturé, les joueurs deviennent sélectifs. L'enjeu pour tout créateur n'est pas de cocher les tags populaires pour plaire à l'algorithme, mais de comprendre quels assemblages de caractéristiques créent une valeur perçue unique. C'est l'origine de tout positionnement différenciant — et la base de tout pitch convaincant auprès des joueurs comme des éditeurs.
+        </InsightBox>
       </Section>
 
     </div>
@@ -483,6 +489,9 @@ export default function Market() {
               <span className="font-inter text-[10px] text-muted-foreground uppercase tracking-widest">Taux de succès % (axe droit)</span>
             </div>
           </div>
+          <InsightBox icon="show_chart" title="Une offre qui a explosé, une visibilité qui s'est effondrée">
+            Entre 2010 et aujourd'hui, le nombre de jeux publiés sur Steam a été multiplié par plus de 30. Cette croissance n'est pas le signe d'un marché en bonne santé — c'est le résultat d'une démocratisation des outils de développement et d'une politique de publication de plus en plus permissive. La conséquence directe : le taux de succès moyen s'est érodé à mesure que la concurrence s'est intensifiée. Pour un jeu indépendant lancé aujourd'hui, la probabilité statistique d'être découvert sans stratégie marketing active est infime. La qualité ne suffit plus ; la visibilité est devenue la ressource la plus rare de l'écosystème Steam.
+          </InsightBox>
         </Section>
 
         {/* ── Saisonnalité — publications & succès par mois ── */}
@@ -596,6 +605,9 @@ export default function Market() {
                   <span className="font-inter text-[10px] text-muted-foreground uppercase tracking-widest">Taux de succès % (axe droit)</span>
                 </div>
               </div>
+              <InsightBox icon="calendar_month" title="Le calendrier de sortie, un levier souvent sous-estimé">
+                Les données révèlent un paradoxe saisonnier bien documenté : les mois à fort volume de publications (généralement avant les grandes fêtes) correspondent à une compétition maximale pour l'attention des joueurs. Sortir "avec la masse" dilue mécaniquement la visibilité dans les storefronts et les algorithmes de recommandation. À l'inverse, les périodes plus creuses offrent moins de concurrence directe et peuvent générer un taux de découverte plus élevé à budget égal. La stratégie optimale n'est pas toujours de cibler les fenêtres de forte activité — c'est d'identifier les semaines où votre jeu aura le moins de rivaux directs pour capter l'attention.
+              </InsightBox>
             </Section>
           )
         })()}
@@ -697,6 +709,9 @@ export default function Market() {
           ) : (
             <p className="font-inter text-sm text-muted-foreground text-center py-8">Aucune donnée Twitch disponible</p>
           )}
+          <InsightBox icon="live_tv" title="Le streaming, signal de marché autant que canal de visibilité">
+            L'écart de taux de succès entre les jeux présents sur Twitch et les autres n'est pas anodin. Il ne signifie pas que le streaming "crée" le succès — il révèle que les jeux capables de générer du contenu streamable partagent des caractéristiques intrinsèques : forte rejouabilité, moments spectaculaires, dynamique sociale. Twitch est à la fois un canal de distribution et un indicateur de conception. Un jeu difficile à streamer est souvent un jeu difficile à faire découvrir par le bouche-à-oreille numérique, qui reste aujourd'hui le principal vecteur de croissance organique sur Steam. Concevoir des moments "clipables" dès le début du développement n'est pas du cynisme — c'est de la stratégie.
+          </InsightBox>
         </Section>
 
       </div>
@@ -891,6 +906,10 @@ export default function Market() {
 
         </div>
 
+        <InsightBox standalone icon="psychology_alt" title="Prix et qualité : deux variables qui comptent, mais pas comme on le croit">
+          La distribution des prix révèle un marché profondément segmenté : une majorité de jeux gratuits ou très abordables, et un segment premium qui affiche de meilleures performances. Ce n'est pas la gratuité qui pénalise en soi — c'est qu'un prix bas s'accompagne souvent d'un positionnement flou et d'un lancement peu préparé. Côté Metacritic, la corrélation entre note critique et succès commercial est réelle mais limitée : la couverture presse reste marginale (moins de 10 % du catalogue est noté). La majorité des jeux ne sera jamais testée par un journaliste — ce sont les avis utilisateurs Steam qui font office de référence pour 90 % du marché. Travailler sa réputation auprès des joueurs est donc bien plus impactant que de viser une couverture critique.
+        </InsightBox>
+
         {/* ── Playtime × succès + Achievements × succès ── */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -1040,6 +1059,10 @@ export default function Market() {
 
         </div>
 
+        <InsightBox standalone icon="hourglass_bottom" title="Durée et progression : l'engagement comme moteur de réputation">
+          Les jeux avec une durée de jeu intermédiaire affichent généralement les meilleurs taux de succès. Cette "golden zone" correspond à une expérience suffisamment longue pour générer des avis positifs et des recommandations organiques, sans imposer un engagement excessif qui freine l'achat impulsif. Les systèmes de succès (achievements) jouent un rôle similaire : ils structurent l'expérience, créent des objectifs secondaires et prolongent la durée de vie perçue du jeu. Un système de succès bien pensé n'est pas un gadget — c'est un outil de rétention qui signale à l'algorithme Steam une base de joueurs active et engagée, ce qui améliore directement la fréquence d'apparition dans les recommandations.
+        </InsightBox>
+
         {/* ── Pareto genres ── */}
         <Section
           title="Analyse de Pareto — Répartition des genres"
@@ -1120,6 +1143,9 @@ export default function Market() {
               <span className="font-inter text-sm text-muted-foreground">% cumulé (axe droit)</span>
             </div>
           </div>
+          <InsightBox icon="bar_chart_4_bars" title="La loi de Pareto est impitoyable sur Steam">
+            Quelques genres — typiquement Indie, Action, Adventure et RPG — accaparent l'écrasante majorité des publications. Ce n'est pas un hasard : ces catégories bénéficient d'une demande forte et d'une barrière à l'entrée relativement faible, ce qui attire les développeurs comme des aimants. Le problème est structurel : plus un genre est populaire, plus la concurrence y est féroce, et plus il est difficile d'émerger sans un budget marketing significatif. La longue traîne — ces genres grisés avec moins de publications — offre paradoxalement des niches à fort potentiel, où la demande existe mais l'offre reste insuffisante. Identifier ces zones sous-exploitées est souvent plus stratégique que d'attaquer les genres leaders avec un dixième du budget d'un studio établi.
+          </InsightBox>
         </Section>
 
       </div>
