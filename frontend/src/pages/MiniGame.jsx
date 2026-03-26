@@ -1384,7 +1384,7 @@ function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded,
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
               <div>
                 <SummaryRow label="Genre"      value={answers.genre} />
-                <SummaryRow label="Ambiance"   value={answers.universe?.join(', ')} />
+                <SummaryRow label="Ambiance"   value={[].concat(answers.universe || []).join(', ') || null} />
                 <SummaryRow label="Mécaniques" value={answers.mechanics?.join(', ')} />
                 <SummaryRow label="Style"      value={answers.visualStyle} />
               </div>

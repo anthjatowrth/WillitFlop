@@ -34,7 +34,7 @@ function buildPrompt({ verdict, metacritic_score, answers }) {
 
   const details = [
     answers.genre       && `Genre : ${answers.genre}`,
-    answers.universe?.length    && `Ambiances : ${answers.universe.join(', ')}`,
+    answers.universe?.length    && `Ambiances : ${[].concat(answers.universe).join(', ')}`,
     answers.mechanics?.length   && `Mécaniques : ${answers.mechanics.join(', ')}`,
     answers.visualStyle && `Style visuel : ${answers.visualStyle}`,
     answers.categories?.length  && `Mode de jeu : ${answers.categories.join(', ')}`,

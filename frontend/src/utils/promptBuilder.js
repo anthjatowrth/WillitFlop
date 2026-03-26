@@ -76,7 +76,8 @@ const categoriesMap = {
  */
 export function buildImagePrompt({ genre, universe, mechanics, visualStyle, perspective, categories, description, game_name }) {
   const genrePart        = genreMap[genre] || genre || null
-  const universePart     = (universe || []).map(u => universeMap[u] || u).filter(Boolean).join(', ') || null
+  const universeArr      = Array.isArray(universe) ? universe : (universe ? [universe] : [])
+  const universePart     = universeArr.map(u => universeMap[u] || u).filter(Boolean).join(', ') || null
   const mechanicsPart    = (mechanics || []).slice(0, 3).map(m => mechanicsMap[m] || m).filter(Boolean).join(', ') || null
   const visualStylePart  = visualStyleMap[visualStyle] || null
   const perspectivePart  = perspectiveMap[perspective] || null
