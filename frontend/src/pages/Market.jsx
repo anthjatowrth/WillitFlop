@@ -14,6 +14,7 @@ import {
 } from 'recharts'
 import { useTendances } from '../hooks/useTendances'
 import { useTagAnalytics } from '../hooks/useTagAnalytics'
+import { SentimentTab } from '../components/market/SentimentTab'
 
 // ── Palette ──────────────────────────────────────────────────────────
 const C = [
@@ -1245,13 +1246,7 @@ export default function Market() {
           {activeTab === 'apercu'        && <AperçuTab />}
           {activeTab === 'distributions' && <DistributionsTab />}
           {activeTab === 'succes'        && <SuccesTab successPct={successPct} />}
-          {activeTab === 'tags'          && (
-            <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
-              <span className="material-symbols-outlined text-5xl text-muted-foreground/30">psychology</span>
-              <p className="font-space-grotesk text-lg font-bold text-muted-foreground/50">Analyse de sentiment</p>
-              <p className="font-inter text-xs text-muted-foreground/40 uppercase tracking-widest">Bientôt disponible</p>
-            </div>
-          )}
+          {activeTab === 'tags'          && <SentimentTab />}
         </div>
 
       </div>
