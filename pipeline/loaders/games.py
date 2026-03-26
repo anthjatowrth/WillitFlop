@@ -3,6 +3,7 @@ from pipeline.config import CATEGORY_WHITELIST
 from pipeline.transformers.text import clean_short_description, clean_supported_languages, clean_release_date
 from pipeline.transformers.kpis import compute_kpis
 from pipeline.transformers.prices import convert_price_to_eur
+from pipeline.utils import compute_sentiment
 
 
 def save_game_details(conn, app_id: int, d: dict):
@@ -135,21 +136,25 @@ def save_game_tags(conn, app_id: int, tags: dict):
 def save_reviews(conn, app_id: int, reviews: list[dict]):
     with conn.cursor() as cur:
         for r in reviews:
+            language = r.get("language")
+            review_text = r.get("review")
+            sentiment = compute_sentiment(review_text) if language == "english" else None
             cur.execute("""
                 INSERT INTO game_reviews (
                     recommendation_id, app_id, language, review, voted_up,
-                    weighted_vote_score, votes_up, timestamp_created
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, to_timestamp(%s))
+                    weighted_vote_score, votes_up, timestamp_created, sentiment_score
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, to_timestamp(%s), %s)
                 ON CONFLICT (recommendation_id) DO NOTHING
             """, (
                 r.get("recommendationid"),
                 app_id,
-                r.get("language"),
-                r.get("review"),
+                language,
+                review_text,
                 r.get("voted_up"),
                 r.get("weighted_vote_score"),
                 r.get("votes_up"),
                 r.get("timestamp_created"),
+                sentiment,
             ))
     conn.commit()
 

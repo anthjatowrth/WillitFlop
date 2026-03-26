@@ -86,7 +86,8 @@ CREATE TABLE IF NOT EXISTS game_reviews (
     voted_up                    BOOLEAN,
     weighted_vote_score         FLOAT,
     votes_up                    INTEGER,
-    timestamp_created           TIMESTAMP
+    timestamp_created           TIMESTAMP,
+    sentiment_score             FLOAT
 );
 
 -- ── Index ─────────────────────────────────────────────────────────────────────
@@ -101,3 +102,4 @@ CREATE INDEX IF NOT EXISTS idx_tags_name              ON game_tags(tag_name);
 CREATE INDEX IF NOT EXISTS idx_reviews_app_id         ON game_reviews(app_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_language       ON game_reviews(language);
 CREATE INDEX IF NOT EXISTS idx_reviews_voted_up       ON game_reviews(voted_up);
+CREATE INDEX IF NOT EXISTS idx_reviews_sentiment      ON game_reviews(sentiment_score);

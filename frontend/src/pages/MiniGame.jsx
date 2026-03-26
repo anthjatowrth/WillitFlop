@@ -97,11 +97,6 @@ const CATEGORIES_IMAGES = {
   'Workshop / Mods': imgModGame,
 }
 
-const MECHANICS_OBJECT_POSITION = {
-  'Craft / Survie': 'bottom',
-  'Tower Defense': 'bottom',
-}
-
 const MECHANICS_IMAGES = {
   'Roguelike / Roguelite': imgRoguelike,
   'Open World': imgOpenWorld,
@@ -148,9 +143,9 @@ const QUESTIONS = [
   },
   {
     key: 'universe',
-    type: 'ambiance-grid',
+    type: 'universe-carousel',
     label: "Quelle est l'ambiance de ton univers ?",
-    sublabel: "Jusqu'à 4 choix",
+    sublabel: 'Choix unique',
     options: [
       'Dark / Mature',
       'Cozy / Wholesome',
@@ -163,7 +158,6 @@ const QUESTIONS = [
       'Historique',
       'Anime / Coloré',
     ],
-    maxSelect: 4,
   },
   {
     key: 'mechanics',
@@ -267,7 +261,7 @@ const QUESTIONS = [
 // Valeurs initiales de l'état answers
 const INITIAL_ANSWERS = {
   genre: '',
-  universe: [],
+  universe: '',
   mechanics: [],
   visualStyle: '',
   perspective: '',
@@ -333,7 +327,8 @@ export default function MiniGame() {
     const value = answers[q.key]
     if (q.optional) return true
     if (q.type === 'text') return value.trim().length > 0
-    if (q.type === 'multi' || q.type === 'ambiance-grid' || q.type === 'mechanics-grid' || q.type === 'categories-carousel') return value.length > 0
+    if (q.type === 'universe-carousel') return value !== ''
+    if (q.type === 'multi' || q.type === 'mechanics-grid' || q.type === 'categories-carousel') return value.length > 0
     if (q.type === 'camera-grid' || q.type === 'visual-grid') return value !== ''
     if (q.type === 'yesno') return value !== null
     if (q.type === 'slotmachine') return value !== null
@@ -423,7 +418,7 @@ export default function MiniGame() {
     }
 
     const genreTags      = genreTagMap[a.genre] || []
-    const universeTags   = (a.universe || []).flatMap(u => universeTagMap[u] || [])
+    const universeTags   = a.universe ? (universeTagMap[a.universe] || []) : []
     const mechanicsTags  = (a.mechanics || []).flatMap(m => mechanicsTagMap[m] || [])
     const visualTags     = visualStyleTagMap[a.visualStyle] || []
     const perspTags      = perspectiveTagMap[a.perspective] || []
@@ -684,12 +679,17 @@ export default function MiniGame() {
                 <div className="flex flex-col">
                   {/* Texte libre */}
                   {question.type === 'text' && (
-                    <textarea
-                      className="flex-1 w-full rounded-lg border bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary font-exo"
-                      placeholder={question.placeholder}
-                      value={answers[question.key]}
-                      onChange={handleTextChange}
-                    />
+                    <div className="flex flex-col gap-3">
+                      <div className="relative w-full rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
+                        <textarea
+                          className="absolute inset-0 w-full h-full rounded-lg border bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary font-exo"
+                          placeholder={question.placeholder}
+                          value={answers[question.key]}
+                          onChange={handleTextChange}
+                        />
+                      </div>
+                      <div className="h-16" />
+                    </div>
                   )}
 
                   {/* Grille illustrée — genre */}
@@ -701,14 +701,13 @@ export default function MiniGame() {
                     />
                   )}
 
-                  {/* Grille illustrée — ambiance */}
-                  {question.type === 'ambiance-grid' && (
-                    <AmbianceGrid
+                  {/* Carousel — ambiance univers */}
+                  {question.type === 'universe-carousel' && (
+                    <MechanicsGrid
                       options={question.options}
-                      selected={answers[question.key]}
-                      onToggle={handleMultiToggle}
-                      maxSelect={question.maxSelect}
-                      images={question.images ?? AMBIANCE_IMAGES}
+                      selected={answers[question.key] ? [answers[question.key]] : []}
+                      onToggle={handleSingleSelect}
+                      images={AMBIANCE_IMAGES}
                     />
                   )}
 
@@ -793,24 +792,45 @@ export default function MiniGame() {
 
                   {/* Machine à sous — prix */}
                   {question.type === 'slotmachine' && (
-                    <SlotMachine
-                      onSelect={(v) => setAnswers(prev => ({ ...prev, pricing: v }))}
-                    />
+                    <div className="flex flex-col gap-3">
+                      <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <SlotMachine
+                            onSelect={(v) => setAnswers(prev => ({ ...prev, pricing: v }))}
+                          />
+                        </div>
+                      </div>
+                      <div className="h-16" />
+                    </div>
                   )}
 
                   {/* Slider de polish dev */}
                   {question.type === 'devslider' && (
-                    <DevSlider
-                      value={answers.devLevel}
-                      onSelect={(v) => setAnswers(prev => ({ ...prev, devLevel: v }))}
-                    />
+                    <div className="flex flex-col gap-3">
+                      <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
+                        <div className="absolute inset-0">
+                          <DevSlider
+                            value={answers.devLevel}
+                            onSelect={(v) => setAnswers(prev => ({ ...prev, devLevel: v }))}
+                          />
+                        </div>
+                      </div>
+                      <div className="h-16" />
+                    </div>
                   )}
 
                   {/* Quiz des langues */}
                   {question.type === 'languagequiz' && (
-                    <TranslationBlitz
-                      onComplete={(_score, languageCount) => setAnswers(prev => ({ ...prev, languages: languageCount }))}
-                    />
+                    <div className="flex flex-col gap-3">
+                      <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
+                        <div className="absolute inset-0">
+                          <TranslationBlitz
+                            onComplete={(_score, languageCount) => setAnswers(prev => ({ ...prev, languages: languageCount }))}
+                          />
+                        </div>
+                      </div>
+                      <div className="h-16" />
+                    </div>
                   )}
                 </div>
               </CardContent>
@@ -892,8 +912,8 @@ function GenreGrid({ options, selected, onSelect, images = GENRE_IMAGES }) {
 
   return (
     <div className="flex flex-col gap-3 select-none">
-      {/* Grande image centrale */}
-      <div className="relative w-full overflow-hidden rounded-xl h-[340px]">
+      {/* Grande image centrale — exactement 16:9, zéro recadrage */}
+      <div className="relative w-full overflow-hidden rounded-xl" style={{ aspectRatio: '16/9' }}>
         <img
           key={focusedOption}
           src={images[focusedOption]}
@@ -928,7 +948,7 @@ function GenreGrid({ options, selected, onSelect, images = GENRE_IMAGES }) {
       </div>
 
       {/* Strip de miniatures */}
-      <div className="flex gap-1.5">
+      <div className="flex gap-1.5 h-16">
         {options.map((option, idx) => {
           const isFocused = idx === focusIdx
           const isSelected = option === selected
@@ -936,9 +956,8 @@ function GenreGrid({ options, selected, onSelect, images = GENRE_IMAGES }) {
             <button
               key={option}
               onClick={() => pickThumb(idx)}
-              className="flex-1 rounded-lg overflow-hidden transition-all duration-200"
+              className="flex-1 h-full rounded-lg overflow-hidden transition-all duration-200"
               style={{
-                aspectRatio: '3/2',
                 minWidth: 0,
                 border: isFocused
                   ? '2px solid var(--wif-pink)'
@@ -1007,14 +1026,13 @@ function MechanicsGrid({ options, selected, onToggle, images = MECHANICS_IMAGES 
 
   return (
     <div className="flex flex-col gap-3 select-none">
-      {/* Grande image centrale */}
-      <div className="relative w-full overflow-hidden rounded-xl h-[380px]">
+      {/* Grande image centrale — exactement 16:9, zéro recadrage */}
+      <div className="relative w-full overflow-hidden rounded-xl" style={{ aspectRatio: '16/9' }}>
         <img
           key={focusedOption}
           src={images[focusedOption]}
           alt={focusedOption}
           className="w-full h-full object-cover transition-all duration-300"
-          style={{ objectPosition: MECHANICS_OBJECT_POSITION[focusedOption] ?? 'center' }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 px-5 pb-4">
@@ -1038,109 +1056,50 @@ function MechanicsGrid({ options, selected, onToggle, images = MECHANICS_IMAGES 
         </button>
       </div>
 
-      {/* Strip de miniatures scrollable */}
-      <div
-        ref={stripRef}
-        className="flex gap-1.5 overflow-x-auto"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        onScroll={handleScroll}
-      >
-        {options.map((option, idx) => {
-          const isFocused = idx === focusIdx
-          const isSelected = option === selectedVal
-          return (
-            <button
-              key={option}
-              onClick={() => pickThumb(idx)}
-              className="rounded-lg overflow-hidden transition-all duration-200 flex-shrink-0"
-              style={{
-                width: '110px',
-                aspectRatio: '3/2',
-                border: isFocused
-                  ? '2px solid var(--wif-pink)'
-                  : isSelected
-                  ? '2px solid rgba(255,20,147,0.4)'
-                  : '2px solid var(--wif-border)',
-                opacity: isFocused ? 1 : 0.6,
-                transform: isFocused ? 'scale(1.06)' : 'scale(1)',
-              }}
-            >
-              <img src={images[option]} alt={option} className="w-full h-full object-cover" />
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Indicateur de scroll */}
-      <div className="relative w-full h-1 rounded-full" style={{ background: 'var(--wif-border)' }}>
+      {/* Strip de miniatures + indicateur groupés (hauteur totale = h-16) */}
+      <div className="flex flex-col gap-1.5 h-16">
         <div
-          className="absolute top-0 h-full rounded-full transition-all duration-150"
-          style={{ background: 'var(--wif-pink)', width: thumbStyle.width, left: thumbStyle.left }}
-        />
+          ref={stripRef}
+          className="flex gap-1.5 overflow-x-auto flex-1"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          onScroll={handleScroll}
+        >
+          {options.map((option, idx) => {
+            const isFocused = idx === focusIdx
+            const isSelected = option === selectedVal
+            return (
+              <button
+                key={option}
+                onClick={() => pickThumb(idx)}
+                className="rounded-lg overflow-hidden transition-all duration-200 flex-shrink-0 h-full"
+                style={{
+                  width: '110px',
+                  border: isFocused
+                    ? '2px solid var(--wif-pink)'
+                    : isSelected
+                    ? '2px solid rgba(255,20,147,0.4)'
+                    : '2px solid var(--wif-border)',
+                  opacity: isFocused ? 1 : 0.6,
+                  transform: isFocused ? 'scale(1.06)' : 'scale(1)',
+                }}
+              >
+                <img src={images[option]} alt={option} className="w-full h-full object-cover" />
+              </button>
+            )
+          })}
+        </div>
+        {/* Indicateur de scroll */}
+        <div className="relative w-full h-1 rounded-full flex-shrink-0" style={{ background: 'var(--wif-border)' }}>
+          <div
+            className="absolute top-0 h-full rounded-full transition-all duration-150"
+            style={{ background: 'var(--wif-pink)', width: thumbStyle.width, left: thumbStyle.left }}
+          />
+        </div>
       </div>
     </div>
   )
 }
 
-// ---------------------------------------------------------------------------
-// Grille illustrée — sélection d'ambiance (Q2, multi jusqu'à 4)
-// ---------------------------------------------------------------------------
-function AmbianceGrid({ options, selected, onToggle, maxSelect, images = AMBIANCE_IMAGES }) {
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="grid grid-cols-4 gap-2">
-        {options.map((option, idx) => {
-          const isSelected = selected.includes(option)
-          const isDisabled = maxSelect !== 1 && !isSelected && selected.length >= maxSelect
-          // Centre les 2 derniers items si la dernière ligne est incomplète (10 items → 2 en dernière ligne)
-          const lastRowRemainder = options.length % 4
-          const isFirstOfLastRow = lastRowRemainder !== 0 && idx === options.length - lastRowRemainder
-          return (
-            <button
-              key={option}
-              onClick={() => !isDisabled && onToggle(option)}
-              disabled={isDisabled}
-              className="relative rounded-xl overflow-hidden transition-all duration-200"
-              style={{
-                aspectRatio: '16/9',
-                border: isSelected ? '2px solid var(--wif-pink)' : '2px solid var(--wif-border)',
-                opacity: isDisabled ? 0.3 : 1,
-                transform: isSelected ? 'scale(1.03)' : 'scale(1)',
-                ...(isFirstOfLastRow && lastRowRemainder === 2 ? { gridColumnStart: 2 } : {}),
-              }}
-            >
-              <img
-                src={images[option]}
-                alt={option}
-                className="w-full h-full object-cover"
-              />
-              <div
-                className="absolute inset-0 transition-opacity duration-200"
-                style={{ background: isSelected ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.25)' }}
-              />
-              {isSelected && (
-                <div
-                  className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold"
-                  style={{ background: 'var(--wif-pink)' }}
-                >
-                  ✓
-                </div>
-              )}
-              <span className="absolute bottom-0 left-0 right-0 px-2 pb-2 text-center font-label text-[10px] tracking-widest uppercase text-white font-bold leading-tight drop-shadow-lg">
-                {option}
-              </span>
-            </button>
-          )
-        })}
-      </div>
-      {maxSelect > 1 && (
-        <p className="text-right font-label text-[10px] tracking-widest uppercase" style={{ color: 'var(--wif-muted)' }}>
-          {selected.length} / {maxSelect} sélectionné{selected.length > 1 ? 's' : ''}
-        </p>
-      )}
-    </div>
-  )
-}
 
 // ---------------------------------------------------------------------------
 // Carousel multi-sélection — catégories de jeu (Q6)
@@ -1156,10 +1115,11 @@ function CategoriesCarousel({ options, selected, onToggle }) {
 
   return (
     <div className="flex flex-col gap-3 select-none">
-      {/* Grande image centrale */}
+      {/* Grande image centrale — exactement 16:9, zéro recadrage */}
       <div
-        className="relative w-full overflow-hidden rounded-xl h-[340px] cursor-pointer"
+        className="relative w-full overflow-hidden rounded-xl cursor-pointer"
         onClick={() => onToggle(focusedOption)}
+        style={{ aspectRatio: '16/9' }}
       >
         <img
           key={focusedOption}
@@ -1210,7 +1170,7 @@ function CategoriesCarousel({ options, selected, onToggle }) {
       </div>
 
       {/* Strip de miniatures */}
-      <div className="flex gap-1.5">
+      <div className="flex gap-1.5 h-16">
         {options.map((option, idx) => {
           const isFocused = idx === focusIdx
           const isSelected = selected.includes(option)
@@ -1218,9 +1178,8 @@ function CategoriesCarousel({ options, selected, onToggle }) {
             <button
               key={option}
               onClick={() => { setFocusIdx(idx); onToggle(option) }}
-              className="relative flex-1 rounded-lg overflow-hidden transition-all duration-200"
+              className="relative flex-1 h-full rounded-lg overflow-hidden transition-all duration-200"
               style={{
-                aspectRatio: '3/2',
                 minWidth: 0,
                 border: isSelected
                   ? '2px solid var(--wif-pink)'
@@ -1245,11 +1204,6 @@ function CategoriesCarousel({ options, selected, onToggle }) {
         })}
       </div>
 
-      {selected.length > 0 && (
-        <p className="text-right font-label text-[10px] tracking-widest uppercase" style={{ color: 'var(--wif-muted)' }}>
-          {selected.length} sélectionné{selected.length > 1 ? 's' : ''}
-        </p>
-      )}
     </div>
   )
 }

@@ -23,6 +23,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.schemas import GameInput, PredictResponse, TranslateRequest
+from api.routers import sentiment
 from ml.predict import predict
 
 app = FastAPI(title="WillitFlop API")
@@ -35,6 +36,9 @@ app.add_middleware(
     allow_methods=["POST", "GET", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
 )
+
+
+app.include_router(sentiment.router)
 
 
 @app.get("/health")

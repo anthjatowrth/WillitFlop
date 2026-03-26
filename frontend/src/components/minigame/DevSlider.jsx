@@ -14,10 +14,10 @@ export default function DevSlider({ value, onSelect }) {
   const fillPct = value !== null && value !== undefined ? (value + 1) * 25 : 0
 
   return (
-    <div className="flex gap-4 select-none">
+    <div className="flex gap-4 select-none h-full">
 
       {/* ── Grille 2×2 ── */}
-      <div className="flex-1 grid grid-cols-2 gap-3">
+      <div className="flex-1 grid grid-cols-2 gap-3" style={{ gridAutoRows: '1fr' }}>
         {LEVELS.map((level) => {
           const isSelected = value === level.index
           return (
@@ -33,7 +33,7 @@ export default function DevSlider({ value, onSelect }) {
               }}
             >
               {/* Image */}
-              <div className="w-full overflow-hidden" style={{ height: '140px' }}>
+              <div className="w-full flex-1 min-h-0 overflow-hidden">
                 <img
                   src={level.img}
                   alt={level.label}
@@ -63,7 +63,7 @@ export default function DevSlider({ value, onSelect }) {
       </div>
 
       {/* ── Jauge verticale ── */}
-      <div className="flex flex-col items-center gap-2" style={{ width: '32px' }}>
+      <div className="flex flex-col items-center gap-2 h-full" style={{ width: '32px' }}>
         {/* Label haut */}
         <span
           className="font-label text-[8px] tracking-widest uppercase text-center leading-tight"

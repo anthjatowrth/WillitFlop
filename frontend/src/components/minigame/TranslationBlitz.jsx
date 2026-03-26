@@ -143,7 +143,7 @@ export default function TranslationBlitz({ onComplete }) {
   const progress = (timeLeft / TIMER_TOTAL) * 100
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', height: '100%' }}>
       {/* Timer bar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <div style={{
@@ -170,7 +170,10 @@ export default function TranslationBlitz({ onComplete }) {
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(2, 1fr)',
+        gridAutoRows: '1fr',
         gap: '10px',
+        flex: 1,
+        minHeight: 0,
       }}>
         {questions.map((q, qi) => {
           const selected = answers[qi]
@@ -187,6 +190,7 @@ export default function TranslationBlitz({ onComplete }) {
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '10px',
+                height: '100%',
                 opacity: isAnswered ? 0.85 : 1,
                 transition: 'opacity 0.3s',
               }}
