@@ -48,8 +48,12 @@ app.include_router(leaderboard_router.router)
 
 
 @app.get("/health")
-def health():
+async def health_check():
     return {"status": "ok"}
+
+@app.head("/health")
+async def health_head():
+    return
 
 
 @app.post("/predict", response_model=PredictResponse)

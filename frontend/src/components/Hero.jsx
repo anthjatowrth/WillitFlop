@@ -30,10 +30,7 @@ const FEATURES = [
 
 export default function Hero() {
   return (
-    <section
-      className="flex flex-col items-center text-center technical-grid"
-      style={{ padding: '90px 48px 80px' }}
-    >
+    <section className="flex flex-col items-center text-center technical-grid px-4 sm:px-8 md:px-12 pt-16 md:pt-24 pb-16 md:pb-20">
       {/* Eyebrow */}
       <p
         className="font-space-mono uppercase tracking-[0.22em]"

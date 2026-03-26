@@ -7,18 +7,30 @@ GET /sentiment/wordcloud   → top-80 words per polarity (Python-side, from game
 GET /sentiment/timeline    → avg sentiment grouped by month
 """
 
-import os
 import re
+import time
 from collections import Counter
 
 import psycopg2
 import psycopg2.extras
-from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException, Query
 
-load_dotenv()
+from api.db import get_conn
 
 router = APIRouter(prefix="/sentiment", tags=["sentiment"])
+
+# ── Simple in-memory cache (TTL = 1 hour) ─────────────────────────────────────
+_CACHE: dict = {}
+_CACHE_TTL = 3600  # seconds
+
+def _cached(key: str, fn):
+    """Return cached value or call fn(), cache result, return it."""
+    entry = _CACHE.get(key)
+    if entry and time.time() - entry["ts"] < _CACHE_TTL:
+        return entry["data"]
+    result = fn()
+    _CACHE[key] = {"data": result, "ts": time.time()}
+    return result
 
 # ── Stopwords ─────────────────────────────────────────────────────────────────
 _STOPWORDS = {
@@ -54,67 +66,64 @@ def _tokenize(text: str) -> list[str]:
     ]
 
 
-# ── DB helper ─────────────────────────────────────────────────────────────────
-def _get_conn():
-    host = os.getenv("DB_HOST")
-    if not host:
-        raise HTTPException(status_code=503, detail="DB_HOST not configured")
-    return psycopg2.connect(
-        host=host,
-        port=int(os.getenv("DB_PORT", 5432)),
-        dbname=os.getenv("DB_NAME", "postgres"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        sslmode="require",
-    )
-
-
 # ── GET /sentiment/games ──────────────────────────────────────────────────────
 @router.get("/games")
 def sentiment_games(
     successful_only: bool = Query(False),
-    min_reviews: int = Query(2, ge=1),
+    min_reviews: int = Query(10, ge=1),
 ):
     """Per-game sentiment metrics from the sentiment_analysis dbt mart."""
-    conn = _get_conn()
-    try:
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            query = """
-                SELECT
-                    app_id, name, is_successful,
-                    review_wilson_score, owners_midpoint,
-                    avg_sentiment, positive_sentiment_ratio,
-                    negative_sentiment_ratio, review_count
-                FROM sentiment_analysis
-                WHERE review_count >= %s
-            """
-            params: list = [min_reviews]
-            if successful_only:
-                query += " AND is_successful = TRUE"
-            query += " ORDER BY avg_sentiment DESC"
-            cur.execute(query, params)
-            rows = cur.fetchall()
-        return [dict(r) for r in rows]
-    finally:
-        conn.close()
+    cache_key = f"games:{successful_only}:{min_reviews}"
+
+    def _fetch():
+        conn = get_conn()
+        try:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                query = """
+                    SELECT
+                        app_id, name, is_successful,
+                        review_wilson_score, owners_midpoint,
+                        avg_sentiment, positive_sentiment_ratio,
+                        negative_sentiment_ratio, review_count
+                    FROM sentiment_analysis
+                    WHERE review_count >= %s
+                """
+                params: list = [min_reviews]
+                if successful_only:
+                    query += " AND is_successful = TRUE"
+                query += " ORDER BY review_count DESC NULLS LAST LIMIT 500"
+                cur.execute(query, params)
+                rows = cur.fetchall()
+            return [dict(r) for r in rows]
+        except psycopg2.Error as e:
+            raise HTTPException(status_code=500, detail=f"DB error: {e.pgerror or str(e)}")
+        finally:
+            conn.close()
+
+    return _cached(cache_key, _fetch)
 
 
 # ── GET /sentiment/by-genre ───────────────────────────────────────────────────
 @router.get("/by-genre")
 def sentiment_by_genre():
     """Per-genre average sentiment from the sentiment_by_genre dbt mart."""
-    conn = _get_conn()
-    try:
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute("""
-                SELECT genre_name, avg_sentiment, positive_ratio, review_count
-                FROM sentiment_by_genre
-                ORDER BY avg_sentiment DESC
-            """)
-            rows = cur.fetchall()
-        return [dict(r) for r in rows]
-    finally:
-        conn.close()
+    def _fetch():
+        conn = get_conn()
+        try:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute("""
+                    SELECT genre_name, avg_sentiment, positive_ratio, review_count
+                    FROM sentiment_by_genre
+                    ORDER BY avg_sentiment DESC
+                """)
+                rows = cur.fetchall()
+            return [dict(r) for r in rows]
+        except psycopg2.Error as e:
+            raise HTTPException(status_code=500, detail=f"DB error: {e.pgerror or str(e)}")
+        finally:
+            conn.close()
+
+    return _cached("by-genre", _fetch)
 
 
 # ── GET /sentiment/wordcloud ──────────────────────────────────────────────────
@@ -124,56 +133,70 @@ def sentiment_wordcloud():
     Top-80 most frequent words for positive (voted_up=true) and negative
     (voted_up=false) English reviews. Stopwords + Steam noise excluded.
     """
-    conn = _get_conn()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("""
-                SELECT review, voted_up
-                FROM game_reviews
-                WHERE language = 'english'
-                  AND review IS NOT NULL
-                  AND review != ''
-            """)
-            rows = cur.fetchall()
-    finally:
-        conn.close()
+    def _fetch():
+        conn = get_conn()
+        try:
+            with conn.cursor() as cur:
+                # Limit to 30 000 reviews — sufficient for representative word
+                # frequencies and avoids loading the entire table into Python memory.
+                cur.execute("""
+                    SELECT review, voted_up
+                    FROM game_reviews
+                    WHERE language = 'english'
+                      AND review IS NOT NULL
+                      AND review != ''
+                    LIMIT 30000
+                """)
+                rows = cur.fetchall()
+        except psycopg2.Error as e:
+            raise HTTPException(status_code=500, detail=f"DB error: {e.pgerror or str(e)}")
+        finally:
+            conn.close()
 
-    pos_counter: Counter = Counter()
-    neg_counter: Counter = Counter()
+        pos_counter: Counter = Counter()
+        neg_counter: Counter = Counter()
+        for review, voted_up in rows:
+            tokens = _tokenize(review)
+            if voted_up:
+                pos_counter.update(tokens)
+            else:
+                neg_counter.update(tokens)
 
-    for review, voted_up in rows:
-        tokens = _tokenize(review)
-        if voted_up:
-            pos_counter.update(tokens)
-        else:
-            neg_counter.update(tokens)
+        def to_list(counter: Counter) -> list[dict]:
+            return [{"text": w, "value": c} for w, c in counter.most_common(80)]
 
-    def to_list(counter: Counter) -> list[dict]:
-        return [{"text": w, "value": c} for w, c in counter.most_common(80)]
+        return {"positive": to_list(pos_counter), "negative": to_list(neg_counter)}
 
-    return {"positive": to_list(pos_counter), "negative": to_list(neg_counter)}
+    return _cached("wordcloud", _fetch)
 
 
 # ── GET /sentiment/timeline ───────────────────────────────────────────────────
 @router.get("/timeline")
 def sentiment_timeline():
     """Average sentiment grouped by month (from timestamp_created)."""
-    conn = _get_conn()
-    try:
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute("""
-                SELECT
-                    TO_CHAR(DATE_TRUNC('month', timestamp_created), 'YYYY-MM') AS month,
-                    AVG(sentiment_score)                                        AS avg_sentiment,
-                    COUNT(*)                                                    AS review_count
-                FROM game_reviews
-                WHERE language        = 'english'
-                  AND sentiment_score IS NOT NULL
-                  AND timestamp_created IS NOT NULL
-                GROUP BY DATE_TRUNC('month', timestamp_created)
-                ORDER BY DATE_TRUNC('month', timestamp_created)
-            """)
-            rows = cur.fetchall()
-        return [dict(r) for r in rows]
-    finally:
-        conn.close()
+    def _fetch():
+        conn = get_conn()
+        try:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute("""
+                    SELECT
+                        TO_CHAR(DATE_TRUNC('month', timestamp_created), 'YYYY-MM') AS month,
+                        AVG(sentiment_score)                                        AS avg_sentiment,
+                        COUNT(*)                                                    AS review_count
+                    FROM game_reviews
+                    WHERE language        = 'english'
+                      AND sentiment_score IS NOT NULL
+                      AND timestamp_created IS NOT NULL
+                      AND timestamp_created >= NOW() - INTERVAL '10 years'
+                    GROUP BY DATE_TRUNC('month', timestamp_created)
+                    ORDER BY DATE_TRUNC('month', timestamp_created)
+                    LIMIT 120
+                """)
+                rows = cur.fetchall()
+            return [dict(r) for r in rows]
+        except psycopg2.Error as e:
+            raise HTTPException(status_code=500, detail=f"DB error: {e.pgerror or str(e)}")
+        finally:
+            conn.close()
+
+    return _cached("timeline", _fetch)

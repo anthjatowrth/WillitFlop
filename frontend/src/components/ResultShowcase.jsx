@@ -77,7 +77,7 @@ export default function ResultShowcase() {
   const accentColor = 'var(--wif-success)'
 
   return (
-    <section className="w-full" style={{ padding: '72px 48px' }}>
+    <section className="w-full px-4 sm:px-8 md:px-12 py-16 md:py-20">
       <div className="max-w-5xl mx-auto">
 
         <div className="wif-section-label">Résultat</div>
@@ -91,8 +91,9 @@ export default function ResultShowcase() {
           Un exemple de résultat après simulation complète — votre analyse sera personnalisée.
         </p>
 
-        {/* ── Layout annoté ── */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', gap: '20px' }}>
+        {/* ── Layout annoté — scrollable horizontally on narrow screens ── */}
+        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', gap: '20px', minWidth: 'max-content' }}>
 
           {/* Colonne gauche — annotations → */}
           <div
@@ -184,7 +185,7 @@ export default function ResultShowcase() {
                   <div className="flex justify-center mt-2">
                     <div
                       className="relative inline-flex flex-col items-center px-7 py-3 rounded-sm"
-                      style={{ background: '#d63a6e', boxShadow: '3px 4px 0px rgba(0,0,0,0.3)' }}
+                      style={{ background: 'var(--wif-pink)', boxShadow: '3px 4px 0px rgba(0,0,0,0.3)' }}
                     >
                       <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full border-2" style={{ background: 'var(--wif-bg)', borderColor: 'var(--wif-border)' }} />
                       <span className="font-label text-[10px] tracking-[0.3em] uppercase mt-1" style={{ color: 'rgba(255,255,255,0.8)' }}>Prix</span>
@@ -258,6 +259,7 @@ export default function ResultShowcase() {
           </div>
 
         </div>
+        </div>{/* end overflow-x-auto */}
 
         {/* ── CTA ── */}
         <div style={{ marginTop: '48px', display: 'flex', justifyContent: 'center' }}>

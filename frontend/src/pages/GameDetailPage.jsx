@@ -1,8 +1,14 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import Hls from 'hls.js'
-import { getScoreAccent } from '../utils/scoreColor'
 import { translateToFR } from '../utils/deepl'
+import SectionLabel from '../components/SectionLabel'
+import StatRow from '../components/StatRow'
+import MetacriticBlock from '../components/MetacriticBlock'
+import CommunityScoreBlock from '../components/CommunityScoreBlock'
+import Skeleton from '../components/Skeleton'
+import GameTrailer from '../components/GameTrailer'
+import ScreenshotGallery from '../components/ScreenshotGallery'
+import ScreenshotCarousel from '../components/ScreenshotCarousel'
 
 // URL de l'API FastAPI centralisée
 const API_URL = import.meta.env.VITE_API_URL
@@ -35,288 +41,6 @@ function formatPrice(isF, priceEur) {
   if (isF) return 'Gratuit'
   if (!priceEur) return '—'
   return `€${priceEur.toFixed(2)}`
-}
-
-// ── Sub-components ────────────────────────────────────────────────────────
-
-/** Section header with left primary border */
-function SectionLabel({ children }) {
-  return (
-    <div className="font-label text-[10px] tracking-[0.35em] uppercase text-primary mb-4">
-      {children}
-    </div>
-  )
-}
-
-/** Single stat row in the sidebar */
-function StatRow({ icon, label, value, accent = false }) {
-  return (
-    <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{icon}</span>
-        <span className="font-label text-[10px] tracking-widest uppercase">{label}</span>
-      </div>
-      <span
-        className="font-headline font-bold text-sm"
-        style={{ color: accent ? 'var(--primary)' : 'var(--foreground)' }}
-      >
-        {value}
-      </span>
-    </div>
-  )
-}
-
-/** Metacritic score display — large format, half-card */
-function MetacriticBlock({ score }) {
-  const accent = getScoreAccent(score)
-  if (!accent) return (
-    <div className="flex flex-col items-center justify-center py-4 border border-border flex-1">
-      <span className="font-label text-[9px] tracking-widest uppercase text-muted-foreground">Metacritic</span>
-      <span className="font-headline text-4xl font-black text-muted-foreground/30 mt-1">N/A</span>
-    </div>
-  )
-  return (
-    <div
-      className="flex flex-col items-center justify-center py-4 border flex-1"
-      style={{ borderColor: `var(--${accent})` }}
-    >
-      <span
-        className="font-label text-[9px] tracking-widest uppercase"
-        style={{ color: `var(--${accent})` }}
-      >
-        Metacritic
-      </span>
-      <span
-        className="font-headline text-4xl font-black mt-1 leading-none"
-        style={{ color: `var(--${accent})` }}
-      >
-        {score}
-      </span>
-    </div>
-  )
-}
-
-/** Community score display — large format, half-card */
-function CommunityScoreBlock({ positive, total }) {
-  if (!total) return (
-    <div className="flex flex-col items-center justify-center py-4 border border-border flex-1">
-      <span className="font-label text-[9px] tracking-widest uppercase text-muted-foreground">Score Communauté</span>
-      <span className="font-headline text-4xl font-black text-muted-foreground/30 mt-1">N/A</span>
-    </div>
-  )
-  const pct = Math.round((positive / total) * 100)
-  const color = pct >= 70 ? 'var(--wif-success)' : pct >= 50 ? 'var(--wif-warn)' : 'var(--wif-danger)'
-  return (
-    <div className="flex flex-col items-center justify-center py-4 border flex-1" style={{ borderColor: color }}>
-      <span className="font-label text-[9px] tracking-widest uppercase" style={{ color }}>
-        Score Communauté
-      </span>
-      <span className="font-headline text-4xl font-black mt-1 leading-none" style={{ color }}>
-        {pct}%
-      </span>
-      <div className="w-full px-3 mt-2">
-        <div className="h-1.5 bg-surface-container-high overflow-hidden">
-          <div
-            className="h-full transition-all duration-700"
-            style={{ width: `${pct}%`, background: color }}
-          />
-        </div>
-        <div className="flex justify-between mt-1">
-          <span className="font-label text-[8px] text-muted-foreground/60">↑ {positive.toLocaleString()}</span>
-          <span className="font-label text-[8px] text-muted-foreground/60">↓ {(total - positive).toLocaleString()}</span>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/** Skeleton placeholder */
-function Skeleton({ className = '' }) {
-  return <div className={`bg-surface-container-high animate-pulse ${className}`} />
-}
-
-/** HLS video player for Steam trailers */
-function GameTrailer({ hlsUrl, posterUrl }) {
-  const videoRef = useRef(null)
-
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video || !hlsUrl) return
-
-    const isHls = hlsUrl.includes('.m3u8')
-
-    if (isHls && Hls.isSupported()) {
-      const hls = new Hls()
-      hls.loadSource(hlsUrl)
-      hls.attachMedia(video)
-      return () => hls.destroy()
-    } else if (isHls && video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = hlsUrl
-    } else {
-      video.src = hlsUrl
-    }
-  }, [hlsUrl])
-
-  if (!hlsUrl) return null
-
-  return (
-    <section>
-      <SectionLabel>Trailer</SectionLabel>
-      <div className="overflow-hidden border border-border group" style={{ aspectRatio: '16/9' }}>
-        <video
-          ref={videoRef}
-          poster={posterUrl}
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="w-full h-full object-cover"
-          onMouseEnter={(e) => e.currentTarget.setAttribute('controls', '')}
-          onMouseLeave={(e) => e.currentTarget.removeAttribute('controls')}
-        />
-      </div>
-    </section>
-  )
-}
-
-/** Lightbox overlay — fullscreen image viewer */
-function Lightbox({ url, onClose }) {
-  useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [onClose])
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
-      onClick={onClose}
-    >
-      <button
-        className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
-        onClick={onClose}
-      >
-        <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>close</span>
-      </button>
-      <img
-        src={url}
-        alt="Screenshot"
-        className="max-w-[90vw] max-h-[90vh] object-contain"
-        onClick={(e) => e.stopPropagation()}
-      />
-    </div>
-  )
-}
-
-/** Screenshots gallery — thumbnails in a row, click to enlarge */
-function ScreenshotGallery({ urls }) {
-  const [active, setActive] = useState(urls?.[0] ?? null)
-  const [lightbox, setLightbox] = useState(null)
-  if (!urls?.length) return null
-
-  return (
-    <>
-      {lightbox && <Lightbox url={lightbox} onClose={() => setLightbox(null)} />}
-      <section>
-        <SectionLabel>Captures d'écran</SectionLabel>
-        <div className="flex flex-col gap-3">
-          <div
-            className="overflow-hidden border border-border cursor-zoom-in relative group"
-            style={{ aspectRatio: '16/9' }}
-            onClick={() => setLightbox(active)}
-          >
-            <img
-              src={active}
-              alt="Screenshot"
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
-              <span className="material-symbols-outlined text-white" style={{ fontSize: '32px' }}>zoom_in</span>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            {urls.map((url, i) => (
-              <button
-                key={url}
-                className="overflow-hidden border transition-all duration-200 flex-1"
-                style={{
-                  aspectRatio: '16/9',
-                  borderColor: active === url ? 'var(--primary)' : 'var(--border)',
-                }}
-                onClick={() => setActive(url)}
-              >
-                <img
-                  src={url}
-                  alt={`Screenshot ${i + 1}`}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                />
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-    </>
-  )
-}
-
-/** Screenshot carousel — auto-slide, used when no trailer is available */
-function ScreenshotCarousel({ urls }) {
-  const [index, setIndex] = useState(0)
-  const [lightbox, setLightbox] = useState(null)
-  if (!urls?.length) return null
-
-  const prev = () => setIndex((i) => (i - 1 + urls.length) % urls.length)
-  const next = () => setIndex((i) => (i + 1) % urls.length)
-
-  return (
-    <>
-      {lightbox && <Lightbox url={lightbox} onClose={() => setLightbox(null)} />}
-      <section>
-        <SectionLabel>Captures d'écran</SectionLabel>
-        <div className="flex flex-col gap-3">
-          <div
-            className="relative overflow-hidden border border-border group cursor-zoom-in"
-            style={{ aspectRatio: '16/9' }}
-            onClick={() => setLightbox(urls[index])}
-          >
-            <img
-              src={urls[index]}
-              alt={`Screenshot ${index + 1}`}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
-              <span className="material-symbols-outlined text-white" style={{ fontSize: '32px' }}>zoom_in</span>
-            </div>
-            <button
-              className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white transition-colors p-1"
-              onClick={(e) => { e.stopPropagation(); prev() }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>chevron_left</span>
-            </button>
-            <button
-              className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white transition-colors p-1"
-              onClick={(e) => { e.stopPropagation(); next() }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>chevron_right</span>
-            </button>
-            <div className="absolute bottom-2 right-3 bg-black/60 px-2 py-0.5 font-label text-[10px] tracking-wider text-white/80">
-              {index + 1} / {urls.length}
-            </div>
-          </div>
-          <div className="flex gap-1.5 justify-center">
-            {urls.map((_, i) => (
-              <button
-                key={i}
-                className="w-1.5 h-1.5 transition-all duration-200"
-                style={{ background: i === index ? 'var(--primary)' : 'var(--border)' }}
-                onClick={() => setIndex(i)}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-    </>
-  )
 }
 
 // ── Main page ─────────────────────────────────────────────────────────────
@@ -397,7 +121,7 @@ export default function GameDetailPage() {
           </p>
           <button
             onClick={() => navigate('/database')}
-            className="px-5 py-2 bg-primary text-primary-foreground font-bold text-xs font-label tracking-widest uppercase"
+            className="px-5 py-2 bg-primary text-primary-foreground font-bold text-xs font-label tracking-widest uppercase hover:bg-primary/90 active:scale-95 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             Retour au catalogue
           </button>
@@ -460,7 +184,7 @@ export default function GameDetailPage() {
 
           <button
             onClick={() => navigate('/database')}
-            className="flex items-center gap-1.5 font-label text-[10px] tracking-widest uppercase text-white/60 hover:text-white transition-colors mb-6 self-start"
+            className="flex items-center gap-1.5 font-label text-[10px] tracking-widest uppercase text-white/60 hover:text-white focus-visible:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/60 transition-colors mb-6 self-start"
           >
             <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>arrow_back</span>
             Catalogue de jeux
@@ -560,7 +284,7 @@ export default function GameDetailPage() {
                         className="bg-card border p-3"
                         style={{ borderColor: i < 3 ? 'var(--primary)' : 'var(--border)' }}
                       >
-                        <div className="font-label text-[8px] tracking-widest uppercase text-muted-foreground mb-1">
+                        <div className="font-label text-[10px] tracking-widest uppercase text-muted-foreground mb-1">
                           {i < 3 ? 'Signal fort' : 'Signal'}
                         </div>
                         <div className="font-headline font-bold text-sm text-foreground mb-2">
@@ -575,7 +299,7 @@ export default function GameDetailPage() {
                             }}
                           />
                         </div>
-                        <div className="font-label text-[8px] text-muted-foreground/60 mt-1">
+                        <div className="font-label text-[10px] text-muted-foreground/60 mt-1">
                           {t.votes.toLocaleString()} votes
                         </div>
                       </div>

@@ -4,6 +4,8 @@ import { useGameDatabase } from '../hooks/useGameDatabase'
 // URL de l'API FastAPI centralisée
 const API_URL = import.meta.env.VITE_API_URL
 import GameCard from '../components/database/GameCard'
+import SkeletonGrid from '../components/database/SkeletonGrid'
+import SkeletonList from '../components/database/SkeletonList'
 
 const PAGE_SIZE = 80
 
@@ -34,20 +36,6 @@ function extractYears(games) {
     }
   })
   return Array.from(years).sort((a, b) => b - a)
-}
-
-// ── Skeleton cards ────────────────────────────────────────────────────────
-
-function SkeletonGrid() {
-  return Array.from({ length: 8 }).map((_, i) => (
-    <div key={i} className="bg-surface-container-high animate-pulse" style={{ aspectRatio: '3/4' }} />
-  ))
-}
-
-function SkeletonList() {
-  return Array.from({ length: 8 }).map((_, i) => (
-    <div key={i} className="h-16 bg-surface-container-high animate-pulse" />
-  ))
 }
 
 // ── Main page ─────────────────────────────────────────────────────────────
@@ -165,8 +153,10 @@ export default function GameDatabasePage() {
             </span>
           </div>
 
-          <h1 className="font-headline font-black tracking-tighter text-7xl text-foreground leading-none">
-            NOTRE CATALOGUE 
+          <h1 className="font-headline font-black tracking-tighter text-foreground leading-none"
+            style={{ fontSize: 'clamp(2rem, 7vw, 4.5rem)' }}
+          >
+            NOTRE CATALOGUE
             <span style={{ color: 'var(--primary)' }}> INDIE GAMES</span>
           </h1>
 

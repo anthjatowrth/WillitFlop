@@ -14,15 +14,13 @@ GET /api/market/tag-analytics  → taux de succès par ambiance / gameplay / vis
 """
 
 import asyncio
-import os
 
-import psycopg2
 import psycopg2.extras
 from cachetools import TTLCache
-from dotenv import load_dotenv
 from fastapi import APIRouter
 
-load_dotenv()
+from api.db import get_conn
+from api.utils import serialize_row
 
 # Cache TTL 300 s — données mises à jour quotidiennement par les pipelines dbt/ETL.
 _cache: TTLCache = TTLCache(maxsize=10, ttl=300)
@@ -55,26 +53,6 @@ _CAMERA = [
 _ALL_TRACKED = list(set(_AMBIANCE + _GAMEPLAY + _VISUAL + _CAMERA))
 
 
-def _get_conn():
-    return psycopg2.connect(
-        host=os.getenv("DB_HOST"),
-        port=int(os.getenv("DB_PORT", 5432)),
-        dbname=os.getenv("DB_NAME"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-    )
-
-
-def _serialize(value):
-    if hasattr(value, "isoformat"):
-        return value.isoformat()
-    return value
-
-
-def _serialize_row(row: dict) -> dict:
-    return {k: _serialize(v) for k, v in row.items()}
-
-
 def _truncate(name: str, max_len: int = 18) -> str:
     return name[:max_len] + "…" if len(name) > max_len else name
 
@@ -89,7 +67,7 @@ def _truncate22(name: str) -> str:
 
 def _sync_group1():
     """Scalaires marché + jeux par année + saisonnalité."""
-    conn = _get_conn()
+    conn = get_conn()
     try:
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cur.execute("SELECT * FROM get_market_summary()")
@@ -106,7 +84,7 @@ def _sync_group1():
 
 def _sync_group2():
     """Distribution et taux de succès des genres + catégories."""
-    conn = _get_conn()
+    conn = get_conn()
     try:
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cur.execute("SELECT * FROM get_genre_distribution()")
@@ -123,7 +101,7 @@ def _sync_group2():
 
 def _sync_group3():
     """Top tags + distributions prix."""
-    conn = _get_conn()
+    conn = get_conn()
     try:
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cur.execute("SELECT * FROM get_top_tags(30)")
@@ -140,7 +118,7 @@ def _sync_group3():
 
 def _sync_group4():
     """Distributions Metacritic + stats Twitch."""
-    conn = _get_conn()
+    conn = get_conn()
     try:
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cur.execute("SELECT * FROM get_metacritic_distribution()")
@@ -159,11 +137,11 @@ def _sync_group4():
 
 def _sync_group5():
     """Top jeux + distributions playtime et achievements."""
-    conn = _get_conn()
+    conn = get_conn()
     try:
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cur.execute("SELECT * FROM get_top_games(25)")
-        top_games = [_serialize_row(dict(r)) for r in cur.fetchall()]
+        top_games = [serialize_row(dict(r)) for r in cur.fetchall()]
         cur.execute("SELECT * FROM get_playtime_distribution()")
         playtime = [dict(r) for r in cur.fetchall()]
         cur.execute("SELECT * FROM get_achievement_distribution()")
@@ -297,7 +275,7 @@ async def get_tendances():
 
 def _sync_tag_counts(all_tracked: list) -> tuple:
     """Compte total jeux + taux de succès par tag."""
-    conn = _get_conn()
+    conn = get_conn()
     try:
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cur.execute("SELECT COUNT(*) AS n FROM games")
@@ -312,7 +290,7 @@ def _sync_tag_counts(all_tracked: list) -> tuple:
 
 def _sync_genre_cats() -> tuple:
     """Taux de succès par genre et par catégorie."""
-    conn = _get_conn()
+    conn = get_conn()
     try:
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cur.execute("SELECT * FROM get_genre_success_rates(20)")

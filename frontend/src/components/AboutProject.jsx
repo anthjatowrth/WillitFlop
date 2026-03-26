@@ -57,7 +57,7 @@ function BodyText({ children, style }) {
 
 export default function AboutProject() {
   return (
-    <section className="w-full" style={{ background: 'var(--wif-bg2)', padding: '80px 48px' }}>
+    <section className="w-full px-4 sm:px-8 md:px-12 py-16 md:py-20" style={{ background: 'var(--wif-bg2)' }}>
       <div style={{ maxWidth: '900px', margin: '0 auto' }}>
 
         <div className="wif-section-label">Le projet</div>
@@ -115,7 +115,7 @@ export default function AboutProject() {
           title="Une base filtrée, pas exhaustive"
           style={{ marginBottom: '20px' }}
         >
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '32px', alignItems: 'center' }}>
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-8">
             <BodyText>
               Steam recense des centaines de milliers de jeux. Pour construire une base utilisable et cohérente,
               nous avons fait le choix délibéré de ne retenir que les jeux ayant dépassé un seuil de{' '}
@@ -237,7 +237,7 @@ export default function AboutProject() {
 
         {/* ── Bloc 5 : Périmètre (pleine largeur) ── */}
         <BlockCard accentColor="var(--wif-gray)" icon={Target} title="Ce que notre analyse couvre — et ce qu'elle ne couvre pas">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <BodyText style={{ marginBottom: '20px' }}>
                 Nos modèles se concentrent exclusivement sur les{' '}
@@ -251,7 +251,7 @@ export default function AboutProject() {
                 variables tout aussi déterminantes, mais elles sont délibérément hors de notre scope.
               </BodyText>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', alignContent: 'start' }}>
+            <div className="grid grid-cols-2 gap-3" style={{ alignContent: 'start' }}>
               <div>
                 <div className="font-space-mono uppercase" style={{ fontSize: '0.58rem', letterSpacing: '0.18em', color: 'var(--wif-success)', marginBottom: '8px' }}>
                   ✓ Analysés

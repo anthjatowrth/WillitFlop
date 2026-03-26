@@ -9,7 +9,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   ScatterChart, Scatter,
   BarChart, Bar,
@@ -89,10 +89,15 @@ function SentimentCard({ title, subtitle, children, loading }) {
 
 // ── Chart 1 — Scatter: sentiment vs success ───────────────────────────────────
 function ScatterSentiment({ data, loading }) {
-  const chartData = (data || []).map(d => ({
-    ...d,
-    owners_midpoint: d.owners_midpoint ? Math.log10(Math.max(1, d.owners_midpoint)) : null,
-  }))
+  const chartData = (data || [])
+    .map(d => ({
+      ...d,
+      avg_sentiment:   parseFloat(d.avg_sentiment),
+      owners_midpoint: d.owners_midpoint
+        ? Math.log10(Math.max(1, parseFloat(d.owners_midpoint)))
+        : null,
+    }))
+    .filter(d => d.owners_midpoint !== null && !isNaN(d.avg_sentiment))
 
   return (
     <SentimentCard
@@ -143,6 +148,7 @@ function ScatterSentiment({ data, loading }) {
           />
           <Scatter
             data={chartData}
+            isAnimationActive={false}
             shape={({ cx, cy, payload }) => (
               <circle
                 cx={cx} cy={cy} r={6}
@@ -214,63 +220,30 @@ function CssWordCloud({ words, colors }) {
   )
 }
 
-function WordCloudSection({ data, loading }) {
-  const [mode, setMode] = useState('positive')
-  const words  = mode === 'positive' ? (data?.positive || []) : (data?.negative || [])
-  const colors = mode === 'positive' ? POS_COLORS : NEG_COLORS
-
+function WordCloudPanel({ title, words, colors, loading, accentColor }) {
   return (
     <SentimentCard
-      title="Ce que les joueurs retiennent"
+      title={title}
       subtitle="Mots les plus fréquents dans les avis — hors stopwords Steam"
       loading={loading}
     >
-      {/* Toggle */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-        {[
-          { key: 'positive', label: 'Avis positifs', activeColor: '#00C2FF' },
-          { key: 'negative', label: 'Avis négatifs', activeColor: '#E8005A' },
-        ].map(({ key, label, activeColor }) => (
-          <button
-            key={key}
-            onClick={() => setMode(key)}
-            style={{
-              padding: '6px 18px',
-              fontSize: 11,
-              fontFamily: 'Inter, sans-serif',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.12em',
-              border: `1px solid ${mode === key ? activeColor : 'rgba(255,255,255,0.12)'}`,
-              background: mode === key ? `${activeColor}18` : 'transparent',
-              color: mode === key ? activeColor : 'rgba(255,255,255,0.4)',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              borderRadius: 2,
-            }}
-          >
-            {label}
-          </button>
-        ))}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
+        <div style={{ width: 8, height: 8, borderRadius: '50%', background: accentColor }} />
+        <span style={{ fontSize: 11, fontFamily: 'Inter, sans-serif', color: accentColor, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+          {words?.length ?? 0} mots
+        </span>
       </div>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={mode}
-          initial={{ opacity: 0, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.97 }}
-          transition={{ duration: 0.25 }}
-        >
-          <CssWordCloud words={words} colors={colors} />
-        </motion.div>
-      </AnimatePresence>
+      <CssWordCloud words={words || []} colors={colors} />
     </SentimentCard>
   )
 }
 
 // ── Chart 3 — Horizontal bar: sentiment by genre ──────────────────────────────
 function GenreSentimentBar({ data, loading }) {
-  const sorted = [...(data || [])].sort((a, b) => a.avg_sentiment - b.avg_sentiment)
+  const sorted = [...(data || [])]
+    .map(d => ({ ...d, avg_sentiment: parseFloat(d.avg_sentiment) }))
+    .filter(d => !isNaN(d.avg_sentiment))
+    .sort((a, b) => a.avg_sentiment - b.avg_sentiment)
 
   return (
     <SentimentCard
@@ -325,6 +298,11 @@ function GenreSentimentBar({ data, loading }) {
 
 // ── Chart 4 — Timeline ────────────────────────────────────────────────────────
 function SentimentTimeline({ data, loading }) {
+  const chartData = (data || []).map(d => ({
+    ...d,
+    avg_sentiment: parseFloat(d.avg_sentiment),
+  }))
+
   return (
     <SentimentCard
       title="Le ton des reviews évolue-t-il ?"
@@ -332,7 +310,7 @@ function SentimentTimeline({ data, loading }) {
       loading={loading}
     >
       <ResponsiveContainer width="100%" height={300}>
-        <AreaChart data={data || []} margin={{ top: 10, right: 20, left: 0, bottom: 20 }}>
+        <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 20 }}>
           <defs>
             <linearGradient id="sentGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%"  stopColor="#E8005A" stopOpacity={0.25} />
@@ -428,11 +406,30 @@ export function SentimentTab() {
   useEffect(() => { fetchAll() }, [fetchAll])
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(480px, 1fr))', gap: 24 }}>
-      <ScatterSentiment  data={gamesData}    loading={loadingGames} />
-      <WordCloudSection  data={wordData}     loading={loadingWords} />
-      <GenreSentimentBar data={genreData}    loading={loadingGenre} />
-      <SentimentTimeline data={timelineData} loading={loadingTimeline} />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* Row 1 — 3 score charts */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+        <ScatterSentiment  data={gamesData}    loading={loadingGames} />
+        <SentimentTimeline data={timelineData} loading={loadingTimeline} />
+        <GenreSentimentBar data={genreData}    loading={loadingGenre} />
+      </div>
+      {/* Row 2 — positive + negative word clouds */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+        <WordCloudPanel
+          title="Ce que les joueurs adorent"
+          words={wordData?.positive}
+          colors={POS_COLORS}
+          loading={loadingWords}
+          accentColor="#00C2FF"
+        />
+        <WordCloudPanel
+          title="Ce qui déçoit les joueurs"
+          words={wordData?.negative}
+          colors={NEG_COLORS}
+          loading={loadingWords}
+          accentColor="#E8005A"
+        />
+      </div>
     </div>
   )
 }

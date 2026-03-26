@@ -10,33 +10,20 @@ GET  /api/leaderboard           → récupère le leaderboard du mois en cours
 POST /api/leaderboard           → insère ou remplace une entrée dans le leaderboard
 """
 
-import os
 from datetime import date
 
-import psycopg2
 import psycopg2.extras
 from cachetools import TTLCache
-from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
-load_dotenv()
+from api.db import get_conn
 
 router = APIRouter(prefix="/api/leaderboard", tags=["leaderboard"])
 
 # TTL 60 s — le leaderboard change peu en cours de journée mais doit rester frais.
 # Le cache est invalidé à chaque POST (nouvelle entrée).
 _cache: TTLCache = TTLCache(maxsize=10, ttl=60)
-
-
-def _get_conn():
-    return psycopg2.connect(
-        host=os.getenv("DB_HOST"),
-        port=int(os.getenv("DB_PORT", 5432)),
-        dbname=os.getenv("DB_NAME"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-    )
 
 
 def _current_period() -> str:
@@ -85,7 +72,7 @@ def check_eligible(
     ascending = verdict == "Top!"
     order = "ASC" if ascending else "DESC"
 
-    conn = _get_conn()
+    conn = get_conn()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
         f"SELECT id, proba FROM leaderboard_entries WHERE period = %s AND verdict = %s ORDER BY proba {order} LIMIT 5",
@@ -117,7 +104,7 @@ def fetch_leaderboard():
         return _cache[cache_key]
 
     period = _current_period()
-    conn = _get_conn()
+    conn = get_conn()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     cur.execute(
@@ -173,7 +160,7 @@ def save_leaderboard(entry: LeaderboardEntryIn):
     ascending = entry.verdict == "Top!"
     order = "ASC" if ascending else "DESC"
 
-    conn = _get_conn()
+    conn = get_conn()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     # Récupère le top 5 existant (trié du "moins bon" au "meilleur")

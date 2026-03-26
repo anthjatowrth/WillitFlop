@@ -1,6 +1,6 @@
 export default function PromiseSection() {
   return (
-    <section className="w-full max-w-3xl mx-auto text-center" style={{ padding: '72px 48px' }}>
+    <section className="w-full max-w-3xl mx-auto text-center px-4 sm:px-8 md:px-12 py-16 md:py-20">
       <p
         className="font-space-mono text-muted-foreground leading-relaxed"
         style={{ fontSize: '1.1rem' }}

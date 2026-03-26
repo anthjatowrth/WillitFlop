@@ -2,12 +2,14 @@ import os
 import requests
 from dotenv import load_dotenv
 
+from pipeline.config import TWITCH_OAUTH_URL, TWITCH_HELIX_GAMES_URL, TWITCH_HELIX_STREAMS_URL
+
 load_dotenv()
 
 
 def get_twitch_token() -> str:
     resp = requests.post(
-        "https://id.twitch.tv/oauth2/token",
+        TWITCH_OAUTH_URL,
         params={
             "client_id":     os.getenv("TWITCH_CLIENT_ID"),
             "client_secret": os.getenv("TWITCH_CLIENT_SECRET"),
@@ -29,7 +31,7 @@ def fetch_twitch_data(game_name: str, token: str) -> dict:
     }
 
     resp = requests.get(
-        "https://api.twitch.tv/helix/games",
+        TWITCH_HELIX_GAMES_URL,
         params={"name": game_name},
         headers=headers,
         timeout=10,
@@ -50,7 +52,7 @@ def fetch_twitch_data(game_name: str, token: str) -> dict:
         if cursor:
             params["after"] = cursor
         resp = requests.get(
-            "https://api.twitch.tv/helix/streams",
+            TWITCH_HELIX_STREAMS_URL,
             params=params,
             headers=headers,
             timeout=10,

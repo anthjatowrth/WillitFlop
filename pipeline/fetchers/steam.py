@@ -4,6 +4,13 @@ import time
 import requests
 from dotenv import load_dotenv
 
+from pipeline.config import (
+    STEAMSPY_API_URL,
+    STEAM_APPDETAILS_URL,
+    STEAM_APPREVIEWS_URL,
+    STEAM_ACHIEVEMENTS_URL,
+)
+
 load_dotenv()
 
 
@@ -13,7 +20,7 @@ def fetch_indie_app_ids() -> list[int]:
     page = 0
     while True:
         resp = requests.get(
-            "https://steamspy.com/api.php",
+            STEAMSPY_API_URL,
             params={"request": "genre", "genre": "Indie", "page": page},
             timeout=15,
         )
@@ -38,7 +45,7 @@ def fetch_indie_app_ids() -> list[int]:
 def fetch_app_details(app_id: int) -> dict | None:
     """Récupère les détails complets d'un jeu via l'API Steam."""
     resp = requests.get(
-        "https://store.steampowered.com/api/appdetails",
+        STEAM_APPDETAILS_URL,
         params={"appids": app_id, "l": "english"},
         timeout=15,
     )
@@ -51,7 +58,7 @@ def fetch_app_details(app_id: int) -> dict | None:
 
 def fetch_app_reviews(app_id: int) -> tuple[list[dict], dict | None]:
     resp = requests.get(
-        f"https://store.steampowered.com/appreviews/{app_id}",
+        STEAM_APPREVIEWS_URL.format(app_id=app_id),
         params={
             "json": 1,
             "language": "english",
@@ -81,7 +88,7 @@ def fetch_app_reviews(app_id: int) -> tuple[list[dict], dict | None]:
 
 def fetch_achievement_stats(app_id: int) -> dict | None:
     resp = requests.get(
-        "https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/",
+        STEAM_ACHIEVEMENTS_URL,
         params={"gameid": app_id, "key": os.getenv("STEAM_API_KEY")},
         timeout=15)
     if resp.status_code == 403:

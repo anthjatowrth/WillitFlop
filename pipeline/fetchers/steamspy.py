@@ -1,9 +1,11 @@
 import requests
 
+from pipeline.config import STEAMSPY_API_URL
+
 
 def fetch_steamspy_data(app_id: int) -> dict | None:
     resp = requests.get(
-        "https://steamspy.com/api.php",
+        STEAMSPY_API_URL,
         params={"request": "appdetails", "appid": app_id},
         timeout=15,
     )

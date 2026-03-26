@@ -11,15 +11,12 @@ GET /api/games               → liste paginée avec filtres (genre, année, sea
 GET /api/games/{app_id}      → fiche complète d'un jeu (avec genres, tags, catégories)
 """
 
-import os
-
-import psycopg2
 import psycopg2.extras
 from cachetools import TTLCache
-from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException, Query
 
-load_dotenv()
+from api.db import get_conn
+from api.utils import serialize_row
 
 router = APIRouter(prefix="/api/games", tags=["games"])
 
@@ -27,26 +24,6 @@ router = APIRouter(prefix="/api/games", tags=["games"])
 # TTL 60 s pour les listes paginées (filtres variés, données plus fraîches).
 _cache_slow: TTLCache = TTLCache(maxsize=200, ttl=300)
 _cache_fast: TTLCache = TTLCache(maxsize=500, ttl=60)
-
-
-def _get_conn():
-    return psycopg2.connect(
-        host=os.getenv("DB_HOST"),
-        port=int(os.getenv("DB_PORT", 5432)),
-        dbname=os.getenv("DB_NAME"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-    )
-
-
-def _serialize(value):
-    if hasattr(value, "isoformat"):
-        return value.isoformat()
-    return value
-
-
-def _serialize_row(row: dict) -> dict:
-    return {k: _serialize(v) for k, v in row.items()}
 
 
 # ── GET /api/games/count ───────────────────────────────────────────────────────
@@ -59,7 +36,7 @@ def games_count():
     """
     if "count" in _cache_slow:
         return _cache_slow["count"]
-    conn = _get_conn()
+    conn = get_conn()
     cur = conn.cursor()
     cur.execute("SELECT COUNT(*) FROM games")
     count = cur.fetchone()[0]
@@ -92,7 +69,7 @@ def list_games(
     if cache_key in _cache_fast:
         return _cache_fast[cache_key]
 
-    conn = _get_conn()
+    conn = get_conn()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     from_idx = (page - 1) * page_size
 
@@ -192,7 +169,7 @@ def list_games(
     cur.close()
     conn.close()
 
-    data = [_serialize_row(dict(r)) for r in rows]
+    data = [serialize_row(dict(r)) for r in rows]
     result = {"data": data, "count": total_count}
     _cache_fast[cache_key] = result
     return result
@@ -211,7 +188,7 @@ def get_game(app_id: int):
     if cache_key in _cache_slow:
         return _cache_slow[cache_key]
 
-    conn = _get_conn()
+    conn = get_conn()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     cur.execute("SELECT * FROM games WHERE app_id = %s", (app_id,))
@@ -221,7 +198,7 @@ def get_game(app_id: int):
         conn.close()
         raise HTTPException(status_code=404, detail="Game not found")
 
-    game = _serialize_row(dict(row))
+    game = serialize_row(dict(row))
 
     cur.execute("SELECT genre_name FROM game_genres WHERE app_id = %s", (app_id,))
     game["game_genres"] = [{"genre_name": r["genre_name"]} for r in cur.fetchall()]
