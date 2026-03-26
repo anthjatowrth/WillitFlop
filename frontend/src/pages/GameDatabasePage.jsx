@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
-import { supabase } from '../api/client'
 import { useGameDatabase } from '../hooks/useGameDatabase'
+
+// URL de l'API FastAPI centralisée
+const API_URL = import.meta.env.VITE_API_URL
 import GameCard from '../components/database/GameCard'
 
 const PAGE_SIZE = 80
@@ -60,10 +62,13 @@ export default function GameDatabasePage() {
   const [viewMode, setViewMode] = useState('grid') // 'grid' | 'list'
 
   // Total unfiltered count for the intro text
+  // Centralisé : remplace le full scan Supabase par un appel FastAPI
   const [totalGamesCount, setTotalGamesCount] = useState(0)
   useEffect(() => {
-    supabase.from('games').select('*', { count: 'exact', head: true })
+    fetch(`${API_URL}/api/games/count`)
+      .then(r => r.json())
       .then(({ count }) => { if (count) setTotalGamesCount(count) })
+      .catch(() => {})
   }, [])
 
   // Accumulated games for "Load More" pattern
@@ -334,7 +339,7 @@ export default function GameDatabasePage() {
                 </span>
               </div>
               <p className="font-inter text-sm text-muted-foreground mb-4">
-                Failed to reach Supabase: {error.message}
+                Failed to reach API: {error.message}
               </p>
               <button
                 onClick={refetch}

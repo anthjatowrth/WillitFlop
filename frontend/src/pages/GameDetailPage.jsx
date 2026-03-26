@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Hls from 'hls.js'
-import { supabase } from '../api/client'
 import { getScoreAccent } from '../utils/scoreColor'
 import { translateToFR } from '../utils/deepl'
+
+// URL de l'API FastAPI centralisée
+const API_URL = import.meta.env.VITE_API_URL
 
 // ── Formatting helpers ────────────────────────────────────────────────────
 
@@ -333,18 +335,11 @@ export default function GameDetailPage() {
     setError(null)
     setTranslated(null)
 
-    supabase
-      .from('games')
-      .select(`
-        *,
-        game_genres(genre_name),
-        game_tags(tag_name, votes),
-        game_categories(category_name)
-      `)
-      .eq('app_id', appId)
-      .single()
-      .then(({ data, error: err }) => {
-        if (err) { setError(err); setLoading(false); return }
+    // Centralisé : remplace l'appel Supabase direct par FastAPI (api/routers/games.py)
+    fetch(`${API_URL}/api/games/${appId}`)
+      .then(async res => {
+        const data = await res.json()
+        if (!res.ok) { setError({ message: data.detail || `HTTP ${res.status}` }); setLoading(false); return }
         setGame(data)
         setLoading(false)
 
@@ -366,6 +361,7 @@ export default function GameDetailPage() {
           setTranslated(tr)
         })
       })
+      .catch(err => { setError({ message: err.message }); setLoading(false) })
   }, [appId])
 
   // ── Loading state ────────────────────────────────────────────────────

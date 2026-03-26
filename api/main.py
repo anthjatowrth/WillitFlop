@@ -24,6 +24,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.schemas import GameInput, PredictResponse, TranslateRequest
 from api.routers import sentiment
+from api.routers import analytics
+from api.routers import games as games_router
+from api.routers import leaderboard_router
 from ml.predict import predict
 
 app = FastAPI(title="WillitFlop API")
@@ -39,6 +42,9 @@ app.add_middleware(
 
 
 app.include_router(sentiment.router)
+app.include_router(analytics.router)
+app.include_router(games_router.router)
+app.include_router(leaderboard_router.router)
 
 
 @app.get("/health")
