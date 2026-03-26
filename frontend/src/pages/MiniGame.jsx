@@ -8,117 +8,71 @@ import { generateFakeReview } from '../utils/groqReview'
 import SlotMachine from '../components/minigame/SlotMachine'
 import DevSlider from '../components/minigame/DevSlider'
 import TranslationBlitz from '../components/minigame/TranslationBlitz'
-import imgAction from '../assets/action.webp'
-import imgAventure from '../assets/aventure.webp'
-import imgStrategy from '../assets/strategy.webp'
-import imgRpg from '../assets/rpg.webp'
-import imgPlatformer from '../assets/platformer.webp'
-import imgSimulation from '../assets/simulation.webp'
-import imgHorreur from '../assets/horreur.webp'
-import imgNarratif from '../assets/narratif.webp'
-import imgDark from '../assets/dark.webp'
-import imgCozy from '../assets/cozy.webp'
-import imgScifi from '../assets/scifi.webp'
-import imgFantasy from '../assets/fantasy.webp'
-import imgCyberpunk from '../assets/cyberpunk.webp'
-import imgPostapo from '../assets/postapo.webp'
-import imgHumour from '../assets/humour.webp'
-import imgHorreurpsy from '../assets/horreurpsy.webp'
-import imgHistorique from '../assets/historique.webp'
-import imgAnime from '../assets/anime.webp'
-import imgFps from '../assets/fps.webp'
-import imgThirdPerson from '../assets/third-person.webp'
-import imgIsometric from '../assets/isometric.webp'
-import imgDefilement from '../assets/defilementlateral.webp'
-import imgTopDown from '../assets/top_vuedessus.webp'
-import imgPointClick from '../assets/pointnclick.webp'
-import imgPixelArt from '../assets/pixelart.webp'
-import imgCellShading from '../assets/cellshading.webp'
-import img3DRealistic from '../assets/3Drealistic.webp'
-import imgLowPoly from '../assets/lowpoly.webp'
-import imgAquarelle from '../assets/aquarelle.webp'
-import imgMinimalist from '../assets/minimalistflat.webp'
-import imgRoguelike from '../assets/Roguelike.webp'
-import imgOpenWorld from '../assets/open_world.webp'
-import imgStoryRich from '../assets/story_rich.webp'
-import imgCraftSurvie from '../assets/Craft_survie.webp'
-import imgTourParTour from '../assets/tour_par_tour.webp'
-import imgActionRapide from '../assets/Action_rapide.webp'
-import imgPuzzle from '../assets/puzzle.webp'
-import imgDeckbuilding from '../assets/Deckbuilding.webp'
-import imgSoulsLike from '../assets/Souls-like.webp'
-import imgSandbox from '../assets/Sandbox.webp'
-import imgTowerDefense from '../assets/tower_defense.webp'
-import imgMetroidvania from '../assets/metroidvania.webp'
-import imgSoloGamer from '../assets/sologamer.webp'
-import imgCoopLocal from '../assets/coop local.webp'
-import imgPveOnline from '../assets/pve online.webp'
-import imgPvpOnline from '../assets/pvp online.webp'
-import imgModGame from '../assets/modgame.webp'
+import { ASSETS } from '../api/assets'
 
 const GENRE_IMAGES = {
-  'Action / Combat': imgAction,
-  'Exploration / Aventure': imgAventure,
-  'Stratégie / Gestion': imgStrategy,
-  'RPG': imgRpg,
-  'Plateforme / Puzzle': imgPlatformer,
-  'Simulation': imgSimulation,
-  'Horreur / Thriller': imgHorreur,
-  'Narratif / Visual Novel': imgNarratif,
+  'Action / Combat': ASSETS.action,
+  'Exploration / Aventure': ASSETS.aventure,
+  'Stratégie / Gestion': ASSETS.strategy,
+  'RPG': ASSETS.rpg,
+  'Plateforme / Puzzle': ASSETS.platformer,
+  'Simulation': ASSETS.simulation,
+  'Horreur / Thriller': ASSETS.horreur,
+  'Narratif / Visual Novel': ASSETS.narratif,
 }
 
 const AMBIANCE_IMAGES = {
-  'Dark / Mature': imgDark,
-  'Cozy / Wholesome': imgCozy,
-  'Sci-fi / Futuristic': imgScifi,
-  'Fantasy / Medieval': imgFantasy,
-  'Cyberpunk / Steampunk': imgCyberpunk,
-  'Post-Apocalyptique': imgPostapo,
-  'Humour / Parodie': imgHumour,
-  'Horreur / Psychologique': imgHorreurpsy,
-  'Historique': imgHistorique,
-  'Anime / Coloré': imgAnime,
+  'Dark / Mature': ASSETS.dark,
+  'Cozy / Wholesome': ASSETS.cozy,
+  'Sci-fi / Futuristic': ASSETS.scifi,
+  'Fantasy / Medieval': ASSETS.fantasy,
+  'Cyberpunk / Steampunk': ASSETS.cyberpunk,
+  'Post-Apocalyptique': ASSETS.postapo,
+  'Humour / Parodie': ASSETS.humour,
+  'Horreur / Psychologique': ASSETS.horreurpsy,
+  'Historique': ASSETS.historique,
+  'Anime / Coloré': ASSETS.anime,
 }
 
 const CAMERA_IMAGES = {
-  'Première personne (FPS)': imgFps,
-  'Troisième personne (TPS)': imgThirdPerson,
-  'Vue isométrique': imgIsometric,
-  'Défilement latéral (2D)': imgDefilement,
-  'Vue du dessus': imgTopDown,
-  'Point & Click': imgPointClick,
+  'Première personne (FPS)': ASSETS.fps,
+  'Troisième personne (TPS)': ASSETS.thirdPerson,
+  'Vue isométrique': ASSETS.isometric,
+  'Défilement latéral (2D)': ASSETS.defilement,
+  'Vue du dessus': ASSETS.topDown,
+  'Point & Click': ASSETS.pointClick,
 }
 
 const CATEGORIES_IMAGES = {
-  'Solo uniquement': imgSoloGamer,
-  'Co-op local': imgCoopLocal,
-  'Co-op en ligne': imgPveOnline,
-  'PvP compétitif': imgPvpOnline,
-  'Workshop / Mods': imgModGame,
+  'Solo uniquement': ASSETS.soloGamer,
+  'Co-op local': ASSETS.coopLocal,
+  'Co-op en ligne': ASSETS.pveOnline,
+  'PvP compétitif': ASSETS.pvpOnline,
+  'Workshop / Mods': ASSETS.modGame,
 }
 
 const MECHANICS_IMAGES = {
-  'Roguelike / Roguelite': imgRoguelike,
-  'Open World': imgOpenWorld,
-  'Story Rich / Narratif': imgStoryRich,
-  'Craft / Survie': imgCraftSurvie,
-  'Tour par tour': imgTourParTour,
-  'Action rapide': imgActionRapide,
-  'Puzzle / Logique': imgPuzzle,
-  'Deckbuilding': imgDeckbuilding,
-  'Souls-like': imgSoulsLike,
-  'Sandbox': imgSandbox,
-  'Tower Defense': imgTowerDefense,
-  'Metroidvania': imgMetroidvania,
+  'Roguelike / Roguelite': ASSETS.roguelike,
+  'Open World': ASSETS.openWorld,
+  'Story Rich / Narratif': ASSETS.storyRich,
+  'Craft / Survie': ASSETS.craftSurvie,
+  'Tour par tour': ASSETS.tourParTour,
+  'Action rapide': ASSETS.actionRapide,
+  'Puzzle / Logique': ASSETS.puzzle,
+  'Deckbuilding': ASSETS.deckbuilding,
+  'Souls-like': ASSETS.soulsLike,
+  'Sandbox': ASSETS.sandbox,
+  'Tower Defense': ASSETS.towerDefense,
+  'Metroidvania': ASSETS.metroidvania,
 }
 
 const VISUAL_STYLE_IMAGES = {
-  'Pixel Art / Rétro': imgPixelArt,
-  'Cell Shading / Cartoon': imgCellShading,
-  '3D Réaliste': img3DRealistic,
-  'Low Poly 3D': imgLowPoly,
-  'Aquarelle / Illustré': imgAquarelle,
-  'Minimaliste / Flat': imgMinimalist,
+  'Pixel Art / Rétro': ASSETS.pixelArt,
+  'Cell Shading / Cartoon': ASSETS.cellShading,
+  '3D Réaliste': ASSETS.realistic3D,
+  'Low Poly 3D': ASSETS.lowPoly,
+  'Aquarelle / Illustré': ASSETS.aquarelle,
+  'Minimaliste / Flat': ASSETS.minimalist,
 }
 
 // ---------------------------------------------------------------------------
@@ -611,7 +565,7 @@ export default function MiniGame() {
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-40 gap-6">
             <img
-              src="/src/assets/loading.gif"
+              src={ASSETS.loading}
               alt="Chargement"
               className="w-32 h-32 object-contain"
               style={{ imageRendering: 'pixelated' }}

@@ -1,13 +1,10 @@
-import imgGarage   from '../../assets/garagedev.webp'
-import imgIndie    from '../../assets/indiestudio.webp'
-import imgAA       from '../../assets/AAstudio.webp'
-import imgPolished from '../../assets/polishedgem.webp'
+import { ASSETS } from '../../api/assets'
 
 const LEVELS = [
-  { index: 0, label: 'Garage',       desc: '1 dev, 6 mois, du café',        img: imgGarage   },
-  { index: 1, label: 'Studio Indé',  desc: 'Petite équipe, Kickstarter',     img: imgIndie    },
-  { index: 2, label: 'AA Indé',      desc: '2 ans, publishers, OST dédiée',  img: imgAA       },
-  { index: 3, label: 'Polished Gem', desc: 'Day 1 Perfect, 100% completion', img: imgPolished },
+  { index: 0, label: 'Garage',       desc: '1 dev, 6 mois, du café',        img: ASSETS.garageDev   },
+  { index: 1, label: 'Studio Indé',  desc: 'Petite équipe, Kickstarter',     img: ASSETS.indiestudio },
+  { index: 2, label: 'AA Indé',      desc: '2 ans, publishers, OST dédiée',  img: ASSETS.AAstudio    },
+  { index: 3, label: 'Polished Gem', desc: 'Day 1 Perfect, 100% completion', img: ASSETS.polishedGem },
 ]
 
 export default function DevSlider({ value, onSelect }) {
