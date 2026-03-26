@@ -6,6 +6,13 @@ __pycache__/
 *.pyc
 *.pyo
 .venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
 
 # Data
 *.json
@@ -26,6 +33,11 @@ __pycache__/
 .vscode/
 .idea/
 
+# Frontend build output
+frontend/dist/
+frontend/.vite/
+node_modules/
+
 # Docker
 postgres_data/
 
@@ -37,3 +49,4 @@ dbt/target/
 dbt/logs/
 dbt/.user.yml
 
+CLAUDE.md
