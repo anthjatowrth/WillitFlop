@@ -53,6 +53,23 @@ _STOPWORDS = {
     "time", "really", "also", "good", "great", "one", "will", "much",
     "even", "make", "well", "way", "lot", "still", "know", "think",
     "little", "dont", "doesnt", "isnt", "cant", "its",
+    # quasi-stopwords anglais manquants
+    "into", "first", "actually", "something", "nothing", "anything",
+    "someone", "anyone", "everyone", "somehow", "somewhere", "anywhere",
+    "never", "ever", "always", "every", "only", "just", "now", "back",
+    "see", "got", "go", "going", "gone", "went", "put", "run", "set",
+    "take", "come", "say", "use", "used", "using", "feel", "need", "give",
+    "look", "want", "find", "try", "tried", "quite", "around", "without",
+    "within", "since", "though", "many", "last", "next", "long", "high",
+    "old", "new", "own", "done", "same", "thing", "things", "felt", "left",
+    "far", "off", "bit", "pretty", "kind", "type", "else", "however",
+    "maybe", "probably", "almost", "already", "often", "instead", "start",
+    "started", "stop", "stopped", "keep", "kept", "add", "added", "found",
+    "made", "come", "came", "went", "want", "wanted", "able", "sure",
+    "ive", "youre", "theyre", "weve", "thats", "dont", "doesnt", "didnt",
+    "wasnt", "werent", "couldnt", "wouldnt", "shouldnt", "havent", "hadnt",
+    "let", "say", "end", "point", "imo", "tbh", "etc", "via", "per",
+    "don", "doesn", "https", "com", "url", "two"," didn", "isn"
 }
 
 _TOKEN_RE = re.compile(r"[a-zA-Z]{3,}")
@@ -81,17 +98,19 @@ def sentiment_games(
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 query = """
                     SELECT
-                        app_id, name, is_successful,
-                        review_wilson_score, owners_midpoint,
-                        avg_sentiment, positive_sentiment_ratio,
-                        negative_sentiment_ratio, review_count
-                    FROM sentiment_analysis
-                    WHERE review_count >= %s
+                        sa.app_id, sa.name, sa.is_successful,
+                        sa.review_wilson_score, sa.owners_midpoint,
+                        sa.avg_sentiment, sa.positive_sentiment_ratio,
+                        sa.negative_sentiment_ratio, sa.review_count,
+                        g.header_image
+                    FROM sentiment_analysis sa
+                    LEFT JOIN games g USING (app_id)
+                    WHERE sa.review_count >= %s
                 """
                 params: list = [min_reviews]
                 if successful_only:
-                    query += " AND is_successful = TRUE"
-                query += " ORDER BY review_count DESC NULLS LAST LIMIT 500"
+                    query += " AND sa.is_successful = TRUE"
+                query += " ORDER BY sa.review_count DESC NULLS LAST LIMIT 500"
                 cur.execute(query, params)
                 rows = cur.fetchall()
             return [dict(r) for r in rows]
