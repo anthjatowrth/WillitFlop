@@ -61,7 +61,7 @@ export async function saveToLeaderboard({ verdict, proba, metacritic_score, answ
     proba,
     game_name:        gameName,
     genre:            answers.genre || null,
-    universe:         answers.universe?.length > 0 ? answers.universe.join(', ') : null,
+    universe:         answers.universe || null,
     game_mode:        answers.categories?.length > 0 ? answers.categories.join(', ') : null,
     core_mechanic:    answers.mechanics?.length > 0 ? answers.mechanics[0] : null,
     pricing:          answers.pricing !== null && answers.pricing !== undefined
