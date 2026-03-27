@@ -1,0 +1,1549 @@
+import { useState, useRef, useEffect } from 'react'
+import { Button } from '../components/ui/button'
+import { Badge } from '../components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card'
+import { buildImagePrompt } from '../utils/promptBuilder'
+import { saveToLeaderboard, checkLeaderboardEligibility } from '../api/leaderboard'
+import { generateFakeReview } from '../utils/groqReview'
+import SlotMachine from '../components/minigame/SlotMachine'
+import DevSlider from '../components/minigame/DevSlider'
+import TranslationBlitz from '../components/minigame/TranslationBlitz'
+import { ASSETS } from '../api/assets'
+
+const GENRE_IMAGES = {
+  'Action / Combat': ASSETS.action,
+  'Exploration / Aventure': ASSETS.aventure,
+  'Stratégie / Gestion': ASSETS.strategy,
+  'RPG': ASSETS.rpg,
+  'Plateforme / Puzzle': ASSETS.platformer,
+  'Simulation': ASSETS.simulation,
+  'Horreur / Thriller': ASSETS.horreur,
+  'Narratif / Visual Novel': ASSETS.narratif,
+}
+
+const AMBIANCE_IMAGES = {
+  'Dark / Mature': ASSETS.dark,
+  'Cozy / Wholesome': ASSETS.cozy,
+  'Sci-fi / Futuristic': ASSETS.scifi,
+  'Fantasy / Medieval': ASSETS.fantasy,
+  'Cyberpunk / Steampunk': ASSETS.cyberpunk,
+  'Post-Apocalyptique': ASSETS.postapo,
+  'Humour / Parodie': ASSETS.humour,
+  'Horreur / Psychologique': ASSETS.horreurpsy,
+  'Historique': ASSETS.historique,
+  'Anime / Coloré': ASSETS.anime,
+}
+
+const CAMERA_IMAGES = {
+  'Première personne (FPS)': ASSETS.fps,
+  'Troisième personne (TPS)': ASSETS.thirdPerson,
+  'Vue isométrique': ASSETS.isometric,
+  'Défilement latéral (2D)': ASSETS.defilement,
+  'Vue du dessus': ASSETS.topDown,
+  'Point & Click': ASSETS.pointClick,
+}
+
+const CATEGORIES_IMAGES = {
+  'Solo uniquement': ASSETS.soloGamer,
+  'Co-op local': ASSETS.coopLocal,
+  'Co-op en ligne': ASSETS.pveOnline,
+  'PvP compétitif': ASSETS.pvpOnline,
+  'Workshop / Mods': ASSETS.modGame,
+}
+
+const MECHANICS_IMAGES = {
+  'Roguelike / Roguelite': ASSETS.roguelike,
+  'Open World': ASSETS.openWorld,
+  'Story Rich / Narratif': ASSETS.storyRich,
+  'Craft / Survie': ASSETS.craftSurvie,
+  'Tour par tour': ASSETS.tourParTour,
+  'Action rapide': ASSETS.actionRapide,
+  'Puzzle / Logique': ASSETS.puzzle,
+  'Deckbuilding': ASSETS.deckbuilding,
+  'Souls-like': ASSETS.soulsLike,
+  'Sandbox': ASSETS.sandbox,
+  'Tower Defense': ASSETS.towerDefense,
+  'Metroidvania': ASSETS.metroidvania,
+}
+
+const VISUAL_STYLE_IMAGES = {
+  'Pixel Art / Rétro': ASSETS.pixelArt,
+  'Cell Shading / Cartoon': ASSETS.cellShading,
+  '3D Réaliste': ASSETS.realistic3D,
+  'Low Poly 3D': ASSETS.lowPoly,
+  'Aquarelle / Illustré': ASSETS.aquarelle,
+  'Minimaliste / Flat': ASSETS.minimalist,
+}
+
+// ---------------------------------------------------------------------------
+// Définition des 12 questions du questionnaire
+// ---------------------------------------------------------------------------
+const QUESTIONS = [
+  {
+    key: 'genre',
+    type: 'genre-grid',
+    label: 'Quelle est la famille de ton jeu ?',
+    sublabel: 'Choix unique : cette étape détermine les tags inférés',
+    options: [
+      'Action / Combat',
+      'Exploration / Aventure',
+      'Stratégie / Gestion',
+      'RPG',
+      'Plateforme / Puzzle',
+      'Simulation',
+      'Horreur / Thriller',
+      'Narratif / Visual Novel',
+    ],
+  },
+  {
+    key: 'universe',
+    type: 'universe-carousel',
+    label: "Quelle est l'ambiance de ton univers ?",
+    sublabel: 'Choix unique',
+    options: [
+      'Dark / Mature',
+      'Cozy / Wholesome',
+      'Sci-fi / Futuristic',
+      'Fantasy / Medieval',
+      'Cyberpunk / Steampunk',
+      'Post-Apocalyptique',
+      'Humour / Parodie',
+      'Horreur / Psychologique',
+      'Historique',
+      'Anime / Coloré',
+    ],
+  },
+  {
+    key: 'mechanics',
+    type: 'mechanics-grid',
+    label: 'Comment joue-t-on à ton jeu ?',
+    sublabel: 'Choix unique : la mécanique principale de ton jeu',
+    options: [
+      'Roguelike / Roguelite',
+      'Open World',
+      'Story Rich / Narratif',
+      'Craft / Survie',
+      'Tour par tour',
+      'Action rapide',
+      'Puzzle / Logique',
+      'Deckbuilding',
+      'Souls-like',
+      'Sandbox',
+      'Tower Defense',
+      'Metroidvania',
+    ],
+    maxSelect: 1,
+    images: MECHANICS_IMAGES,
+  },
+  {
+    key: 'visualStyle',
+    type: 'visual-grid',
+    label: 'Quel est le style graphique de ton jeu ?',
+    sublabel: 'Choix unique : impacte la méthode graphique générée',
+    options: [
+      'Pixel Art / Rétro',
+      'Cell Shading / Cartoon',
+      '3D Réaliste',
+      'Low Poly 3D',
+      'Aquarelle / Illustré',
+      'Minimaliste / Flat',
+    ],
+  },
+  {
+    key: 'perspective',
+    type: 'camera-grid',
+    label: 'Quelle est la vue caméra principale ?',
+    sublabel: 'Comment le joueur perçoit-il ton monde ?',
+    options: [
+      'Première personne (FPS)',
+      'Troisième personne (TPS)',
+      'Vue isométrique',
+      'Défilement latéral (2D)',
+      'Vue du dessus',
+      'Point & Click',
+    ],
+  },
+  {
+    key: 'categories',
+    type: 'categories-carousel',
+    label: 'Qui va jouer et comment ?',
+    sublabel: 'Plusieurs choix possibles',
+    options: [
+      'Solo uniquement',
+      'Co-op local',
+      'Co-op en ligne',
+      'PvP compétitif',
+      'Workshop / Mods',
+    ],
+  },
+  {
+    key: 'pricing',
+    type: 'slotmachine',
+    label: 'Quel est le prix de ton jeu ?',
+    sublabel: 'Lance la machine : le marché décide !',
+  },
+  {
+    key: 'devLevel',
+    type: 'devslider',
+    label: "Dans quels conditions ton jeu a été développé ?",
+    sublabel: 'Choisis un "studio" pour définir ton niveau de polish.',
+  },
+  {
+    key: 'languages',
+    type: 'languagequiz',
+    label: 'Dans combien de langues sortira ton jeu ?',
+    sublabel: 'Réponds correctement… ou pas. Internet est ton ami.',
+  },
+  {
+    key: 'description',
+    type: 'text',
+    label: 'Décris ton jeu en 2-3 phrases.',
+    sublabel: "Ambiance, sensation, ce que le joueur va vivre.",
+    placeholder:
+      'Ex: Un RPG de gestion de donjon où tu joues le méchant qui recrute des monstres et piège des héros…',
+  },
+  {
+    key: 'gameName',
+    type: 'text',
+    label: "Comment s'appelle ton jeu ?",
+    sublabel: "Laisse vide, on en génèrera un pour toi.",
+    placeholder: 'Nom du jeu (optionnel)',
+    optional: true,
+  },
+]
+
+// Valeurs initiales de l'état answers
+const INITIAL_ANSWERS = {
+  genre: '',
+  universe: '',
+  mechanics: [],
+  visualStyle: '',
+  perspective: '',
+  categories: [],
+  pricing: null,
+  devLevel: 1,
+  languages: null,
+  description: '',
+  gameName: '',
+}
+
+// ---------------------------------------------------------------------------
+// Composant principal
+// ---------------------------------------------------------------------------
+export default function MiniGame() {
+  const [answers, setAnswers] = useState(INITIAL_ANSWERS)
+  const [currentStep, setCurrentStep] = useState(0)
+  const [isLoading, setIsLoading] = useState(false)
+  const [result, setResult] = useState(null)
+  const [error, setError] = useState(null)
+  const [imageUrl, setImageUrl] = useState(null)
+  const [imageLoading, setImageLoading] = useState(false)
+  const [leaderboardAdded, setLeaderboardAdded] = useState(false)
+  const [showCreatorModal, setShowCreatorModal] = useState(false)
+  const [pendingLeaderboard, setPendingLeaderboard] = useState(null)
+  const [reviewData, setReviewData] = useState(null)
+  const [reviewLoading, setReviewLoading] = useState(false)
+
+  const question = QUESTIONS[currentStep]
+  const totalSteps = QUESTIONS.length
+
+  // -------------------------------------------------------------------------
+  // Handlers de mise à jour des réponses
+  // -------------------------------------------------------------------------
+  const handleSingleSelect = (value) => {
+    setAnswers(prev => ({ ...prev, [question.key]: value }))
+  }
+
+  const handleMultiToggle = (value) => {
+    setAnswers(prev => {
+      const current = prev[question.key]
+      const maxSelect = question.maxSelect
+      if (current.includes(value)) {
+        return { ...prev, [question.key]: current.filter(v => v !== value) }
+      }
+      if (maxSelect === 1) {
+        return { ...prev, [question.key]: [value] }
+      }
+      if (maxSelect && current.length >= maxSelect) return prev
+      return { ...prev, [question.key]: [...current, value] }
+    })
+  }
+
+  const handleTextChange = (e) => {
+    setAnswers(prev => ({ ...prev, [question.key]: e.target.value }))
+  }
+
+  // -------------------------------------------------------------------------
+  // Validation
+  // -------------------------------------------------------------------------
+  const canProceed = () => {
+    const q = QUESTIONS[currentStep]
+    const value = answers[q.key]
+    if (q.optional) return true
+    if (q.type === 'text') return value.trim().length > 0
+    if (q.type === 'universe-carousel') return value !== ''
+    if (q.type === 'multi' || q.type === 'mechanics-grid' || q.type === 'categories-carousel') return value.length > 0
+    if (q.type === 'camera-grid' || q.type === 'visual-grid') return value !== ''
+    if (q.type === 'yesno') return value !== null
+    if (q.type === 'slotmachine') return value !== null
+    if (q.type === 'devslider') return value !== null && value !== undefined
+    if (q.type === 'languagequiz') return value !== null
+    return value !== ''
+  }
+
+  // -------------------------------------------------------------------------
+  // Navigation
+  // -------------------------------------------------------------------------
+  const handleNext = async () => {
+    if (!canProceed()) return
+    if (currentStep === totalSteps - 1) {
+      await submitPrediction(answers)
+      return
+    }
+    setCurrentStep(prev => prev + 1)
+  }
+
+  const handleBack = () => {
+    if (currentStep > 0) setCurrentStep(prev => prev - 1)
+  }
+
+  // -------------------------------------------------------------------------
+  // Mapping réponses → payload ML
+  // -------------------------------------------------------------------------
+  const mapAnswersToPayload = (a, descriptionEN) => {
+    const price_eur = typeof a.pricing === 'number' ? a.pricing : null
+    const is_free = price_eur === 0
+
+    const achievementMap = [5, 20, 45, 80]
+    const achievement_count = achievementMap[a.devLevel] ?? 20
+
+    const genreTagMap = {
+      'Action / Combat': ['Action', 'Combat', 'Fast-Paced'],
+      'Exploration / Aventure': ['Adventure', 'Exploration', 'Open World'],
+      'Stratégie / Gestion': ['Strategy', 'Management', 'Resource Management'],
+      'RPG': ['RPG', 'Action RPG'],
+      'Plateforme / Puzzle': ['Platformer', 'Puzzle', '2D Platformer'],
+      'Simulation': ['Simulation', 'Casual'],
+      'Horreur / Thriller': ['Horror', 'Psychological Horror', 'Thriller'],
+      'Narratif / Visual Novel': ['Visual Novel', 'Story Rich', 'Narrative'],
+    }
+    const universeTagMap = {
+      'Dark / Mature': ['Dark', 'Mature'],
+      'Cozy / Wholesome': ['Cozy', 'Wholesome'],
+      'Sci-fi / Futuristic': ['Sci-fi', 'Futuristic'],
+      'Fantasy / Medieval': ['Fantasy', 'Medieval'],
+      'Cyberpunk / Steampunk': ['Cyberpunk', 'Steampunk'],
+      'Post-Apocalyptique': ['Post-apocalyptic'],
+      'Humour / Parodie': ['Comedy', 'Parody'],
+      'Horreur / Psychologique': ['Horror', 'Psychological'],
+      'Historique': ['Historical'],
+      'Anime / Coloré': ['Anime', 'Colorful'],
+    }
+    const mechanicsTagMap = {
+      'Roguelike / Roguelite': ['Rogue-like', 'Rogue-lite'],
+      'Open World': ['Open World'],
+      'Story Rich / Narratif': ['Story Rich', 'Narrative'],
+      'Craft / Survie': ['Crafting', 'Survival'],
+      'Tour par tour': ['Turn-Based', 'Turn-Based Strategy'],
+      'Action rapide': ['Action', 'Fast-Paced'],
+      'Puzzle / Logique': ['Puzzle', 'Logic'],
+      'Deckbuilding': ['Deckbuilding', 'Card Game'],
+      'Souls-like': ['Souls-like', 'Difficult'],
+      'Sandbox': ['Sandbox'],
+      'Tower Defense': ['Tower Defense'],
+      'Metroidvania': ['Metroidvania'],
+    }
+
+    const visualStyleTagMap = {
+      'Pixel Art / Rétro':      ['Pixel Graphics', '2D', 'Retro'],
+      'Cell Shading / Cartoon': ['Colorful', 'Cartoon'],
+      '3D Réaliste':            ['3D', 'Realistic'],
+      'Low Poly 3D':            ['Low-poly', '3D'],
+      'Aquarelle / Illustré':   ['Hand-drawn', '2D'],
+      'Minimaliste / Flat':     ['Minimalist'],
+    }
+    const perspectiveTagMap = {
+      'Première personne (FPS)': ['FPS', 'First-Person'],
+      'Troisième personne (TPS)': ['Third-Person'],
+      'Vue isométrique':          ['Isometric'],
+      'Défilement latéral (2D)':  ['Side Scroller', '2D Platformer'],
+      'Vue du dessus':            ['Top-Down'],
+      'Point & Click':            ['Point & Click'],
+    }
+
+    const genreTags      = genreTagMap[a.genre] || []
+    const universeTags   = a.universe ? (universeTagMap[a.universe] || []) : []
+    const mechanicsTags  = (a.mechanics || []).flatMap(m => mechanicsTagMap[m] || [])
+    const visualTags     = visualStyleTagMap[a.visualStyle] || []
+    const perspTags      = perspectiveTagMap[a.perspective] || []
+    const tags = [...new Set([...genreTags, ...universeTags, ...mechanicsTags, ...visualTags, ...perspTags])]
+
+    const genreGenreMap = {
+      'Action / Combat': ['Action'],
+      'Exploration / Aventure': ['Adventure', 'Action'],
+      'Stratégie / Gestion': ['Strategy'],
+      'RPG': ['RPG', 'Adventure'],
+      'Plateforme / Puzzle': ['Action', 'Casual'],
+      'Simulation': ['Simulation'],
+      'Horreur / Thriller': ['Action', 'Adventure'],
+      'Narratif / Visual Novel': ['Adventure', 'Casual'],
+    }
+    const genres = genreGenreMap[a.genre] || []
+
+    const categoryMap = {
+      'Solo uniquement': ['Single-player'],
+      'Co-op local': ['Single-player', 'Co-op'],
+      'Co-op en ligne': ['Single-player', 'Online Co-op', 'Co-op'],
+      'PvP compétitif': ['Multi-player', 'PvP', 'Online PvP'],
+      'Workshop / Mods': ['Single-player', 'Steam Workshop'],
+    }
+    const categories = [...new Set((a.categories || []).flatMap(c => categoryMap[c] || []))]
+
+    const short_description_clean = descriptionEN?.trim() || a.description?.trim() || null
+
+    return {
+      price_eur,
+      is_free,
+      is_early_access: false,
+      achievement_count,
+      nb_supported_languages: a.languages ?? 3,
+      genres: genres.length > 0 ? genres : null,
+      categories: categories.length > 0 ? categories : null,
+      tags: tags.length > 0 ? tags : null,
+      short_description_clean,
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Appel API + génération jaquette Pollinations (parallèle)
+  // -------------------------------------------------------------------------
+  const submitPrediction = async (rawAnswers) => {
+    setIsLoading(true)
+    setImageLoading(true)
+    setError(null)
+    setImageUrl(null)
+    try {
+      // Traduire la description en anglais — utile pour le TF-IDF (entraîné sur Steam EN)
+      // et pour Pollinations qui génère de meilleures images avec des prompts EN.
+      // Silencieux en cas d'échec : on garde le texte original.
+      let descriptionEN = rawAnswers.description?.trim() || ''
+      if (descriptionEN) {
+        try {
+          const tr = await fetch(`${import.meta.env.VITE_API_URL}/translate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ texts: [descriptionEN] }),
+          })
+          if (tr.ok) {
+            const { translations } = await tr.json()
+            descriptionEN = translations[0] || descriptionEN
+          }
+        } catch { /* silencieux — fallback sur le texte original */ }
+      }
+
+      const payload = mapAnswersToPayload(rawAnswers, descriptionEN)
+
+      const encodedPrompt = encodeURIComponent(buildImagePrompt({
+        genre:        rawAnswers.genre,
+        universe:     rawAnswers.universe,
+        mechanics:    rawAnswers.mechanics,
+        visualStyle:  rawAnswers.visualStyle,
+        perspective:  rawAnswers.perspective,
+        categories:   rawAnswers.categories,
+        description:  descriptionEN,
+        game_name:    rawAnswers.gameName,
+      }))
+      const negativePrompt = encodeURIComponent("text, watermark, blurry, low quality, deformed, ugly, bad anatomy, logo, signature")
+      const apiKey = import.meta.env.VITE_POLLINATIONS_API_KEY
+      const pollinationsEndpoint = `https://gen.pollinations.ai/image/${encodedPrompt}?model=flux&width=512&height=768&enhance=true&negative_prompt=${negativePrompt}&nologo=true&key=${apiKey}`
+
+      const [data, imageBlob] = await Promise.all([
+        fetch(`${import.meta.env.VITE_API_URL}/predict`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).then(r => {
+          if (!r.ok) throw new Error(`Erreur serveur : ${r.status}`)
+          return r.json()
+        }),
+        fetch(pollinationsEndpoint)
+          .then(r => r.ok ? r.blob() : null)
+          .catch(() => null),
+      ])
+
+      setResult(data)
+      if (imageBlob) setImageUrl(URL.createObjectURL(imageBlob))
+
+      // Génère la review avant de vérifier l'éligibilité pour éviter la race condition
+      // (le modal peut être soumis avant que ResultCard ait fini de générer la review)
+      setReviewLoading(true)
+      let review = null
+      try {
+        review = await generateFakeReview({ verdict: data.verdict, metacritic_score: data.metacritic_score, answers: rawAnswers })
+      } catch { /* silencieux */ }
+      setReviewData(review)
+      setReviewLoading(false)
+
+      const eligible = await checkLeaderboardEligibility({ verdict: data.verdict, proba: data.proba })
+      if (eligible) {
+        setPendingLeaderboard({ verdict: data.verdict, proba: data.proba, metacritic_score: data.metacritic_score, answers: rawAnswers, coverBlob: imageBlob })
+        setShowCreatorModal(true)
+      }
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setIsLoading(false)
+      setImageLoading(false)
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Soumission du pseudo leaderboard (appelé depuis le modal)
+  // -------------------------------------------------------------------------
+  const handleCreatorSubmit = async (creatorName) => {
+    setShowCreatorModal(false)
+    if (!pendingLeaderboard) return
+    const added = await saveToLeaderboard({
+      ...pendingLeaderboard,
+      creator_name:  creatorName || null,
+      review_text:   reviewData?.text   ?? null,
+      review_source: reviewData?.source ?? null,
+    })
+    setLeaderboardAdded(added)
+    setPendingLeaderboard(null)
+  }
+
+  // -------------------------------------------------------------------------
+  // Reset
+  // -------------------------------------------------------------------------
+  const handleReset = () => {
+    setAnswers(INITIAL_ANSWERS)
+    setCurrentStep(0)
+    setResult(null)
+    setError(null)
+    setImageUrl(null)
+    setImageLoading(false)
+    setLeaderboardAdded(false)
+    setShowCreatorModal(false)
+    setPendingLeaderboard(null)
+    setReviewData(null)
+    setReviewLoading(false)
+  }
+
+  // -------------------------------------------------------------------------
+  // Rendu
+  // -------------------------------------------------------------------------
+  return (
+    <div className="technical-grid min-h-full">
+      {showCreatorModal && pendingLeaderboard && (
+        <CreatorModal
+          verdict={pendingLeaderboard.verdict}
+          onSubmit={handleCreatorSubmit}
+        />
+      )}
+      <div className="max-w-screen-lg mx-auto px-6 py-12">
+
+        {/* ── Header — masqué sur l'écran de résultat ─────────────── */}
+        {!result && !isLoading && (
+          <section className="mb-10 text-center">
+            <span className="font-label text-[10px] tracking-[0.3em] uppercase text-primary block mb-4">
+              Notre algorithme est fiable à 84,2 % !
+            </span>
+            <h1 className="font-orbitron font-bold tracking-widest uppercase text-5xl md:text-6xl mb-3">
+              <span style={{ color: 'var(--wif-ink)' }}>WILL</span>
+              <span style={{ color: 'var(--wif-pink)' }}>IT</span>
+              <span style={{ color: 'var(--wif-ink)' }}>FLOP</span>
+              <span className="font-headline font-extrabold tracking-tighter" style={{ color: 'var(--wif-ink)' }}> ?</span>
+            </h1>
+            <p className="text-muted-foreground font-label text-xs tracking-wider">
+              Réponds aux 12 questions et notre algorithme prédit le destin de ton jeu
+            </p>
+          </section>
+        )}
+
+        {/* ── Chargement ──────────────────────────────────────────── */}
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center py-40 gap-6">
+            <img
+              src={ASSETS.loading}
+              alt="Chargement"
+              className="w-32 h-32 object-contain"
+              style={{ imageRendering: 'pixelated' }}
+            />
+            <p
+              className="text-[13px] tracking-[0.25em] uppercase animate-pulse"
+              style={{
+                fontFamily: '"Press Start 2P", monospace',
+                color: 'var(--wif-pink)',
+              }}
+            >
+              Simulation en cours…
+            </p>
+          </div>
+        )}
+
+        {/* ── Erreur ──────────────────────────────────────────────── */}
+        {error && !isLoading && !result && (
+          <div className="max-w-xl mx-auto">
+            <Card className="border-destructive">
+              <CardContent className="py-10 text-center space-y-4">
+                <span className="font-label text-[10px] tracking-[0.3em] uppercase text-destructive block">
+                  Erreur système
+                </span>
+                <p className="font-semibold text-foreground">{error}</p>
+                <Button variant="outline" onClick={handleReset}>Recommencer ↺</Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* ── Résultat ────────────────────────────────────────────── */}
+        {result && (
+          <ResultCard
+            result={result}
+            answers={answers}
+            imageUrl={imageUrl}
+            imageLoading={imageLoading}
+            leaderboardAdded={leaderboardAdded}
+            onReset={handleReset}
+            review={reviewData}
+            reviewLoading={reviewLoading}
+          />
+        )}
+
+        {/* ── Questionnaire ───────────────────────────────────────── */}
+        {!result && !isLoading && !error && (
+          <div className="max-w-4xl mx-auto space-y-5">
+            <ProgressBar current={currentStep + 1} total={totalSteps} />
+
+            <Card className="flex flex-col overflow-hidden">
+              <CardHeader>
+                <span className="font-label text-[10px] tracking-[0.3em] uppercase text-primary">
+                  Question {currentStep + 1} / {totalSteps}
+                </span>
+                <CardTitle className="font-headline text-2xl leading-snug">
+                  {question.label}
+                </CardTitle>
+                {question.sublabel && (
+                  <CardDescription>{question.sublabel}</CardDescription>
+                )}
+              </CardHeader>
+
+              <CardContent className="flex flex-col">
+                <div className="flex flex-col">
+                  {/* Texte libre */}
+                  {question.type === 'text' && (
+                    <div className="flex flex-col gap-3">
+                      <div className="relative w-full rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
+                        <textarea
+                          className="absolute inset-0 w-full h-full rounded-lg border bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary font-exo"
+                          placeholder={question.placeholder}
+                          value={answers[question.key]}
+                          onChange={handleTextChange}
+                        />
+                      </div>
+                      <div className="h-16" />
+                    </div>
+                  )}
+
+                  {/* Grille illustrée — genre */}
+                  {question.type === 'genre-grid' && (
+                    <GenreGrid
+                      options={question.options}
+                      selected={answers[question.key]}
+                      onSelect={handleSingleSelect}
+                    />
+                  )}
+
+                  {/* Carousel — ambiance univers */}
+                  {question.type === 'universe-carousel' && (
+                    <MechanicsGrid
+                      options={question.options}
+                      selected={answers[question.key] ? [answers[question.key]] : []}
+                      onToggle={handleSingleSelect}
+                      images={AMBIANCE_IMAGES}
+                    />
+                  )}
+
+                  {/* Carousel avec preview — mécanique principale */}
+                  {question.type === 'mechanics-grid' && (
+                    <MechanicsGrid
+                      options={question.options}
+                      selected={answers[question.key]}
+                      onToggle={handleMultiToggle}
+                    />
+                  )}
+
+                  {/* Carousel — style graphique */}
+                  {question.type === 'visual-grid' && (
+                    <GenreGrid
+                      options={question.options}
+                      selected={answers[question.key]}
+                      onSelect={handleSingleSelect}
+                      images={VISUAL_STYLE_IMAGES}
+                    />
+                  )}
+
+                  {/* Carousel — vue caméra */}
+                  {question.type === 'camera-grid' && (
+                    <GenreGrid
+                      options={question.options}
+                      selected={answers[question.key]}
+                      onSelect={handleSingleSelect}
+                      images={CAMERA_IMAGES}
+                    />
+                  )}
+
+                  {/* Choix unique */}
+                  {question.type === 'single' && (
+                    <OptionGrid
+                      options={question.options}
+                      selected={answers[question.key]}
+                      onSelect={handleSingleSelect}
+                      multi={false}
+                    />
+                  )}
+
+                  {/* Multi-sélection */}
+                  {question.type === 'multi' && (
+                    <OptionGrid
+                      options={question.options}
+                      selected={answers[question.key]}
+                      onSelect={handleMultiToggle}
+                      multi={true}
+                      maxSelect={question.maxSelect}
+                    />
+                  )}
+
+                  {/* Carousel multi-sélection — catégories */}
+                  {question.type === 'categories-carousel' && (
+                    <CategoriesCarousel
+                      options={question.options}
+                      selected={answers[question.key]}
+                      onToggle={handleMultiToggle}
+                    />
+                  )}
+
+                  {/* Oui / Non */}
+                  {question.type === 'yesno' && (
+                    <div className="flex gap-3">
+                      {[{ label: 'Oui', value: true }, { label: 'Non', value: false }].map(({ label, value }) => (
+                        <button
+                          key={label}
+                          onClick={() => handleSingleSelect(value)}
+                          className="flex-1 rounded-lg border-2 py-4 text-sm font-semibold transition-all font-label tracking-widest uppercase"
+                          style={
+                            answers[question.key] === value
+                              ? { borderColor: 'var(--wif-pink)', background: 'var(--wif-pink)', color: '#fff' }
+                              : { borderColor: 'var(--wif-border)', background: 'transparent', color: 'var(--wif-ink)' }
+                          }
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Machine à sous — prix */}
+                  {question.type === 'slotmachine' && (
+                    <div className="flex flex-col gap-3">
+                      <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <SlotMachine
+                            onSelect={(v) => setAnswers(prev => ({ ...prev, pricing: v }))}
+                          />
+                        </div>
+                      </div>
+                      <div className="h-16" />
+                    </div>
+                  )}
+
+                  {/* Slider de polish dev */}
+                  {question.type === 'devslider' && (
+                    <div className="flex flex-col gap-3">
+                      <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
+                        <div className="absolute inset-0">
+                          <DevSlider
+                            value={answers.devLevel}
+                            onSelect={(v) => setAnswers(prev => ({ ...prev, devLevel: v }))}
+                          />
+                        </div>
+                      </div>
+                      <div className="h-16" />
+                    </div>
+                  )}
+
+                  {/* Quiz des langues */}
+                  {question.type === 'languagequiz' && (
+                    <div className="flex flex-col gap-3">
+                      <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
+                        <div className="absolute inset-0">
+                          <TranslationBlitz
+                            onComplete={(_score, languageCount) => setAnswers(prev => ({ ...prev, languages: languageCount }))}
+                          />
+                        </div>
+                      </div>
+                      <div className="h-16" />
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Boutons navigation — grille 2 colonnes fixes pour éviter tout décalage */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                {currentStep > 0 && (
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={handleBack}
+                    className="w-full"
+                  >
+                    ← Retour
+                  </Button>
+                )}
+              </div>
+              <div>
+                <Button
+                  className="w-full"
+                  size="lg"
+                  onClick={handleNext}
+                  disabled={!canProceed()}
+                >
+                  {currentStep === totalSteps - 1 ? 'Lancer la prédiction →' : 'Suivant →'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Barre de progression
+// ---------------------------------------------------------------------------
+function ProgressBar({ current, total }) {
+  const pct = Math.round((current / total) * 100)
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between items-center">
+        <span className="font-label text-[10px] tracking-[0.3em] uppercase text-muted-foreground">
+          Progression
+        </span>
+        <span className="font-label text-[10px] tracking-[0.3em] uppercase text-primary">
+          {pct}%
+        </span>
+      </div>
+      <div className="h-1 w-full rounded-full bg-border overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-300"
+          style={{ width: `${pct}%`, background: 'var(--wif-pink)' }}
+        />
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Carousel arène — sélection de genre (Q1)
+// ---------------------------------------------------------------------------
+function GenreGrid({ options, selected, onSelect, images = GENRE_IMAGES }) {
+  const initialIdx = selected ? options.indexOf(selected) : 0
+  const [focusIdx, setFocusIdx] = useState(initialIdx >= 0 ? initialIdx : 0)
+
+  const focusedOption = options[focusIdx]
+  function go(dir) {
+    setFocusIdx(i => (i + dir + options.length) % options.length)
+  }
+
+  function pickThumb(idx) {
+    setFocusIdx(idx)
+    onSelect(options[idx])
+  }
+
+  return (
+    <div className="flex flex-col gap-3 select-none">
+      {/* Grande image centrale — exactement 16:9, zéro recadrage */}
+      <div className="relative w-full overflow-hidden rounded-xl" style={{ aspectRatio: '16/9' }}>
+        <img
+          key={focusedOption}
+          src={images[focusedOption]}
+          alt={focusedOption}
+          className="w-full h-full object-cover transition-all duration-300"
+        />
+        {/* Dégradé bas */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+
+        {/* Nom du genre */}
+        <div className="absolute bottom-0 left-0 right-0 px-5 pb-4">
+          <span className="font-label tracking-widest uppercase text-white text-lg font-bold drop-shadow-lg">
+            {focusedOption}
+          </span>
+        </div>
+
+        {/* Flèches */}
+        <button
+          onClick={() => go(-1)}
+          className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all"
+          style={{ background: 'rgba(0,0,0,0.45)', color: 'white', backdropFilter: 'blur(4px)' }}
+        >
+          ‹
+        </button>
+        <button
+          onClick={() => go(1)}
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all"
+          style={{ background: 'rgba(0,0,0,0.45)', color: 'white', backdropFilter: 'blur(4px)' }}
+        >
+          ›
+        </button>
+      </div>
+
+      {/* Strip de miniatures */}
+      <div className="flex gap-1.5 h-16">
+        {options.map((option, idx) => {
+          const isFocused = idx === focusIdx
+          const isSelected = option === selected
+          return (
+            <button
+              key={option}
+              onClick={() => pickThumb(idx)}
+              className="flex-1 h-full rounded-lg overflow-hidden transition-all duration-200"
+              style={{
+                minWidth: 0,
+                border: isFocused
+                  ? '2px solid var(--wif-pink)'
+                  : isSelected
+                  ? '2px solid rgba(255,20,147,0.4)'
+                  : '2px solid var(--wif-border)',
+                opacity: isFocused ? 1 : 0.6,
+                transform: isFocused ? 'scale(1.06)' : 'scale(1)',
+              }}
+            >
+              <img src={images[option]} alt={option} className="w-full h-full object-cover" />
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Carousel avec preview — sélection de mécanique (Q3, choix unique)
+// ---------------------------------------------------------------------------
+function MechanicsGrid({ options, selected, onToggle, images = MECHANICS_IMAGES }) {
+  const selectedVal = selected[0] ?? null
+  const initialIdx = selectedVal ? options.indexOf(selectedVal) : 0
+  const [focusIdx, setFocusIdx] = useState(initialIdx >= 0 ? initialIdx : 0)
+  const [thumbStyle, setThumbStyle] = useState({ width: '50%', left: '0%' })
+  const stripRef = useRef(null)
+
+  const focusedOption = options[focusIdx]
+
+  function go(dir) {
+    setFocusIdx(i => (i + dir + options.length) % options.length)
+  }
+
+  function pickThumb(idx) {
+    setFocusIdx(idx)
+    onToggle(options[idx])
+  }
+
+  function handleScroll(e) {
+    const el = e.currentTarget
+    const { scrollLeft, scrollWidth, clientWidth } = el
+    const thumbWidth = (clientWidth / scrollWidth) * 100
+    const thumbLeft = (scrollLeft / scrollWidth) * 100
+    setThumbStyle({ width: `${thumbWidth}%`, left: `${thumbLeft}%` })
+  }
+
+  // Init thumb size + auto-scroll to focused item
+  useEffect(() => {
+    const el = stripRef.current
+    if (!el) return
+    const { scrollWidth, clientWidth } = el
+    const thumbWidth = (clientWidth / scrollWidth) * 100
+    setThumbStyle(prev => ({ ...prev, width: `${thumbWidth}%` }))
+  }, [])
+
+  useEffect(() => {
+    const el = stripRef.current
+    if (!el) return
+    const buttons = el.querySelectorAll('button')
+    if (buttons[focusIdx]) {
+      buttons[focusIdx].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+    }
+  }, [focusIdx])
+
+  return (
+    <div className="flex flex-col gap-3 select-none">
+      {/* Grande image centrale — exactement 16:9, zéro recadrage */}
+      <div className="relative w-full overflow-hidden rounded-xl" style={{ aspectRatio: '16/9' }}>
+        <img
+          key={focusedOption}
+          src={images[focusedOption]}
+          alt={focusedOption}
+          className="w-full h-full object-cover transition-all duration-300"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 px-5 pb-4">
+          <span className="font-label tracking-widest uppercase text-white text-lg font-bold drop-shadow-lg">
+            {focusedOption}
+          </span>
+        </div>
+        <button
+          onClick={() => go(-1)}
+          className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all"
+          style={{ background: 'rgba(0,0,0,0.45)', color: 'white', backdropFilter: 'blur(4px)' }}
+        >
+          ‹
+        </button>
+        <button
+          onClick={() => go(1)}
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all"
+          style={{ background: 'rgba(0,0,0,0.45)', color: 'white', backdropFilter: 'blur(4px)' }}
+        >
+          ›
+        </button>
+      </div>
+
+      {/* Strip de miniatures + indicateur groupés (hauteur totale = h-16) */}
+      <div className="flex flex-col gap-1.5 h-16">
+        <div
+          ref={stripRef}
+          className="flex gap-1.5 overflow-x-auto flex-1"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          onScroll={handleScroll}
+        >
+          {options.map((option, idx) => {
+            const isFocused = idx === focusIdx
+            const isSelected = option === selectedVal
+            return (
+              <button
+                key={option}
+                onClick={() => pickThumb(idx)}
+                className="rounded-lg overflow-hidden transition-all duration-200 flex-shrink-0 h-full"
+                style={{
+                  width: '110px',
+                  border: isFocused
+                    ? '2px solid var(--wif-pink)'
+                    : isSelected
+                    ? '2px solid rgba(255,20,147,0.4)'
+                    : '2px solid var(--wif-border)',
+                  opacity: isFocused ? 1 : 0.6,
+                  transform: isFocused ? 'scale(1.06)' : 'scale(1)',
+                }}
+              >
+                <img src={images[option]} alt={option} className="w-full h-full object-cover" />
+              </button>
+            )
+          })}
+        </div>
+        {/* Indicateur de scroll */}
+        <div className="relative w-full h-1 rounded-full flex-shrink-0" style={{ background: 'var(--wif-border)' }}>
+          <div
+            className="absolute top-0 h-full rounded-full transition-all duration-150"
+            style={{ background: 'var(--wif-pink)', width: thumbStyle.width, left: thumbStyle.left }}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+
+// ---------------------------------------------------------------------------
+// Carousel multi-sélection — catégories de jeu (Q6)
+// ---------------------------------------------------------------------------
+function CategoriesCarousel({ options, selected, onToggle }) {
+  const [focusIdx, setFocusIdx] = useState(0)
+  const focusedOption = options[focusIdx]
+  const isSelectedFocused = selected.includes(focusedOption)
+
+  function go(dir) {
+    setFocusIdx(i => (i + dir + options.length) % options.length)
+  }
+
+  return (
+    <div className="flex flex-col gap-3 select-none">
+      {/* Grande image centrale — exactement 16:9, zéro recadrage */}
+      <div
+        className="relative w-full overflow-hidden rounded-xl cursor-pointer"
+        onClick={() => onToggle(focusedOption)}
+        style={{ aspectRatio: '16/9' }}
+      >
+        <img
+          key={focusedOption}
+          src={CATEGORIES_IMAGES[focusedOption]}
+          alt={focusedOption}
+          className="w-full h-full object-cover transition-all duration-300"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+
+        {/* Nom */}
+        <div className="absolute bottom-0 left-0 right-0 px-5 pb-4 flex items-end justify-between">
+          <span className="font-label tracking-widest uppercase text-white text-lg font-bold drop-shadow-lg">
+            {focusedOption}
+          </span>
+          {isSelectedFocused && (
+            <span
+              className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
+              style={{ background: 'var(--wif-pink)' }}
+            >
+              ✓
+            </span>
+          )}
+        </div>
+
+        {/* Bordure de sélection */}
+        {isSelectedFocused && (
+          <div
+            className="absolute inset-0 rounded-xl pointer-events-none"
+            style={{ border: '3px solid var(--wif-pink)' }}
+          />
+        )}
+
+        {/* Flèches */}
+        <button
+          onClick={e => { e.stopPropagation(); go(-1) }}
+          className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all"
+          style={{ background: 'rgba(0,0,0,0.45)', color: 'white', backdropFilter: 'blur(4px)' }}
+        >
+          ‹
+        </button>
+        <button
+          onClick={e => { e.stopPropagation(); go(1) }}
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all"
+          style={{ background: 'rgba(0,0,0,0.45)', color: 'white', backdropFilter: 'blur(4px)' }}
+        >
+          ›
+        </button>
+      </div>
+
+      {/* Strip de miniatures */}
+      <div className="flex gap-1.5 h-16">
+        {options.map((option, idx) => {
+          const isFocused = idx === focusIdx
+          const isSelected = selected.includes(option)
+          return (
+            <button
+              key={option}
+              onClick={() => { setFocusIdx(idx); onToggle(option) }}
+              className="relative flex-1 h-full rounded-lg overflow-hidden transition-all duration-200"
+              style={{
+                minWidth: 0,
+                border: isSelected
+                  ? '2px solid var(--wif-pink)'
+                  : isFocused
+                  ? '2px solid rgba(255,255,255,0.5)'
+                  : '2px solid var(--wif-border)',
+                opacity: isFocused || isSelected ? 1 : 0.55,
+                transform: isFocused ? 'scale(1.06)' : 'scale(1)',
+              }}
+            >
+              <img src={CATEGORIES_IMAGES[option]} alt={option} className="w-full h-full object-cover" />
+              {isSelected && (
+                <div
+                  className="absolute top-1 right-1 w-4 h-4 rounded-full flex items-center justify-center text-white text-[9px] font-bold"
+                  style={{ background: 'var(--wif-pink)' }}
+                >
+                  ✓
+                </div>
+              )}
+            </button>
+          )
+        })}
+      </div>
+
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Grille d'options (single ou multi)
+// ---------------------------------------------------------------------------
+function OptionGrid({ options, selected, onSelect, multi, maxSelect }) {
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {options.map(option => {
+        const isSelected = multi ? selected.includes(option) : selected === option
+        const isDisabled = multi && maxSelect && !isSelected && selected.length >= maxSelect
+        return (
+          <button
+            key={option}
+            onClick={() => !isDisabled && onSelect(option)}
+            disabled={isDisabled}
+            className="rounded-lg border-2 px-3 py-3 text-sm text-left transition-all font-exo"
+            style={
+              isSelected
+                ? { borderColor: 'var(--wif-pink)', background: 'var(--wif-pink)', color: '#fff', fontWeight: 600 }
+                : isDisabled
+                  ? { borderColor: 'var(--wif-border)', background: 'transparent', color: 'var(--wif-ink)', opacity: 0.35, cursor: 'not-allowed' }
+                  : { borderColor: 'var(--wif-border)', background: 'transparent', color: 'var(--wif-ink)' }
+            }
+          >
+            {isSelected && <span className="mr-1.5 text-xs opacity-80">✓</span>}
+            {option}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Écran de résultat
+// ---------------------------------------------------------------------------
+function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded, onReset, review, reviewLoading }) {
+  const { verdict, proba, metacritic_score } = result
+  const isTop = verdict === 'Top!'
+  const pct = parseFloat(((proba ?? 0) * 100).toFixed(1))
+
+  const polishLabels = ['Garage', 'Studio Indé', 'AA Indé', 'Polished Gem']
+
+  const accentColor = isTop ? 'var(--wif-success)' : 'var(--wif-danger)'
+
+  return (
+    <div className="space-y-8">
+
+      {/* ── Unified result card ───────────────────────────────────── */}
+      <div
+        className="max-w-3xl mx-auto rounded-2xl overflow-hidden"
+        style={{
+          border: `2.5px solid ${accentColor}`,
+          background: 'var(--wif-bg3)',
+          boxShadow: isTop
+            ? '0 0 40px rgba(0,122,76,0.12)'
+            : '0 0 40px rgba(204,26,26,0.12)',
+        }}
+      >
+
+        {/* ── Top : image + verdict ──────────────────────────────── */}
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr] items-start">
+
+          {/* Jaquette */}
+          <div
+            className="flex items-center justify-center"
+            style={{ aspectRatio: '2/3', background: '#111', borderRight: '2px solid var(--border)', borderBottom: '2px solid var(--border)' }}
+          >
+            {imageLoading && (
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-6 h-6 rounded-full border-2 border-border animate-spin" style={{ borderTopColor: 'var(--wif-pink)' }} />
+                <p className="font-label text-[10px] tracking-[0.2em] uppercase text-muted-foreground">Génération…</p>
+              </div>
+            )}
+            {imageUrl && !imageLoading && (
+              <img src={imageUrl} alt="Jaquette du jeu" className="w-full h-full object-contain" />
+            )}
+            {!imageUrl && !imageLoading && (
+              <span className="font-label text-[10px] tracking-[0.2em] uppercase text-muted-foreground">Aucune image</span>
+            )}
+          </div>
+
+          {/* Verdict + métriques + titre + accroche */}
+          <div className="flex flex-col justify-center p-7 gap-6">
+
+            {/* Verdict */}
+            <div>
+              <span className="font-label text-xs tracking-[0.3em] uppercase text-muted-foreground block mb-1">
+                Verdict de l'algorithme
+              </span>
+              <div className="font-orbitron text-7xl font-black tracking-tight leading-none" style={{ color: accentColor }}>
+                {isTop ? 'TOP !' : 'FLOP !'}
+              </div>
+              {leaderboardAdded && (
+                <div className="mt-2"><Badge variant="ink">🏆 Inscrit au Leaderboard du mois !</Badge></div>
+              )}
+            </div>
+
+            {/* Métriques */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <span className="font-label text-xs tracking-[0.2em] uppercase text-muted-foreground block mb-1">Succès prédit</span>
+                <div className="font-orbitron text-5xl font-black" style={{ color: accentColor }}>{pct}%</div>
+                <div className="mt-2 h-1 rounded-full bg-border overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: accentColor }} />
+                </div>
+              </div>
+              <div>
+                <span className="font-label text-xs tracking-[0.2em] uppercase text-muted-foreground block mb-1">Metacritic</span>
+                <div className="font-orbitron text-5xl font-black" style={{ color: 'var(--wif-pink)' }}>
+                  {metacritic_score != null ? parseFloat(metacritic_score.toFixed(1)) : '—'}
+                </div>
+                <div className="mt-2 h-1 rounded-full bg-border overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-700" style={{ width: `${metacritic_score ?? 0}%`, background: 'var(--wif-pink)' }} />
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-border" />
+
+            {/* Titre + accroche */}
+            <div>
+              {answers.gameName && answers.gameName !== 'Unnamed Game' && (
+                <p className="font-headline font-bold text-3xl leading-tight mb-2">{answers.gameName}</p>
+              )}
+              {reviewLoading && (
+                <p className="font-inter text-sm text-muted-foreground italic animate-pulse">
+                  Génération de la critique…
+                </p>
+              )}
+              {!reviewLoading && review && (
+                <div>
+                  <p className="font-inter text-sm text-foreground/85 italic leading-relaxed">
+                    « {review.text} »
+                  </p>
+                  <p className="font-label text-[10px] tracking-widest uppercase text-muted-foreground mt-2">
+                    — {review.source}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Étiquette de prix */}
+            {answers.pricing != null && (
+              <div className="flex justify-center mt-4">
+                <div
+                  className="relative inline-flex flex-col items-center px-7 py-3 rounded-sm"
+                  style={{
+                    background: '#d63a6e',
+                    boxShadow: '3px 4px 0px rgba(0,0,0,0.3)',
+                  }}
+                >
+                  {/* Trou d'étiquette */}
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-background border-2 border-border" />
+                  <span className="font-label text-[10px] tracking-[0.3em] uppercase text-white/80 mt-1">Prix</span>
+                  <span className="font-orbitron font-black text-white leading-none" style={{ fontSize: '1.4rem' }}>
+                    {answers.pricing === 0 ? 'GRATUIT' : `${answers.pricing} €`}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Séparateur ────────────────────────────────────────── */}
+        <div className="border-t" style={{ borderColor: accentColor, opacity: 0.3 }} />
+
+        {/* ── Bottom : récap pleine largeur ─────────────────────── */}
+        <div className="p-7 space-y-6">
+
+
+          {/* Récapitulatif en 2 colonnes */}
+          <div>
+            <span className="font-label text-[9px] tracking-[0.3em] uppercase text-primary block mb-3">Récapitulatif</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+              <div>
+                <SummaryRow label="Genre"      value={answers.genre} />
+                <SummaryRow label="Ambiance"   value={[].concat(answers.universe || []).join(', ') || null} />
+                <SummaryRow label="Mécaniques" value={answers.mechanics?.join(', ')} />
+                <SummaryRow label="Style"      value={answers.visualStyle} />
+              </div>
+              <div>
+                <SummaryRow label="Vue"     value={answers.perspective} />
+                <SummaryRow label="Mode"    value={answers.categories?.join(', ')} />
+                <SummaryRow label="Polish"  value={polishLabels[answers.devLevel] ?? null} />
+                <SummaryRow label="Langues" value={answers.languages ? `${answers.languages} langues` : null} />
+              </div>
+            </div>
+          </div>
+
+          <Button variant="outline" className="w-full" onClick={onReset}>
+            Recommencer ↺
+          </Button>
+        </div>
+      </div>
+
+      {/* ── Facteurs clés ─────────────────────────────────────────── */}
+      <div className="max-w-3xl mx-auto">
+        <FactorsSection answers={answers} />
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Heuristiques : quels choix jouent pour ou contre le succès
+// ---------------------------------------------------------------------------
+function getFactors(answers) {
+  const factors = []
+  const polishLabels = ['Garage', 'Studio Indé', 'AA Indé', 'Polished Gem']
+
+  // Polish
+  if (answers.devLevel >= 2)
+    factors.push({ label: `Finition : ${polishLabels[answers.devLevel]}`, positive: true })
+  else if (answers.devLevel === 0)
+    factors.push({ label: `Finition : ${polishLabels[answers.devLevel]}`, positive: false })
+
+  // Prix
+  if (answers.pricing === 0)
+    factors.push({ label: 'Gratuit — accessibilité maximale', positive: true })
+  else if (answers.pricing != null && answers.pricing <= 14.99)
+    factors.push({ label: `Prix accessible : ${answers.pricing}€`, positive: true })
+  else if (answers.pricing != null && answers.pricing >= 29.99)
+    factors.push({ label: `Prix élevé : ${answers.pricing}€`, positive: false })
+
+  // Langues
+  if (answers.languages != null) {
+    if (answers.languages >= 10)
+      factors.push({ label: `${answers.languages} langues — large audience`, positive: true })
+    else if (answers.languages <= 2)
+      factors.push({ label: `${answers.languages} langue(s) — audience limitée`, positive: false })
+  }
+
+  // Mécaniques tendances vs niches exigeantes
+  const trendingMechanics = ['Roguelike / Roguelite', 'Deckbuilding', 'Metroidvania']
+  const nicheHard = ['Souls-like', 'Tower Defense']
+  const hasTrending = answers.mechanics?.some(m => trendingMechanics.includes(m))
+  const hasNiche = answers.mechanics?.some(m => nicheHard.includes(m))
+  if (hasTrending)
+    factors.push({ label: 'Mécaniques en vogue (roguelike, deckbuilding…)', positive: true })
+  if (hasNiche)
+    factors.push({ label: 'Niche exigeante (souls-like / tower defense)', positive: false })
+
+  // Multijoueur / moddable
+  if (answers.categories?.includes('Workshop / Mods'))
+    factors.push({ label: 'Support moddable — longévité accrue', positive: true })
+  if (answers.categories?.some(c => ['Co-op en ligne', 'PvP compétitif'].includes(c)))
+    factors.push({ label: 'Multijoueur — engagement communautaire', positive: true })
+  if (answers.categories?.length === 1 && answers.categories[0] === 'Solo uniquement')
+    factors.push({ label: 'Solo uniquement — pas de multijoueur', positive: false })
+
+  return factors
+}
+
+// ---------------------------------------------------------------------------
+// Section facteurs positifs / négatifs
+// ---------------------------------------------------------------------------
+function FactorsSection({ answers }) {
+  const factors = getFactors(answers)
+  if (factors.length === 0) return null
+  return (
+    <div className="space-y-3">
+      <span className="font-label text-[10px] tracking-[0.3em] uppercase text-muted-foreground block">
+        Facteurs clés
+      </span>
+      <div className="flex flex-col gap-2">
+        {factors.map((f, i) => (
+          <div
+            key={i}
+            className="flex items-center gap-3 rounded-lg px-4 py-3"
+            style={{
+              background: f.positive
+                ? 'color-mix(in srgb, var(--wif-success) 12%, transparent)'
+                : 'color-mix(in srgb, var(--wif-danger) 12%, transparent)',
+              border: `1px solid ${f.positive
+                ? 'color-mix(in srgb, var(--wif-success) 35%, transparent)'
+                : 'color-mix(in srgb, var(--wif-danger) 35%, transparent)'}`,
+            }}
+          >
+            <span
+              className="shrink-0 text-base leading-none"
+              style={{ color: f.positive ? 'var(--wif-success)' : 'var(--wif-danger)' }}
+            >
+              {f.positive ? '▲' : '▼'}
+            </span>
+            <span
+              className="text-sm font-exo"
+              style={{ color: f.positive ? 'var(--wif-success)' : 'var(--wif-danger)' }}
+            >
+              {f.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Modal — saisie du pseudo pour le leaderboard
+// ---------------------------------------------------------------------------
+function CreatorModal({ verdict, onSubmit }) {
+  const [name, setName] = useState('')
+  const isTop = verdict === 'Top!'
+
+  const accentColor = isTop ? 'var(--wif-success)' : 'var(--wif-danger)'
+  const crown = isTop ? '👑' : '👑'
+  const crownStyle = isTop
+    ? { filter: 'drop-shadow(0 0 8px rgba(255,215,0,0.7))' }
+    : { filter: 'drop-shadow(0 0 8px rgba(139,94,60,0.6))', color: '#8B5E3C' }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)' }}
+    >
+      <div
+        className="w-full max-w-sm p-8 space-y-6"
+        style={{
+          background: 'var(--card)',
+          borderTop: `4px solid ${accentColor}`,
+          boxShadow: '0 24px 60px rgba(0,0,0,0.3)',
+        }}
+      >
+        {/* Crown + titre */}
+        <div className="text-center space-y-2">
+          <span className="text-4xl select-none" style={crownStyle}>{crown}</span>
+          <h2 className="font-headline text-2xl font-extrabold tracking-tight text-foreground">
+            {isTop ? 'Ton jeu entre dans le Top !' : 'Ton jeu entre dans le Flop !'}
+          </h2>
+          <p className="font-inter text-sm text-muted-foreground leading-relaxed">
+            Entre ton nom ou pseudo pour figurer dans le classement du mois.
+          </p>
+        </div>
+
+        {/* Input */}
+        <div className="space-y-2">
+          <label className="font-label text-[10px] tracking-[0.25em] uppercase text-muted-foreground block">
+            Ton pseudo
+          </label>
+          <input
+            type="text"
+            maxLength={32}
+            autoFocus
+            placeholder="Ex: Commander_Void"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && onSubmit(name.trim())}
+            className="w-full rounded-lg border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 font-exo"
+            style={{ '--tw-ring-color': accentColor }}
+          />
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-col gap-2">
+          <Button
+            className="w-full"
+            size="lg"
+            onClick={() => onSubmit(name.trim())}
+            style={name.trim() ? { background: accentColor, color: '#fff', border: 'none' } : {}}
+          >
+            {name.trim() ? `Confirmer — ${name.trim()}` : 'Confirmer (anonyme)'}
+          </Button>
+          <button
+            onClick={() => onSubmit(null)}
+            className="font-label text-[10px] tracking-[0.2em] uppercase text-muted-foreground hover:text-foreground transition-colors py-1"
+          >
+            Passer — rester anonyme
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Ligne clé / valeur du récapitulatif
+function SummaryRow({ label, value }) {
+  if (!value) return null
+  return (
+    <div className="flex justify-between gap-4 py-2.5 border-b border-border/50 last:border-0">
+      <span className="font-label text-[10px] tracking-[0.2em] uppercase text-muted-foreground shrink-0">
+        {label}
+      </span>
+      <span className="text-sm font-medium text-foreground font-exo text-right">{value}</span>
+    </div>
+  )
+}

@@ -12,6 +12,7 @@ select
     review_total,
     spy_median_playtime,
     achievement_median_unlock_rate,
+    release_date,
     is_successful
 from {{ source('public', 'games') }}
 where details_fetched = true

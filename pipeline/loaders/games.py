@@ -3,6 +3,7 @@ from pipeline.config import CATEGORY_WHITELIST
 from pipeline.transformers.text import clean_short_description, clean_supported_languages, clean_release_date
 from pipeline.transformers.kpis import compute_kpis
 from pipeline.transformers.prices import convert_price_to_eur
+from pipeline.utils import compute_sentiment
 
 
 def save_game_details(conn, app_id: int, d: dict):
@@ -19,7 +20,13 @@ def save_game_details(conn, app_id: int, d: dict):
         price_eur = 0.0
     metacritic_score = metacritic.get("score") or 0
     screenshots = d.get("screenshots") or []
-    first_screenshot_url = screenshots[0].get("path_full") if screenshots else None
+    screenshot_urls = [s["path_full"] for s in screenshots[:5] if s.get("path_full")]
+
+    movies = d.get("movies") or []
+    trailer_hls_url = None
+    if movies:
+        m = movies[0]
+        trailer_hls_url = m.get("hls_h264") or m.get("dash_h264") or m.get("dash_av1")
 
     with conn.cursor() as cur:
         cur.execute("""
@@ -27,7 +34,7 @@ def save_game_details(conn, app_id: int, d: dict):
                 app_id, name, is_free,
                 release_date, has_dlc, is_early_access,
                 short_description_clean,
-                header_image, first_screenshot_url,
+                header_image, screenshot_urls, trailer_hls_url,
                 supported_languages,
                 price_eur,
                 metacritic_score,
@@ -36,7 +43,7 @@ def save_game_details(conn, app_id: int, d: dict):
                 %s,%s,%s,
                 %s,%s,%s,
                 %s,
-                %s,%s,
+                %s,%s,%s,
                 %s,
                 %s,
                 %s,
@@ -50,7 +57,8 @@ def save_game_details(conn, app_id: int, d: dict):
                 is_early_access             = EXCLUDED.is_early_access,
                 short_description_clean     = EXCLUDED.short_description_clean,
                 header_image                = EXCLUDED.header_image,
-                first_screenshot_url        = EXCLUDED.first_screenshot_url,
+                screenshot_urls             = EXCLUDED.screenshot_urls,
+                trailer_hls_url             = EXCLUDED.trailer_hls_url,
                 supported_languages         = EXCLUDED.supported_languages,
                 price_eur                   = EXCLUDED.price_eur,
                 metacritic_score            = EXCLUDED.metacritic_score,
@@ -65,7 +73,8 @@ def save_game_details(conn, app_id: int, d: dict):
             is_early_access,
             short_description_clean,
             d.get("header_image"),
-            first_screenshot_url,
+            screenshot_urls,
+            trailer_hls_url,
             clean_supported_languages(d.get("supported_languages")),
             price_eur,
             metacritic_score,
@@ -127,21 +136,25 @@ def save_game_tags(conn, app_id: int, tags: dict):
 def save_reviews(conn, app_id: int, reviews: list[dict]):
     with conn.cursor() as cur:
         for r in reviews:
+            language = r.get("language")
+            review_text = r.get("review")
+            sentiment = compute_sentiment(review_text) if language == "english" else None
             cur.execute("""
                 INSERT INTO game_reviews (
                     recommendation_id, app_id, language, review, voted_up,
-                    weighted_vote_score, votes_up, timestamp_created
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, to_timestamp(%s))
+                    weighted_vote_score, votes_up, timestamp_created, sentiment_score
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, to_timestamp(%s), %s)
                 ON CONFLICT (recommendation_id) DO NOTHING
             """, (
                 r.get("recommendationid"),
                 app_id,
-                r.get("language"),
-                r.get("review"),
+                language,
+                review_text,
                 r.get("voted_up"),
                 r.get("weighted_vote_score"),
                 r.get("votes_up"),
                 r.get("timestamp_created"),
+                sentiment,
             ))
     conn.commit()
 

@@ -10,7 +10,6 @@ select
 
     -- Features booléennes
     g.is_free,
-    g.has_dlc,
     g.is_early_access,
 
     -- Features multi-label (MultiLabelBinarizer côté sklearn)
@@ -21,13 +20,21 @@ select
     -- Features texte (TF-IDF côté sklearn)
     g.short_description_clean,
 
+    -- Features sentiment (TF-IDF côté sklearn — NULL si aucun avis)
+    coalesce(r.top_positive_reviews_text, '') as top_positive_reviews_text,
+    coalesce(r.top_negative_reviews_text, '') as top_negative_reviews_text,
+
+    -- Date de sortie — utilisée côté loader pour filtrer les jeux trop récents
+    g.release_date,
+
     -- Cible ML modèle 1
     g.is_successful,
 
-    -- Cible ML modèle 2 (régression Metacritic, filtrer target_metacritic > 0 côté sklearn)
-    g.metacritic_score      as target_metacritic
+    -- Cible ML modèle 2 (régression Metacritic — NULL si pas de score)
+    nullif(g.metacritic_score, 0)           as target_metacritic
 
 from {{ ref('stg_games') }} g
 left join {{ ref('ml_tags') }}       t  using (app_id)
 left join {{ ref('ml_genres') }}     ge using (app_id)
 left join {{ ref('ml_categories') }} c  using (app_id)
+left join {{ ref('ml_reviews') }}    r  using (app_id)

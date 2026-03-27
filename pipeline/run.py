@@ -181,9 +181,8 @@ def run_collect_new():
             time.sleep(0.3)
 
             try:
-                achievement_stats = fetch_achievement_stats(app_id)
-                if achievement_stats:
-                    save_achievement_stats(conn, app_id, achievement_stats)
+                achievement_stats = fetch_achievement_stats(app_id) or {"achievement_count": 0, "achievement_median_unlock_rate": 0.0}
+                save_achievement_stats(conn, app_id, achievement_stats)
             except Exception as e:
                 print(f"[ERREUR] {app_id} — achievements ignorés: {e}")
             time.sleep(0.5)
@@ -204,7 +203,7 @@ def run_collect_new():
 
 def run_update_recent():
     """
-    Mise à jour mensuelle des jeux < 1 an :
+    Mise à jour mensuelle des jeux récents (cette année ou l'an dernier) :
     owners SteamSpy + Twitch + nouvelles reviews + recalc KPIs.
     """
     conn = get_connection()
@@ -250,9 +249,8 @@ def run_update_recent():
 
 def run_update_old():
     """
-    Mise à jour mensuelle des jeux > 1 an :
+    Mise à jour mensuelle des jeux anciens (> 2 ans) :
     owners SteamSpy + Twitch + reviews + recalc KPIs.
-    Les caractéristiques (details, tags, genres, achievements) ne sont pas re-fetchées.
     """
     conn         = get_connection()
     twitch_token = get_twitch_token()

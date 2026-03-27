@@ -1,5 +1,6 @@
 import os
 import statistics
+import time
 import requests
 from dotenv import load_dotenv
 
@@ -7,17 +8,31 @@ load_dotenv()
 
 
 def fetch_indie_app_ids() -> list[int]:
-    """Récupère tous les app_id de jeux Indie via SteamSpy."""
-    print("Récupération des IDs jeux Indie via Steam Spy...")
-    resp = requests.get(
-        "https://steamspy.com/api.php",
-        params={"request": "genre", "genre": "Indie", "page": 0},
-        timeout=15,
-    )
-    resp.raise_for_status()
-    app_ids = [int(k) for k in resp.json().keys()]
-    print(f"{len(app_ids)} IDs récupérés.")
-    return app_ids
+    print("Récupération des IDs jeux Indie via SteamSpy...")
+    all_ids_set: set[int] = set()
+    page = 0
+    while True:
+        resp = requests.get(
+            "https://steamspy.com/api.php",
+            params={"request": "genre", "genre": "Indie", "page": page},
+            timeout=15,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        if not data:
+            break
+        ids = [int(k) for k in data.keys()]
+        new_ids = [i for i in ids if i not in all_ids_set]
+        if not new_ids:
+            break  # plus aucun nouvel ID = API a renvoyé les mêmes données
+        all_ids_set.update(ids)
+        print(f"  Page {page} : {len(ids)} IDs ({len(new_ids)} nouveaux, total : {len(all_ids_set)})")
+        if len(ids) < 1000:  # SteamSpy retourne au plus 1000 entrées par page
+            break
+        page += 1
+        time.sleep(1.5)  # respecter le rate limit SteamSpy
+    print(f"{len(all_ids_set)} IDs récupérés au total.")
+    return list(all_ids_set)
 
 
 def fetch_app_details(app_id: int) -> dict | None:
@@ -35,11 +50,6 @@ def fetch_app_details(app_id: int) -> dict | None:
 
 
 def fetch_app_reviews(app_id: int) -> tuple[list[dict], dict | None]:
-    """
-    Retourne (top 5 avis positifs + top 5 avis négatifs en anglais, query_summary).
-    Fetche 100 avis EN triés par helpful, puis sélectionne les 5 meilleurs
-    de chaque polarité par votes_up.
-    """
     resp = requests.get(
         f"https://store.steampowered.com/appreviews/{app_id}",
         params={
@@ -50,8 +60,7 @@ def fetch_app_reviews(app_id: int) -> tuple[list[dict], dict | None]:
             "filter": "helpful",
             "cursor": "*",
         },
-        timeout=15,
-    )
+        timeout=15)
     resp.raise_for_status()
     data = resp.json()
     reviews = data.get("reviews") or []
@@ -71,15 +80,10 @@ def fetch_app_reviews(app_id: int) -> tuple[list[dict], dict | None]:
 
 
 def fetch_achievement_stats(app_id: int) -> dict | None:
-    """
-    Récupère les taux de déblocage globaux et calcule le nombre
-    d'achievements et le taux médian. Retourne None si aucun achievement.
-    """
     resp = requests.get(
         "https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/",
         params={"gameid": app_id, "key": os.getenv("STEAM_API_KEY")},
-        timeout=15,
-    )
+        timeout=15)
     if resp.status_code == 403:
         return None
     resp.raise_for_status()
@@ -89,5 +93,4 @@ def fetch_achievement_stats(app_id: int) -> dict | None:
         return None
     return {
         "achievement_count":              len(percents),
-        "achievement_median_unlock_rate": round(statistics.median(percents), 2),
-    }
+        "achievement_median_unlock_rate": round(statistics.median(percents), 2)}

@@ -6,12 +6,19 @@ load_dotenv()
 
 
 def get_connection():
+    host = os.getenv("DB_HOST")
+    if not host:
+        raise EnvironmentError(
+            "DB_HOST n'est pas défini. "
+            "Vérifiez vos secrets GitHub (ou votre .env en local)."
+        )
     return psycopg2.connect(
-        host=os.getenv("DB_HOST", "localhost"),
-        port=os.getenv("DB_PORT", 5432),
-        dbname=os.getenv("DB_NAME", "willitflop"),
-        user=os.getenv("DB_USER", "postgres"),
-        password=os.getenv("DB_PASSWORD", ""),
+        host=host,
+        port=int(os.getenv("DB_PORT", 5432)),
+        dbname=os.getenv("DB_NAME", "postgres"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        sslmode="require",  # requis pour Supabase
     )
 
 
@@ -43,7 +50,11 @@ def get_games_for_monthly_update(conn) -> dict[str, list[int]]:
     import re
     from datetime import datetime
 
-    threshold_year = datetime.now().year - 1
+    # "Récent" = sorti cette année ou l'année précédente (approximation à l'année
+    # faute de date précise stockée). Un jeu de janvier N-1 peut avoir jusqu'à
+    # ~23 mois, mais c'est la meilleure résolution possible avec release_date TEXT.
+    current_year = datetime.now().year
+    threshold_year = current_year - 1
 
     with conn.cursor() as cur:
         cur.execute("SELECT app_id, release_date FROM games WHERE details_fetched = TRUE")
@@ -51,7 +62,7 @@ def get_games_for_monthly_update(conn) -> dict[str, list[int]]:
 
     recent, old = [], []
     for app_id, release_date in rows:
-        match = re.search(r'\b(19|20)\d{2}\b', release_date or "")
+        match = re.search(r'\b(19|20)\d{2}\b', str(release_date) if release_date is not None else "")
         if match and int(match.group()) >= threshold_year:
             recent.append(app_id)
         else:

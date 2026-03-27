@@ -14,12 +14,29 @@ data/*.json
 !package.json
 !package-lock.json
 
+# ML artifacts (exceptions — committed intentionally)
+!ml/artifacts/cv_results.json
+!ml/artifacts/train_metrics.json
+
+# Frontend config (committed intentionally)
+!frontend/package.json
+!frontend/package-lock.json
+!frontend/components.json
+!frontend/jsconfig.json
+!frontend/vercel.json
+
 # IDE
 .vscode/
 .idea/
 
+# Docker
+postgres_data/
 
-# Frontend
-frontend/node_modules/
-frontend/dist/
-frontend/.env
+# Prefect
+.prefect/
+
+# DBT
+dbt/target/
+dbt/logs/
+dbt/.user.yml
+
