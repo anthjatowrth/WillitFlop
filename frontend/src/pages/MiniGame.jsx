@@ -563,22 +563,41 @@ export default function MiniGame() {
 
         {/* ── Chargement ──────────────────────────────────────────── */}
         {isLoading && (
-          <div className="flex flex-col items-center justify-center py-40 gap-6">
-            <img
-              src={ASSETS.loading}
-              alt="Chargement"
-              className="w-32 h-32 object-contain"
-              style={{ imageRendering: 'pixelated' }}
-            />
-            <p
-              className="text-[13px] tracking-[0.25em] uppercase animate-pulse"
+          <div className="flex items-center justify-center py-24">
+            <div
+              className="flex flex-col items-center gap-6 px-10 py-8 rounded-sm"
               style={{
-                fontFamily: '"Press Start 2P", monospace',
-                color: 'var(--wif-pink)',
+                background: 'var(--card)',
+                border: '3px solid var(--wif-pink)',
+                boxShadow: '6px 6px 0 var(--wif-pink)',
               }}
             >
-              Simulation en cours…
-            </p>
+              <img
+                src={ASSETS.loading}
+                alt="Chargement"
+                className="w-52 h-52 object-contain"
+                style={{ imageRendering: 'pixelated' }}
+              />
+              {/* barre de progression pixel art */}
+              <div
+                className="w-full h-3 rounded-none overflow-hidden"
+                style={{ background: 'color-mix(in srgb, var(--wif-pink) 20%, transparent)' }}
+              >
+                <div
+                  className="h-full animate-[loading-bar_1.4s_ease-in-out_infinite]"
+                  style={{ background: 'var(--wif-pink)', width: '40%' }}
+                />
+              </div>
+              <p
+                className="text-[11px] tracking-[0.3em] uppercase animate-pulse"
+                style={{
+                  fontFamily: '"Press Start 2P", monospace',
+                  color: 'var(--wif-pink)',
+                }}
+              >
+                Simulation en cours…
+              </p>
+            </div>
           </div>
         )}
 

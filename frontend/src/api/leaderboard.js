@@ -3,14 +3,6 @@ import { supabase } from './client'
 // URL de l'API FastAPI centralisée
 const API_URL = import.meta.env.VITE_API_URL
 
-/** Retourne la période courante au format 'YYYY-MM' */
-function getCurrentPeriod() {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  return `${year}-${month}`
-}
-
 /**
  * Upload un blob image dans Supabase Storage (bucket 'game-covers').
  * Opération Storage conservée côté frontend — ne transite pas par la BDD relationnelle.
@@ -61,11 +53,7 @@ export async function checkLeaderboardEligibility({ verdict, proba }) {
 export async function saveToLeaderboard({ verdict, proba, metacritic_score, answers, coverBlob, creator_name = null, review_text = null, review_source = null }) {
   const gameName = answers.gameName?.trim() || 'Jeu sans nom'
 
-  // Vérifie la qualification avant d'uploader l'image (évite un upload inutile)
-  const eligible = await checkLeaderboardEligibility({ verdict, proba })
-  if (!eligible) return false
-
-  // Upload la jaquette uniquement si le jeu se qualifie (Supabase Storage)
+  // Upload la jaquette (Supabase Storage) — l'éligibilité est re-vérifiée par le backend
   const coverUrl = await uploadCover(coverBlob, gameName)
 
   const entry = {

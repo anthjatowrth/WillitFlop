@@ -10,12 +10,15 @@ GET  /api/leaderboard           → récupère le leaderboard du mois en cours
 POST /api/leaderboard           → insère ou remplace une entrée dans le leaderboard
 """
 
+import logging
 from datetime import date
 
 import psycopg2.extras
 from cachetools import TTLCache
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
 
 from api.db import get_conn
 
@@ -163,58 +166,64 @@ def save_leaderboard(entry: LeaderboardEntryIn):
     conn = get_conn()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    # Récupère le top 5 existant (trié du "moins bon" au "meilleur")
-    cur.execute(
-        f"SELECT id, proba FROM leaderboard_entries WHERE period = %s AND verdict = %s ORDER BY proba {order} LIMIT 5",
-        (period, entry.verdict),
-    )
-    existing = cur.fetchall()
-
-    # Vérifie la qualification
-    if len(existing) >= 5:
-        worst = existing[0]["proba"]
-        qualifies = entry.proba > worst if entry.verdict == "Top!" else entry.proba < worst
-        if not qualifies:
-            cur.close()
-            conn.close()
-            return {"saved": False}
-
-    row = {
-        "period":          period,
-        "verdict":         entry.verdict,
-        "game_name":       entry.game_name,
-        "genre":           entry.genre,
-        "universe":        entry.universe,
-        "game_mode":       entry.game_mode,
-        "core_mechanic":   entry.core_mechanic,
-        "pricing":         entry.pricing,
-        "proba":           entry.proba,
-        "metacritic_score": entry.metacritic_score,
-        "cover_url":       entry.cover_url,
-        "creator_name":    entry.creator_name,
-        "review_text":     entry.review_text,
-        "review_source":   entry.review_source,
-    }
-    cols   = ", ".join(row.keys())
-    placeholders = ", ".join(["%s"] * len(row))
-
-    if len(existing) < 5:
-        # Moins de 5 entrées → insertion directe
+    try:
+        # Récupère le top 5 existant (trié du "moins bon" au "meilleur")
         cur.execute(
-            f"INSERT INTO leaderboard_entries ({cols}) VALUES ({placeholders})",
-            list(row.values()),
+            f"SELECT id, proba FROM leaderboard_entries WHERE period = %s AND verdict = %s ORDER BY proba {order} LIMIT 5",
+            (period, entry.verdict),
         )
-    else:
-        # Remplace le pire par le nouveau
-        cur.execute("DELETE FROM leaderboard_entries WHERE id = %s", (existing[0]["id"],))
-        cur.execute(
-            f"INSERT INTO leaderboard_entries ({cols}) VALUES ({placeholders})",
-            list(row.values()),
-        )
+        existing = cur.fetchall()
 
-    conn.commit()
-    cur.close()
-    conn.close()
-    # Invalide le cache leaderboard pour que le prochain GET soit frais
-    _cache.pop(f"leaderboard:{period}", None)
-    return {"saved": True}
+        # Vérifie la qualification
+        if len(existing) >= 5:
+            worst = existing[0]["proba"]
+            qualifies = entry.proba > worst if entry.verdict == "Top!" else entry.proba < worst
+            if not qualifies:
+                return {"saved": False}
+
+        row = {
+            "period":          period,
+            "verdict":         entry.verdict,
+            "game_name":       entry.game_name,
+            "genre":           entry.genre,
+            "universe":        entry.universe,
+            "game_mode":       entry.game_mode,
+            "core_mechanic":   entry.core_mechanic,
+            "pricing":         entry.pricing,
+            "proba":           entry.proba,
+            "metacritic_score": entry.metacritic_score,
+            "cover_url":       entry.cover_url,
+            "creator_name":    entry.creator_name,
+            "review_text":     entry.review_text,
+            "review_source":   entry.review_source,
+        }
+        cols         = ", ".join(row.keys())
+        placeholders = ", ".join(["%s"] * len(row))
+
+        if len(existing) < 5:
+            # Moins de 5 entrées → insertion directe
+            cur.execute(
+                f"INSERT INTO leaderboard_entries ({cols}) VALUES ({placeholders})",
+                list(row.values()),
+            )
+        else:
+            # Remplace le pire par le nouveau
+            cur.execute("DELETE FROM leaderboard_entries WHERE id = %s", (existing[0]["id"],))
+            cur.execute(
+                f"INSERT INTO leaderboard_entries ({cols}) VALUES ({placeholders})",
+                list(row.values()),
+            )
+
+        conn.commit()
+        # Invalide le cache leaderboard pour que le prochain GET soit frais
+        _cache.pop(f"leaderboard:{period}", None)
+        return {"saved": True}
+
+    except Exception as exc:
+        conn.rollback()
+        logger.error("[leaderboard] Erreur lors de l'insertion : %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+    finally:
+        cur.close()
+        conn.close()
