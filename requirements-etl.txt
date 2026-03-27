@@ -7,3 +7,5 @@ CurrencyConverter
 dbt-core
 dbt-postgres
 beautifulsoup4
+vaderSentiment
+tqdm
