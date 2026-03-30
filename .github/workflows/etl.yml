@@ -35,5 +35,5 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements-etl.txt
 
-      - name: Run ETL pipeline
-        run: PYTHONPATH=. python -m pipeline.flow
+      - name: Start Prefect worker
+        run: PYTHONPATH=. prefect worker start --pool willitflop-pool --run-once
