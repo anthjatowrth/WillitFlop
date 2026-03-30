@@ -1,5 +1,5 @@
 # =============================================================================
-# DEV ENVIRONMENT SNAPSHOT — not used by any deployment target.
+# DEV ENVIRONMENT SNAPSHOT (requirements-dev.txt) — not used by any deployment target.
 #
 # Deployment requirements:
 #   API (Render)    → requirements-api.txt   (11 packages)
