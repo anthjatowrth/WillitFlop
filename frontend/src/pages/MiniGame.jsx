@@ -1297,7 +1297,7 @@ function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded,
                     « {review.text} »
                   </p>
                   <p className="font-label text-[10px] tracking-widest uppercase text-muted-foreground mt-2">
-                    — {review.source}
+                    {review.source}
                   </p>
                 </div>
               )}
@@ -1380,7 +1380,7 @@ function getFactors(answers) {
 
   // Prix
   if (answers.pricing === 0)
-    factors.push({ label: 'Gratuit — accessibilité maximale', positive: true })
+    factors.push({ label: 'Gratuit, accessibilité maximale', positive: true })
   else if (answers.pricing != null && answers.pricing <= 14.99)
     factors.push({ label: `Prix accessible : ${answers.pricing}€`, positive: true })
   else if (answers.pricing != null && answers.pricing >= 29.99)
@@ -1389,9 +1389,9 @@ function getFactors(answers) {
   // Langues
   if (answers.languages != null) {
     if (answers.languages >= 10)
-      factors.push({ label: `${answers.languages} langues — large audience`, positive: true })
+      factors.push({ label: `${answers.languages} langues, large audience`, positive: true })
     else if (answers.languages <= 2)
-      factors.push({ label: `${answers.languages} langue(s) — audience limitée`, positive: false })
+      factors.push({ label: `${answers.languages} langue(s), audience limitée`, positive: false })
   }
 
   // Mécaniques tendances vs niches exigeantes
@@ -1406,11 +1406,11 @@ function getFactors(answers) {
 
   // Multijoueur / moddable
   if (answers.categories?.includes('Workshop / Mods'))
-    factors.push({ label: 'Support moddable — longévité accrue', positive: true })
+    factors.push({ label: 'Support moddable, longévité accrue', positive: true })
   if (answers.categories?.some(c => ['Co-op en ligne', 'PvP compétitif'].includes(c)))
-    factors.push({ label: 'Multijoueur — engagement communautaire', positive: true })
+    factors.push({ label: 'Multijoueur, engagement communautaire', positive: true })
   if (answers.categories?.length === 1 && answers.categories[0] === 'Solo uniquement')
-    factors.push({ label: 'Solo uniquement — pas de multijoueur', positive: false })
+    factors.push({ label: 'Solo uniquement, pas de multijoueur', positive: false })
 
   return factors
 }
@@ -1521,13 +1521,13 @@ function CreatorModal({ verdict, onSubmit }) {
             onClick={() => onSubmit(name.trim())}
             style={name.trim() ? { background: accentColor, color: '#fff', border: 'none' } : {}}
           >
-            {name.trim() ? `Confirmer — ${name.trim()}` : 'Confirmer (anonyme)'}
+            {name.trim() ? `Confirmer, ${name.trim()}` : 'Confirmer (anonyme)'}
           </Button>
           <button
             onClick={() => onSubmit(null)}
             className="font-label text-[10px] tracking-[0.2em] uppercase text-muted-foreground hover:text-foreground transition-colors py-1"
           >
-            Passer — rester anonyme
+            Passer, rester anonyme
           </button>
         </div>
       </div>

@@ -156,12 +156,12 @@ function BubbleDot({ cx, cy, fill }) {
 }
 
 const CHARTS_CONFIG = [
-  { key: 'genre',    step: 'Q1 / 6', title: 'Famille de ton jeu',     subtitle: 'Genres Steam — volume et taux de succès',          color: '#E8005A' },
-  { key: 'ambiance', step: 'Q2 / 6', title: 'Ambiance de l\'univers', subtitle: "Tags d'univers — volume et taux de succès",        color: '#9B59B6' },
-  { key: 'gameplay', step: 'Q3 / 6', title: 'Comment joue-t-on ?',   subtitle: 'Mécaniques & gameplay — volume et taux de succès', color: '#007A8C' },
-  { key: 'visual',   step: 'Q4 / 6', title: 'Style graphique',        subtitle: 'Tags visuels — volume et taux de succès',          color: '#E67E22' },
-  { key: 'camera',   step: 'Q5 / 6', title: 'Vue caméra principale',  subtitle: 'Tags perspective — volume et taux de succès',      color: '#4A90E2' },
-  { key: 'playmode', step: 'Q6 / 6', title: 'Mode de jeu',            subtitle: 'Catégories Steam — volume et taux de succès',      color: '#007A4C' },
+  { key: 'genre',    step: 'Q1 / 6', title: 'Famille de ton jeu',     subtitle: 'Genres Steam : volume et taux de succès',          color: '#E8005A' },
+  { key: 'ambiance', step: 'Q2 / 6', title: 'Ambiance de l\'univers', subtitle: "Tags d'univers : volume et taux de succès",        color: '#9B59B6' },
+  { key: 'gameplay', step: 'Q3 / 6', title: 'Comment joue-t-on ?',   subtitle: 'Mécaniques & gameplay : volume et taux de succès', color: '#007A8C' },
+  { key: 'visual',   step: 'Q4 / 6', title: 'Style graphique',        subtitle: 'Tags visuels : volume et taux de succès',          color: '#E67E22' },
+  { key: 'camera',   step: 'Q5 / 6', title: 'Vue caméra principale',  subtitle: 'Tags perspective : volume et taux de succès',      color: '#4A90E2' },
+  { key: 'playmode', step: 'Q6 / 6', title: 'Mode de jeu',            subtitle: 'Catégories Steam : volume et taux de succès',      color: '#007A4C' },
 ]
 
 function SuccesTab({ successPct }) {
@@ -202,7 +202,7 @@ function SuccesTab({ successPct }) {
       {/* ── Scatter : matrice de positionnement des tags ── */}
       <Section
         title="Matrice de positionnement des tags"
-        subtitle="X = popularité (échelle log) · Y = taux de succès · Survolez un point pour l'identifier"
+        subtitle="X = popularité (échelle log) / Y = taux de succès. Survolez un point pour l'identifier"
         badge={`${allLogTags.length} tags`}
       >
         {tagLoading ? (
@@ -248,7 +248,7 @@ function SuccesTab({ successPct }) {
                     return n >= 1000 ? `${(n / 1000).toFixed(0)}k` : `${n}`
                   }}
                   tick={{ fontSize: 12, fill: 'var(--wif-gray)' }}
-                  label={{ value: 'Popularité — nombre de jeux portant ce tag (log)', position: 'insideBottom', offset: -20, fontSize: 12, fill: 'var(--wif-gray)' }}
+                  label={{ value: 'Popularité : nombre de jeux portant ce tag (log)', position: 'insideBottom', offset: -20, fontSize: 12, fill: 'var(--wif-gray)' }}
                 />
                 <YAxis
                   type="number"
@@ -512,7 +512,7 @@ export default function Market() {
 
           return (
             <Section
-              title="Saisonnalité des sorties — Jan à Déc"
+              title="Saisonnalité des sorties de Jan à Déc"
               subtitle="Volume de publications et taux de succès agrégés sur toutes les années (2010–2025)"
               badge={`Moy. mensuelle : ${fmt(avgMonthCount)} jeux`}
             >
@@ -616,7 +616,7 @@ export default function Market() {
         {/* ── Twitch Live Snapshot ── */}
         <Section
           title="Présence Twitch du catalogue"
-          subtitle="Viewers & streams actifs au dernier snapshot — données live actualisées en continu"
+          subtitle="Viewers & streams actifs au dernier snapshot. données live actualisées en continu"
           badge={data.twitchFetchedAt ? `Snapshot ${data.twitchFetchedAt}` : 'Live'}
         >
           {/* KPIs inline */}
@@ -654,7 +654,7 @@ export default function Market() {
           {data.twitchByGenre.length > 0 ? (
             <>
               <p className="font-inter text-xs text-muted-foreground mb-3 uppercase tracking-widest">
-                Top genres — viewers Twitch cumulés
+                Top genres : viewers Twitch cumulés
               </p>
               <ResponsiveContainer width="100%" height={data.twitchByGenre.length * 38 + 20}>
                 <BarChart
@@ -830,7 +830,7 @@ export default function Market() {
 
           <Section
             title="Distribution Metacritic"
-            subtitle="Notes critiques — jeux couverts par Metacritic · taux de succès par tranche"
+            subtitle="Notes critiques : jeux couverts par Metacritic. taux de succès par tranche"
             badge={`μ = ${data.avgMetacritic}  ·  Md = ${data.medianMetacritic}  ·  ${data.pctWithMetacritic}%`}
           >
             <ResponsiveContainer width="100%" height={230}>
@@ -1066,7 +1066,7 @@ export default function Market() {
 
         {/* ── Pareto genres ── */}
         <Section
-          title="Analyse de Pareto — Répartition des genres"
+          title="Analyse de Pareto: Répartition des genres"
           subtitle={`Principe 80/20 : ${genres80} genres concentrent 80% des publications Steam`}
           badge="Pareto 80/20"
         >
@@ -1173,7 +1173,7 @@ export default function Market() {
                 <span style={{ color: 'var(--primary)' }}>CATALOGUE</span>
               </h1>
               <p className="mt-3 font-inter text-sm text-muted-foreground max-w-2xl">
-                EDA complet du catalogue Steam — distributions, Pareto, corrélations et facteurs de succès,
+                Analyse exploratoire des données du catalogue Steam: distributions, Pareto, corrélations et facteurs de succès,
                 alimenté en temps réel depuis Supabase.
               </p>
             </div>
