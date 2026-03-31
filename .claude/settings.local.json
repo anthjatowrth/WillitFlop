@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cmd /c \"dir D:\\\\DATA\\\\Projets\"\")",
+      "Bash(powershell -Command \"Test-Path ''D:\\\\DATA\\\\Projets\\\\Willitflopperso''\")",
+      "Bash(powershell.exe -Command \"Test-Path ''D:\\\\DATA\\\\Projets\\\\Willitflopperso''\")",
+      "Bash(echo $HOME)",
+      "Bash(echo $USERPROFILE)",
+      "Bash(mkdir -p \"/d/DATA/Projets/Willitflopperso\")",
+      "Bash(cmd.exe /c \"mkdir D:\\\\DATA\\\\Projets\\\\Willitflopperso\")"
+    ]
+  }
+}

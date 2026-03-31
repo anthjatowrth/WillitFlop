@@ -1145,7 +1145,7 @@ export default function Market() {
             </div>
           </div>
           <InsightBox icon="bar_chart_4_bars" title="La loi de Pareto est impitoyable sur Steam">
-            Quelques genres — typiquement Indie, Action, Adventure et RPG — accaparent l'écrasante majorité des publications. Ce n'est pas un hasard : ces catégories bénéficient d'une demande forte et d'une barrière à l'entrée relativement faible, ce qui attire les développeurs comme des aimants. Le problème est structurel : plus un genre est populaire, plus la concurrence y est féroce, et plus il est difficile d'émerger sans un budget marketing significatif. La longue traîne — ces genres grisés avec moins de publications — offre paradoxalement des niches à fort potentiel, où la demande existe mais l'offre reste insuffisante. Identifier ces zones sous-exploitées est souvent plus stratégique que d'attaquer les genres leaders avec un dixième du budget d'un studio établi.
+            Quelques genres : typiquement Indie, Action, Adventure et RPG accaparent l'écrasante majorité des publications. Ce n'est pas un hasard : ces catégories bénéficient d'une demande forte et d'une barrière à l'entrée relativement faible, ce qui attire les développeurs comme des aimants. Le problème est structurel : plus un genre est populaire, plus la concurrence y est féroce, et plus il est difficile d'émerger sans un budget marketing significatif. La longue traîne, ces genres grisés avec moins de publications, offre paradoxalement des niches à fort potentiel, où la demande existe mais l'offre reste insuffisante. Identifier ces zones sous-exploitées est souvent plus stratégique que d'attaquer les genres leaders avec un dixième du budget d'un studio établi.
           </InsightBox>
         </Section>
 
