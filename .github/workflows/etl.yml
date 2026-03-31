@@ -4,6 +4,15 @@ on:
   # Déclenché par l'Automation Prefect Cloud (webhook → GitHub API)
   # ou manuellement depuis l'UI GitHub
   workflow_dispatch:
+    inputs:
+      mode:
+        description: "Mode d'exécution: 'prefect' (via worker pool) ou 'direct' (sans Prefect Cloud)"
+        required: false
+        default: "prefect"
+        type: choice
+        options:
+          - prefect
+          - direct
 
 jobs:
   etl:
@@ -35,5 +44,10 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements-etl.txt
 
-      - name: Start Prefect worker
+      - name: Start Prefect worker (mode prefect)
+        if: ${{ github.event.inputs.mode != 'direct' }}
         run: PYTHONPATH=. prefect worker start --pool willitflop-pool --run-once
+
+      - name: Run flow directly (mode direct, sans Prefect Cloud)
+        if: ${{ github.event.inputs.mode == 'direct' }}
+        run: PYTHONPATH=. python -c "from pipeline.flow import willitflop_etl; willitflop_etl()"
