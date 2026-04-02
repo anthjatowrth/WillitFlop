@@ -210,7 +210,7 @@ export default function DistributionsTab({ data, successPct }) {
       </div>
 
       <InsightBox standalone icon="psychology_alt" title="Prix et qualité : deux variables qui comptent, mais pas comme on le croit">
-        La distribution des prix révèle un marché profondément segmenté : une majorité de jeux gratuits ou très abordables, et un segment premium qui affiche de meilleures performances. Ce n'est pas la gratuité qui pénalise en soi — c'est qu'un prix bas s'accompagne souvent d'un positionnement flou et d'un lancement peu préparé. Côté Metacritic, la corrélation entre note critique et succès commercial est réelle mais limitée : la couverture presse reste marginale (moins de 10 % du catalogue est noté). La majorité des jeux ne sera jamais testée par un journaliste — ce sont les avis utilisateurs Steam qui font office de référence pour 90 % du marché. Travailler sa réputation auprès des joueurs est donc bien plus impactant que de viser une couverture critique.
+        La distribution des prix révèle un marché profondément segmenté : une majorité de jeux gratuits ou très abordables, et un segment premium qui affiche de meilleures performances. Ce n'est pas vraiment la gratuité qui pénalise. C'est surtout qu'un prix bas s'accompagne souvent d'un positionnement flou et d'un lancement peu préparé. Côté Metacritic, la corrélation entre note critique et succès commercial existe, mais elle est limitée : moins de 10 % du catalogue est couvert par la presse. La grande majorité des jeux ne sera jamais testée par un journaliste. Pour 90 % du marché, ce sont les avis Steam des joueurs qui font foi. Soigner sa réputation auprès de sa communauté est bien plus porteur que de courir après une couverture presse.
       </InsightBox>
 
       {/* ── Playtime × succès + Achievements × succès ── */}
@@ -363,7 +363,7 @@ export default function DistributionsTab({ data, successPct }) {
       </div>
 
       <InsightBox standalone icon="hourglass_bottom" title="Durée et progression : l'engagement comme moteur de réputation">
-        Les jeux avec une durée de jeu intermédiaire affichent généralement les meilleurs taux de succès. Cette "golden zone" correspond à une expérience suffisamment longue pour générer des avis positifs et des recommandations organiques, sans imposer un engagement excessif qui freine l'achat impulsif. Les systèmes de succès (achievements) jouent un rôle similaire : ils structurent l'expérience, créent des objectifs secondaires et prolongent la durée de vie perçue du jeu. Un système de succès bien pensé n'est pas un gadget — c'est un outil de rétention qui signale à l'algorithme Steam une base de joueurs active et engagée, ce qui améliore directement la fréquence d'apparition dans les recommandations.
+        Les jeux avec une durée de jeu intermédiaire affichent en général les meilleurs taux de succès. Cette "zone idéale" correspond à une expérience assez longue pour générer des avis positifs et des recommandations spontanées, sans pour autant exiger un engagement qui décourage l'achat impulsif. Les systèmes de succès (achievements) jouent un rôle similaire : ils structurent l'expérience, créent des objectifs secondaires et prolongent la durée de vie perçue du jeu. Un système de succès bien pensé n'est pas un gadget. C'est un outil de rétention qui signale à l'algorithme Steam une base de joueurs active, ce qui améliore directement la visibilité dans les recommandations.
       </InsightBox>
 
       {/* ── Pareto genres ── */}
@@ -447,7 +447,7 @@ export default function DistributionsTab({ data, successPct }) {
           </div>
         </div>
         <InsightBox icon="bar_chart_4_bars" title="La loi de Pareto est impitoyable sur Steam">
-          Quelques genres — typiquement Indie, Action, Adventure et RPG — accaparent l'écrasante majorité des publications. Ce n'est pas un hasard : ces catégories bénéficient d'une demande forte et d'une barrière à l'entrée relativement faible, ce qui attire les développeurs comme des aimants. Le problème est structurel : plus un genre est populaire, plus la concurrence y est féroce, et plus il est difficile d'émerger sans un budget marketing significatif. La longue traîne — ces genres grisés avec moins de publications — offre paradoxalement des niches à fort potentiel, où la demande existe mais l'offre reste insuffisante. Identifier ces zones sous-exploitées est souvent plus stratégique que d'attaquer les genres leaders avec un dixième du budget d'un studio établi.
+          Quelques genres, typiquement Indie, Action, Adventure et RPG, accaparent l'écrasante majorité des publications. Ce n'est pas un hasard : ces catégories bénéficient d'une demande forte et d'une barrière à l'entrée relativement faible, ce qui attire les développeurs. Le problème est structurel : plus un genre est populaire, plus la concurrence y est féroce, et plus il est difficile d'émerger sans un budget marketing significatif. La longue traîne, ces genres grisés avec moins de publications, offre paradoxalement des niches à fort potentiel, où la demande existe mais l'offre reste insuffisante. Identifier ces zones sous-exploitées est souvent plus stratégique que d'attaquer les genres leaders avec un dixième du budget d'un studio établi.
         </InsightBox>
       </Section>
 

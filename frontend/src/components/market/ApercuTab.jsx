@@ -17,7 +17,7 @@ export default function ApercuTab({ data }) {
       {/* ── Timeline jeux/année ── */}
       <Section
         title="Volume de publications par année (2010–2025)"
-        subtitle="Tendance long-terme de l'offre Steam et évolution du taux de succès"
+        subtitle="Tendance à long terme de l'offre Steam, évolution du taux de succès"
         badge={`N = ${fmt(data.sampleSize)}`}
       >
         <ResponsiveContainer width="100%" height={280}>
@@ -94,7 +94,7 @@ export default function ApercuTab({ data }) {
           </div>
         </div>
         <InsightBox icon="show_chart" title="Une offre qui a explosé, une visibilité qui s'est effondrée">
-          Entre 2010 et aujourd'hui, le nombre de jeux publiés sur Steam a été multiplié par plus de 30. Cette croissance n'est pas le signe d'un marché en bonne santé — c'est le résultat d'une démocratisation des outils de développement et d'une politique de publication de plus en plus permissive. La conséquence directe : le taux de succès moyen s'est érodé à mesure que la concurrence s'est intensifiée. Pour un jeu indépendant lancé aujourd'hui, la probabilité statistique d'être découvert sans stratégie marketing active est infime. La qualité ne suffit plus ; la visibilité est devenue la ressource la plus rare de l'écosystème Steam.
+          Entre 2010 et aujourd'hui, le nombre de jeux publiés sur Steam a été multiplié par plus de 30. Cette croissance traduit avant tout la démocratisation des outils de développement et une politique de publication de plus en plus ouverte. Résultat : le taux de succès moyen s'est érodé au fil des années, à mesure que la concurrence s'est intensifiée. Pour un jeu indépendant lancé aujourd'hui, les chances d'être découvert sans stratégie marketing active sont infimes. La qualité ne suffit plus : la visibilité est devenue la ressource la plus précieuse de l'écosystème Steam.
         </InsightBox>
       </Section>
 
@@ -208,7 +208,7 @@ export default function ApercuTab({ data }) {
               </div>
             </div>
             <InsightBox icon="calendar_month" title="Le calendrier de sortie, un levier souvent sous-estimé">
-              Les données révèlent un paradoxe saisonnier bien documenté : les mois à fort volume de publications (généralement avant les grandes fêtes) correspondent à une compétition maximale pour l'attention des joueurs. Sortir "avec la masse" dilue mécaniquement la visibilité dans les storefronts et les algorithmes de recommandation. À l'inverse, les périodes plus creuses offrent moins de concurrence directe et peuvent générer un taux de découverte plus élevé à budget égal. La stratégie optimale n'est pas toujours de cibler les fenêtres de forte activité — c'est d'identifier les semaines où votre jeu aura le moins de rivaux directs pour capter l'attention.
+              Il y a un paradoxe bien documenté dans les données : les mois les plus chargés en sorties, souvent avant les grandes fêtes, sont aussi ceux où la concurrence pour l'attention des joueurs est la plus forte. Sortir "avec la masse" dilue la visibilité sur les storefronts et dans les algorithmes de recommandation. Les périodes creuses, elles, offrent moins de concurrence directe et peuvent améliorer le taux de découverte à budget identique. La vraie question n'est pas toujours "quand est-ce que beaucoup de joueurs achètent ?" mais "quand est-ce que mon jeu aura le moins de rivaux directs pour capter l'attention ?"
             </InsightBox>
           </Section>
         )
@@ -310,7 +310,7 @@ export default function ApercuTab({ data }) {
           <p className="font-inter text-sm text-muted-foreground text-center py-8">Aucune donnée Twitch disponible</p>
         )}
         <InsightBox icon="live_tv" title="Le streaming, signal de marché autant que canal de visibilité">
-          L'écart de taux de succès entre les jeux présents sur Twitch et les autres n'est pas anodin. Il ne signifie pas que le streaming "crée" le succès — il révèle que les jeux capables de générer du contenu streamable partagent des caractéristiques intrinsèques : forte rejouabilité, moments spectaculaires, dynamique sociale. Twitch est à la fois un canal de distribution et un indicateur de conception. Un jeu difficile à streamer est souvent un jeu difficile à faire découvrir par le bouche-à-oreille numérique, qui reste aujourd'hui le principal vecteur de croissance organique sur Steam. Concevoir des moments "clipables" dès le début du développement n'est pas du cynisme — c'est de la stratégie.
+          L'écart de taux de succès entre les jeux présents sur Twitch et les autres est frappant. Attention cependant : le streaming ne "crée" pas le succès. Ce qu'il révèle, c'est que les jeux capables de générer du contenu streamable ont souvent des qualités communes : forte rejouabilité, moments spectaculaires, dynamique sociale. Twitch est à la fois un canal de distribution et un indicateur de conception. Un jeu difficile à streamer est souvent un jeu difficile à faire découvrir par le bouche-à-oreille numérique, qui reste le principal vecteur de croissance organique sur Steam. Penser à des moments "clipables" dès la conception du jeu, ce n'est pas du cynisme. C'est de la stratégie.
         </InsightBox>
       </Section>
 

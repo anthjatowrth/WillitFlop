@@ -213,7 +213,7 @@ function ScatterSentiment({ data, loading }) {
             ))}
           </div>
           <InsightBox icon="insights" title="Ce que révèle ce graphique">
-            Chaque point représente un jeu. Les points roses (succès) se concentrent-ils à droite ? Si oui, un sentiment positif est corrélé à un plus grand nombre de propriétaires. L'axe Y en échelle logarithmique permet de visualiser à la fois les petits indés et les blockbusters. Les jeux avec beaucoup d'avis négatifs (gauche du graphique) restent-ils cantonnés au bas du graphique ? C'est le signe que le sentiment est un signal fiable pour notre modèle de prédiction.
+            Chaque point représente un jeu. Les points roses (succès) se concentrent-ils à droite ? Si oui, un sentiment positif est corrélé à un plus grand nombre de propriétaires. L'axe Y en échelle logarithmique permet de visualiser à la fois les petits indés et les blockbusters. Les jeux avec beaucoup d'avis négatifs restent-ils cantonnés en bas du graphique ? Si oui, c'est la preuve que le sentiment constitue un signal fiable pour notre modèle de prédiction.
           </InsightBox>
         </>
       )}
@@ -291,7 +291,7 @@ function SentimentTimeline({ data, loading }) {
             </AreaChart>
           </ResponsiveContainer>
           <InsightBox icon="show_chart" title="Lire la courbe temporelle">
-            Une courbe qui reste au-dessus de 0 indique que les joueurs ont globalement bien reçu les sorties de cette période. Des baisses marquées peuvent coïncider avec des périodes de controverses (monétisation agressive, lancements catastrophiques). Une tendance de fond haussière témoigne d'une amélioration continue de la qualité ou des attentes mieux calibrées par les joueurs.
+            Une courbe qui reste au-dessus de 0 indique que les joueurs ont globalement bien accueilli les sorties de cette période. Les baisses marquées coïncident souvent avec des controverses : monétisation agressive, lancements ratés. Une tendance générale à la hausse peut refléter une amélioration continue de la qualité, ou des attentes mieux calibrées avec le temps.
           </InsightBox>
         </>
       )}
