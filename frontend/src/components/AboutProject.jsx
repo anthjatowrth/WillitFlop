@@ -212,8 +212,8 @@ export default function AboutProject() {
             {/* Mini schéma Wilson */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {[
-                { label: '10 avis · 100 % positifs', score: '63 %', width: 63 },
-                { label: '10 000 avis · 85 % positifs', score: '84 %', width: 84 },
+                { label: '10 avis, 100 % positifs', score: '63 %', width: 63 },
+                { label: '10 000 avis, 85 % positifs', score: '84 %', width: 84 },
               ].map(({ label, score, width }) => (
                 <div key={label}>
                   <div className="flex justify-between font-space-mono" style={{ fontSize: '0.58rem', letterSpacing: '0.1em', color: 'var(--wif-gray)', marginBottom: '5px' }}>

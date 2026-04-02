@@ -102,7 +102,7 @@ function ScatterSentiment({ data, loading }) {
   return (
     <Section
       title="Le sentiment des reviews prédit-il le succès ?"
-      subtitle="X = score de sentiment moyen · Y = propriétaires estimés (échelle log)"
+      subtitle="X = score de sentiment moyen / Y = propriétaires estimés (échelle log)"
     >
       {loading ? <Skeleton h={460} /> : (
         <>
@@ -231,7 +231,7 @@ function SentimentTimeline({ data, loading }) {
   return (
     <Section
       title="Le ton des reviews évolue-t-il dans le temps ?"
-      subtitle="Sentiment moyen mensuel · ligne pointillée = neutralité"
+      subtitle="Sentiment moyen mensuel / ligne pointillée = neutralité"
     >
       {loading ? <Skeleton h={400} /> : (
         <>
@@ -315,7 +315,7 @@ function GenreSentimentBar({ data, loading }) {
   return (
     <Section
       title="Quel genre divise le plus les joueurs ?"
-      subtitle="Score de sentiment moyen par genre · rouge = négatif · cyan = positif · trié du plus négatif au plus positif"
+      subtitle="Score de sentiment moyen par genre / rouge = négatif / cyan = positif / trié du plus négatif au plus positif"
       badge={`${sorted.length} genres`}
     >
       {loading ? <Skeleton h={barHeight} /> : (
@@ -517,7 +517,7 @@ export function SentimentTab() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Section
             title="Ce que les joueurs adorent"
-            subtitle="Mots les plus fréquents dans les avis positifs · hors stopwords Steam"
+            subtitle="Mots les plus fréquents dans les avis positifs / hors stopwords Steam"
           >
             {loadingWords ? <Skeleton h={240} /> : (
               <>
@@ -536,7 +536,7 @@ export function SentimentTab() {
           </Section>
           <Section
             title="Ce qui déçoit les joueurs"
-            subtitle="Mots les plus fréquents dans les avis négatifs · hors stopwords Steam"
+            subtitle="Mots les plus fréquents dans les avis négatifs / hors stopwords Steam"
           >
             {loadingWords ? <Skeleton h={240} /> : (
               <>

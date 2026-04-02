@@ -54,8 +54,8 @@ export default function DistributionsTab({ data, successPct }) {
 
         <Section
           title="Distribution des prix"
-          subtitle="Répartition par tranche tarifaire · taux de succès par tranche"
-          badge={`μ = ${fmtEur(data.avgPricePaid)}  ·  Md = ${fmtEur(data.medianPricePaid)}`}
+          subtitle="Répartition par tranche tarifaire / taux de succès par tranche"
+          badge={`μ = ${fmtEur(data.avgPricePaid)}  /  Md = ${fmtEur(data.medianPricePaid)}`}
         >
           <ResponsiveContainer width="100%" height={230}>
             <ComposedChart data={priceData} margin={{ top: 10, right: 40, left: 0, bottom: 5 }}>
@@ -132,8 +132,8 @@ export default function DistributionsTab({ data, successPct }) {
 
         <Section
           title="Distribution Metacritic"
-          subtitle="Notes critiques — jeux couverts par Metacritic · taux de succès par tranche"
-          badge={`μ = ${data.avgMetacritic}  ·  Md = ${data.medianMetacritic}  ·  ${data.pctWithMetacritic}%`}
+          subtitle="Notes critiques / jeux couverts par Metacritic / taux de succès par tranche"
+          badge={`μ = ${data.avgMetacritic}  /  Md = ${data.medianMetacritic}  /  ${data.pctWithMetacritic}%`}
         >
           <ResponsiveContainer width="100%" height={230}>
             <ComposedChart data={metacData} margin={{ top: 10, right: 40, left: 0, bottom: 5 }}>
@@ -218,7 +218,7 @@ export default function DistributionsTab({ data, successPct }) {
 
         <Section
           title="Durée de jeu (playtime)"
-          subtitle="Distribution des jeux par durée médiane · lien avec le taux de succès"
+          subtitle="Distribution des jeux par durée médiane / lien avec le taux de succès"
           badge={`N = ${fmt(data.playtimeDistribution.reduce((s, d) => s + d.count, 0))}`}
         >
           <ResponsiveContainer width="100%" height={230}>
@@ -290,7 +290,7 @@ export default function DistributionsTab({ data, successPct }) {
 
         <Section
           title="Taux de débloquage des succès"
-          subtitle="Médiane d'unlock rate par tranche · lien avec le taux de succès"
+          subtitle="Médiane d'unlock rate par tranche / lien avec le taux de succès"
           badge={`N = ${fmt(data.achievementDistribution.reduce((s, d) => s + d.count, 0))}`}
         >
           <ResponsiveContainer width="100%" height={230}>

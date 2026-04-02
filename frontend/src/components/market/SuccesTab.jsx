@@ -25,12 +25,12 @@ const TAG_CATS = [
 ]
 
 const CHARTS_CONFIG = [
-  { key: 'genre',    step: 'Q1 / 6', title: 'Famille de ton jeu',     subtitle: 'Genres Steam — volume et taux de succès',          color: '#E8005A' },
-  { key: 'ambiance', step: 'Q2 / 6', title: 'Ambiance de l\'univers', subtitle: "Tags d'univers — volume et taux de succès",        color: '#9B59B6' },
-  { key: 'gameplay', step: 'Q3 / 6', title: 'Comment joue-t-on ?',   subtitle: 'Mécaniques & gameplay — volume et taux de succès', color: '#007A8C' },
-  { key: 'visual',   step: 'Q4 / 6', title: 'Style graphique',        subtitle: 'Tags visuels — volume et taux de succès',          color: '#E67E22' },
-  { key: 'camera',   step: 'Q5 / 6', title: 'Vue caméra principale',  subtitle: 'Tags perspective — volume et taux de succès',      color: '#4A90E2' },
-  { key: 'playmode', step: 'Q6 / 6', title: 'Mode de jeu',            subtitle: 'Catégories Steam — volume et taux de succès',      color: '#007A4C' },
+  { key: 'genre',    step: 'Q1 / 6', title: 'Famille de ton jeu',     subtitle: 'Genres Steam / volume et taux de succès',          color: '#E8005A' },
+  { key: 'ambiance', step: 'Q2 / 6', title: 'Ambiance de l\'univers', subtitle: "Tags d'univers / volume et taux de succès",        color: '#9B59B6' },
+  { key: 'gameplay', step: 'Q3 / 6', title: 'Comment joue-t-on ?',   subtitle: 'Mécaniques & gameplay / volume et taux de succès', color: '#007A8C' },
+  { key: 'visual',   step: 'Q4 / 6', title: 'Style graphique',        subtitle: 'Tags visuels / volume et taux de succès',          color: '#E67E22' },
+  { key: 'camera',   step: 'Q5 / 6', title: 'Vue caméra principale',  subtitle: 'Tags perspective / volume et taux de succès',      color: '#4A90E2' },
+  { key: 'playmode', step: 'Q6 / 6', title: 'Mode de jeu',            subtitle: 'Catégories Steam / volume et taux de succès',      color: '#007A4C' },
 ]
 
 function BubbleDot({ cx, cy, fill }) {
@@ -79,7 +79,7 @@ export default function SuccesTab({ successPct }) {
       {/* ── Scatter : matrice de positionnement des tags ── */}
       <Section
         title="Matrice de positionnement des tags"
-        subtitle="X = popularité (échelle log) · Y = taux de succès · Survolez un point pour l'identifier"
+        subtitle="X = popularité (échelle log) / Y = taux de succès / Survolez un point pour l'identifier"
         badge={`${allLogTags.length} tags`}
       >
         {tagLoading ? (

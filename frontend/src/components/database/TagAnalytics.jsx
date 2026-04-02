@@ -281,7 +281,7 @@ export default function TagAnalytics() {
           </div>
         </div>
         <span className="font-label text-[10px] tracking-wider uppercase text-muted-foreground/50">
-          Barres = volume · Cercles = % succès · {fmt(data.sampleSize)} jeux analysés
+          Barres = volume / Cercles = % succès / {fmt(data.sampleSize)} jeux analysés
         </span>
       </div>
 

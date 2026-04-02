@@ -99,7 +99,7 @@ export default function Market() {
             value={data.avgMetacritic > 0 ? data.avgMetacritic : '—'}
             icon="star"
             color="var(--wif-warn)"
-            sub={`Médiane : ${data.medianMetacritic} · Couverture : ${data.pctWithMetacritic}%`}
+            sub={`Médiane : ${data.medianMetacritic} / Couverture : ${data.pctWithMetacritic}%`}
           />
           <KpiCard
             label="Taux de succès"
