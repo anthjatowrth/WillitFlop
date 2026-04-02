@@ -1,7 +1,6 @@
 name: Retrain ML Model
 
 on:
-  # Déclenchement manuel depuis l'UI GitHub
   workflow_dispatch:
   # Déclenchement automatique quand ml/config.py ou les features changent
   push:
