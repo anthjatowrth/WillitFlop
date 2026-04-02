@@ -88,7 +88,7 @@ export default function ResultShowcase() {
           Ce que vous obtenez
         </h2>
         <p className="font-exo text-muted-foreground" style={{ fontSize: '0.88rem', marginBottom: '40px' }}>
-          Un exemple de résultat après simulation complète — votre analyse sera personnalisée.
+          Un exemple de résultat après simulation complète, votre analyse sera personnalisée.
         </p>
 
         {/* ── Layout annoté — scrollable horizontally on narrow screens ── */}
@@ -178,7 +178,7 @@ export default function ResultShowcase() {
                   <div>
                     <p className="font-headline font-bold text-3xl leading-tight mb-2">{MOCK.gameName}</p>
                     <p className="font-inter text-sm text-muted-foreground italic">
-                      RPG cyberpunk roguelike — un jeu à fort potentiel commercial sur le marché indé actuel.
+                      RPG cyberpunk roguelike : un jeu à fort potentiel commercial sur le marché indé actuel.
                     </p>
                   </div>
 

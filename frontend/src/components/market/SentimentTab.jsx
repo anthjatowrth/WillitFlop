@@ -480,7 +480,7 @@ export function SentimentTab() {
           </div>
           <div>
             <p className="font-inter text-sm text-muted-foreground leading-relaxed mb-3">
-              Dans le cadre de <strong className="text-foreground">Will it Flop</strong>, l'analyse de sentiment joue un rôle clé dans la prédiction du succès commercial. L'hypothèse centrale : un jeu qui suscite des avis enthousiastes génère du bouche-à-oreille positif, fidélise sa communauté et attire de nouveaux acheteurs — ce qui se traduit directement en propriétaires estimés et en chiffre d'affaires.
+              Dans le cadre de <strong className="text-foreground">Will it Flop</strong>, l'analyse de sentiment joue un rôle clé dans la prédiction du succès commercial. L'hypothèse centrale : un jeu qui suscite des avis enthousiastes génère du bouche-à-oreille positif, fidélise sa communauté et attire de nouveaux acheteurs. Ce qui se traduit directement en propriétaires estimés et en chiffre d'affaires.
             </p>
             <p className="font-inter text-sm text-muted-foreground leading-relaxed">
               Les visualisations ci-dessous explorent cette corrélation sous plusieurs angles : relation directe sentiment/succès, dynamique temporelle du ton des avis, disparités entre genres, et enfin le vocabulaire réel utilisé par les joueurs pour exprimer satisfaction ou déception.
@@ -512,7 +512,7 @@ export function SentimentTab() {
       <div>
         <SectionLabel icon="cloud" label="Vocabulaire des avis joueurs" />
         <p className="font-inter text-sm text-muted-foreground leading-relaxed mb-5 max-w-3xl">
-          Ces nuages de mots extraient les termes les plus récurrents dans les avis classifiés positifs ou négatifs, après suppression des stopwords. La taille de chaque mot est proportionnelle à sa fréquence d'apparition — ils révèlent les thématiques qui reviennent le plus souvent dans les retours joueurs.
+          Ces nuages de mots extraient les termes les plus récurrents dans les avis classifiés positifs ou négatifs, après suppression des stopwords. La taille de chaque mot est proportionnelle à sa fréquence d'apparition. Ils révèlent les thématiques qui reviennent le plus souvent dans les retours joueurs.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Section

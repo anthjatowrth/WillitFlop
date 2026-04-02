@@ -14,9 +14,9 @@ const RESULT_MESSAGES = [
   "Tu parles surtout le binaire. 1 langue, c'est déjà un début.",
   'Bilingue basique. Deux langues, mieux que zéro.',
   'Trilingual curious ! 3 langues pour commencer.',
-  'Pas mal du tout ! 5 langues pour un vrai public indie.',
-  'Impressionnant ! 8 langues — ton jeu va voyager loin.',
-  '🌍 Légende polyglotte ! 12 langues — la planète entière peut jouer.',
+  'Pas mal du tout ! 5 langues : un vrai public indie.',
+  'Impressionnant ! 8 langues : ton jeu va voyager loin.',
+  '🌍 Légende polyglotte ! 12 langues : la planète entière peut jouer.',
 ]
 
 function shuffle(arr) {
