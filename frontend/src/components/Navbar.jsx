@@ -21,7 +21,7 @@ export default function Navbar() {
   }, [dark])
 
   return (
-    <header className="sticky top-0 z-50 glass-panel bg-background/80 shadow-xl border-b-0">
+    <header className="sticky top-0 z-50 glass-panel bg-background/60 backdrop-blur-md shadow-xl border-b-0">
       <nav className="flex justify-between items-center w-full px-6 py-4 max-w-screen-2xl mx-auto font-space-grotesk tracking-tight">
 
         {/* Left — logo + nav links */}
