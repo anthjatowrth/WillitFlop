@@ -1,4 +1,3 @@
--- Table ML finale : une ligne par jeu, toutes les features prêtes
 select
     -- Identifiant
     g.app_id,
@@ -12,25 +11,25 @@ select
     g.is_free,
     g.is_early_access,
 
-    -- Features multi-label (MultiLabelBinarizer côté sklearn)
+    -- Features multi-label 
     coalesce(t.tags,       array[]::text[]) as tags,
     coalesce(ge.genres,    array[]::text[]) as genres,
     coalesce(c.categories, array[]::text[]) as categories,
 
-    -- Features texte (TF-IDF côté sklearn)
+    -- Features texte 
     g.short_description_clean,
 
-    -- Features sentiment (TF-IDF côté sklearn — NULL si aucun avis)
+    -- Features sentiment
     coalesce(r.top_positive_reviews_text, '') as top_positive_reviews_text,
     coalesce(r.top_negative_reviews_text, '') as top_negative_reviews_text,
 
-    -- Date de sortie — utilisée côté loader pour filtrer les jeux trop récents
+    -- Date de sortie (pour filtre)
     g.release_date,
 
     -- Cible ML modèle 1
     g.is_successful,
 
-    -- Cible ML modèle 2 (régression Metacritic — NULL si pas de score)
+    -- Cible ML modèle 2 (régression Metacritic)
     nullif(g.metacritic_score, 0)           as target_metacritic
 
 from {{ ref('stg_games') }} g
