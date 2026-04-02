@@ -30,7 +30,7 @@ export default function LeaderboardCTA() {
           </h2>
           <p className="font-inter text-sm text-muted-foreground leading-relaxed mb-8 max-w-md">
             Soumettez les données de votre jeu et laissez notre moteur prédictif l'évaluer face au classement.
-            Les meilleurs sont mis à jour chaque mois — et si c'était votre tour ?
+            Les meilleurs sont mis à jour chaque mois, et si c'était votre tour ?
           </p>
           <button
             className="px-6 py-3 font-headline font-bold text-sm tracking-wide transition-all duration-300 hover:opacity-90 active:scale-95"

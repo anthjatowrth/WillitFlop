@@ -1,5 +1,5 @@
 /**
- * Analyse Catalogue — /market
+ * Analyse Catalogue /market
  * Dashboard analytique EDA alimenté par Supabase.
  */
 import { useState } from 'react'
@@ -60,7 +60,7 @@ export default function Market() {
                 <span style={{ color: 'var(--primary)' }}>CATALOGUE</span>
               </h1>
               <p className="mt-3 font-inter text-sm text-muted-foreground max-w-2xl">
-                EDA complet du catalogue Steam — distributions, Pareto, corrélations et facteurs de succès,
+                EDA complet du catalogue Steam : Distributions, Pareto, corrélations et facteurs de succès,
                 alimenté en temps réel depuis Supabase.
               </p>
             </div>

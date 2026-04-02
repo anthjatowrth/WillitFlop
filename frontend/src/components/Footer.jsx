@@ -10,7 +10,7 @@ export default function Footer() {
             <span className="text-primary">FLOP</span>
           </div>
           <p className="text-xs text-muted-foreground font-label leading-relaxed">
-            Anthony Jato Wirth et Pierre Guerlais — étudiants à la Wild Code School, passionnés de data et de jeux vidéo.
+            Anthony Jato Wirth et Pierre Guerlais, étudiants à la Wild Code School, passionnés de data et de jeux vidéo.
             Nous avons décidé d'utiliser nos nouvelles compétences pour les appliquer sur un projet concret qui nous passionne,
             et espérons que cela vous passionnera aussi&nbsp;:)&nbsp;!
           </p>
@@ -21,16 +21,16 @@ export default function Footer() {
           <p className="text-xs font-bold uppercase tracking-widest text-foreground/70">Réseaux sociaux</p>
           <div className="flex flex-col gap-1 text-xs font-label">
             <a href="https://anthjatowrth.github.io/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline focus-visible:underline focus-visible:outline-none">
-              Portfolio — Anthony
+              Portfolio : Anthony
             </a>
             <a href="https://pguerlais.github.io/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline focus-visible:underline focus-visible:outline-none">
-              Portfolio — Pierre
+              Portfolio : Pierre
             </a>
             <a href="https://www.linkedin.com/in/anthonyjw/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary hover:underline focus-visible:text-primary focus-visible:underline focus-visible:outline-none transition-colors">
-              LinkedIn — Anthony
+              LinkedIn : Anthony
             </a>
             <a href="https://www.linkedin.com/in/pierreguerlais/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary hover:underline focus-visible:text-primary focus-visible:underline focus-visible:outline-none transition-colors">
-              LinkedIn — Pierre
+              LinkedIn : Pierre
             </a>
           </div>
         </div>

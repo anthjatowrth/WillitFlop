@@ -236,7 +236,7 @@ export default function AboutProject() {
         </div>
 
         {/* ── Bloc 5 : Périmètre (pleine largeur) ── */}
-        <BlockCard accentColor="var(--wif-gray)" icon={Target} title="Ce que notre analyse couvre — et ce qu'elle ne couvre pas">
+        <BlockCard accentColor="var(--wif-gray)" icon={Target} title="Ce que notre analyse couvre et ce qu'elle ne couvre pas">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <BodyText style={{ marginBottom: '20px' }}>

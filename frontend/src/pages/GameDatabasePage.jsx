@@ -149,7 +149,7 @@ export default function GameDatabasePage() {
             <span className="font-label text-[10px] tracking-[0.3em] uppercase text-muted-foreground">
               {connectionOk
                 ? 'Will it flop connection : Active'
-                : 'Connection Error — Supabase Unreachable'}
+                : 'Connection Error : Supabase Unreachable'}
             </span>
           </div>
 
@@ -480,7 +480,7 @@ export default function GameDatabasePage() {
 
             {/* Total indicator */}
             <p className="font-label text-[10px] tracking-widest uppercase text-muted-foreground/60">
-              Page {page} / {totalPages} — {totalCount.toLocaleString()} total entries
+              Page {page} / {totalPages}  {totalCount.toLocaleString()} total entries
             </p>
           </section>
         )}
