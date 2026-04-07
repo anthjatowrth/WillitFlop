@@ -368,7 +368,7 @@ export default function DistributionsTab({ data, successPct }) {
 
       {/* ── Pareto genres ── */}
       <Section
-        title="Analyse de Pareto — Répartition des genres"
+        title="Analyse de Pareto : Répartition des genres"
         subtitle={`Principe 80/20 : ${genres80} genres concentrent 80% des publications Steam`}
         badge="Pareto 80/20"
       >

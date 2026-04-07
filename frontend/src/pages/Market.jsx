@@ -60,8 +60,7 @@ export default function Market() {
                 <span style={{ color: 'var(--primary)' }}>CATALOGUE</span>
               </h1>
               <p className="mt-3 font-inter text-sm text-muted-foreground max-w-2xl">
-                EDA complet du catalogue Steam : Distributions, Pareto, corrélations et facteurs de succès,
-                alimenté en temps réel depuis Supabase.
+                Analyse détaillée de notre sélection Steam : distributions, corrélations, facteurs de succès et analyse de sentiment des reviews. Cette section vous permettra de mieux comprendre les tendances du marché et d'identifier les facteurs clés de réussite pour la création de votre prochain jeu !.
               </p>
             </div>
             <div className="shrink-0 flex flex-col gap-2 items-end">

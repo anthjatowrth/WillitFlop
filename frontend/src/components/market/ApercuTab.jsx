@@ -114,7 +114,7 @@ export default function ApercuTab({ data }) {
 
         return (
           <Section
-            title="Saisonnalité des sorties — Jan à Déc"
+            title="Saisonnalité des sorties : de janvier à décembre"
             subtitle="Volume de publications et taux de succès agrégés sur toutes les années (2010–2025)"
             badge={`Moy. mensuelle : ${fmt(avgMonthCount)} jeux`}
           >
@@ -217,7 +217,7 @@ export default function ApercuTab({ data }) {
       {/* ── Twitch Live Snapshot ── */}
       <Section
         title="Présence Twitch du catalogue"
-        subtitle="Viewers & streams actifs au dernier snapshot — données live actualisées en continu"
+        subtitle="Viewers & streams actifs au dernier snapshot (données live actualisées chaque mois)"
         badge={data.twitchFetchedAt ? `Snapshot ${data.twitchFetchedAt}` : 'Live'}
       >
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">

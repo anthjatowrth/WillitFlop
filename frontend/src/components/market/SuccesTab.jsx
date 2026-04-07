@@ -79,7 +79,7 @@ export default function SuccesTab({ successPct }) {
       {/* ── Scatter : matrice de positionnement des tags ── */}
       <Section
         title="Matrice de positionnement des tags"
-        subtitle="X = popularité (échelle log) / Y = taux de succès / Survolez un point pour l'identifier"
+        subtitle="X = popularité (échelle log), Y = taux de succès (survolez un point pour l'identifier)"
         badge={`${allLogTags.length} tags`}
       >
         {tagLoading ? (
