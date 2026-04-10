@@ -49,12 +49,12 @@ TEXT_FEATURE = "short_description_clean"
 # pas les splits — seule la répétition de colonnes augmente la probabilité
 # d'échantillonnage lors de colsample_bytree.
 #
-# Tags x3, genres x2, categories x2 : focus sur l'essence du jeu.
-# Texte réduit (150 → 100 features) : moins d'influence des descriptions mktg.
-TAGS_WEIGHT       = 3
-GENRES_WEIGHT     = 2
+# Tags x5, genres x3 : les choix gameplay/esthétiques dominent le signal.
+# Texte réduit à 50 features : la description marketing dilue le signal tags.
+TAGS_WEIGHT       = 5
+GENRES_WEIGHT     = 3
 CATEGORIES_WEIGHT = 2
-TEXT_MAX_FEATURES = 200
+TEXT_MAX_FEATURES = 50
 
 # Colonne cible
 TARGET = "is_successful"
@@ -69,11 +69,13 @@ RANDOM_STATE = 42    # reproductibilité
 # Hyperparamètres XGBoost (point de départ — tuning ultérieur si besoin)
 # ---------------------------------------------------------------------------
 XGBOOST_PARAMS = {
-    "n_estimators":     400,
-    "max_depth":        6,
+    "n_estimators":     300,
+    "max_depth":        4,     # réduit (6→4) : freine l'overfitting
     "learning_rate":    0.05,
     "subsample":        0.8,
-    "colsample_bytree": 0.8,
+    "colsample_bytree": 0.7,   # réduit (0.8→0.7) : plus de diversité par arbre
+    "reg_alpha":        0.1,   # L1 : pousse les petits poids à 0 (sélection de features)
+    "reg_lambda":       2.0,   # L2 : freine les poids extrêmes
     # scale_pos_weight est calculé dynamiquement dans train.py depuis y_train
     "eval_metric":      "auc",
     "random_state":     RANDOM_STATE,

@@ -1385,19 +1385,102 @@ function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded,
 }
 
 // ---------------------------------------------------------------------------
-// Heuristiques : quels choix jouent pour ou contre le succès
+// Tables de tiers par dimension — basées sur les taux de succès Steam
+// positive: true = atout, false = risque, null = neutre (ignoré)
+// ---------------------------------------------------------------------------
+const GENRE_TIER = {
+  'RPG':                     { positive: true,  label: 'Genre RPG : fort taux de succès historique' },
+  'Simulation':              { positive: true,  label: 'Simulation : marché en forte croissance' },
+  'Horreur / Thriller':      { positive: true,  label: 'Horreur : niche efficace, taux de succès élevé' },
+  'Narratif / Visual Novel': { positive: true,  label: 'Narratif : audience de niche très fidèle' },
+  'Plateforme / Puzzle':     { positive: true,  label: 'Plateforme/Puzzle : marché accessible et large' },
+  'Stratégie / Gestion':     { positive: true,  label: 'Stratégie : audience engagée, peu de churn' },
+  'Exploration / Aventure':  { positive: true,  label: 'Aventure : fanbase large et diversifiée' },
+  'Action / Combat':         { positive: false, label: 'Action : marché ultra-saturé, concurrence féroce' },
+}
+
+const UNIVERSE_TIER = {
+  'Cozy / Wholesome':        { positive: true,  label: 'Cozy/Wholesome : tendance forte, marché en vogue' },
+  'Fantasy / Medieval':      { positive: true,  label: 'Fantasy : communauté massive et fidèle' },
+  'Anime / Coloré':          { positive: true,  label: 'Anime : audience croissante et engagée' },
+  'Sci-fi / Futuristic':     { positive: true,  label: 'Sci-fi : marché diversifié, forte demande' },
+  'Humour / Parodie':        { positive: true,  label: 'Humour/Parodie : niche efficace, bouche-à-oreille fort' },
+  'Horreur / Psychologique': { positive: true,  label: 'Horreur psy : niche fidèle, bon taux de succès' },
+  'Historique':              { positive: true,  label: 'Historique : audience de niche très engagée' },
+  'Dark / Mature':           { positive: null,  label: null },
+  'Cyberpunk / Steampunk':   { positive: false, label: 'Cyberpunk/Steampunk : segment saturé post-2020' },
+  'Post-Apocalyptique':      { positive: false, label: 'Post-Apo : segment concurrentiel et en déclin' },
+}
+
+const MECHANICS_TIER = {
+  'Roguelike / Roguelite':   { positive: true,  label: 'Roguelike : mécanique star, excellent taux de succès' },
+  'Metroidvania':            { positive: true,  label: 'Metroidvania : niche efficace et communauté fidèle' },
+  'Deckbuilding':            { positive: true,  label: 'Deckbuilding : en vogue, très bon taux de succès' },
+  'Story Rich / Narratif':   { positive: true,  label: 'Story Rich : fort engagement, meilleures reviews' },
+  'Tour par tour':           { positive: true,  label: 'Tour par tour : niche fidèle, peu de concurrence directe' },
+  'Puzzle / Logique':        { positive: true,  label: 'Puzzle : accessible, marché régulier et solide' },
+  'Sandbox':                 { positive: true,  label: 'Sandbox : haute rejouabilité, communauté durable' },
+  'Open World':              { positive: false, label: 'Open World : coûteux à produire, très compétitif' },
+  'Craft / Survie':          { positive: false, label: 'Craft/Survie : marché saturé, difficile de se démarquer' },
+  'Souls-like':              { positive: false, label: 'Souls-like : niche exigeante, public très sélectif' },
+  'Tower Defense':           { positive: false, label: 'Tower Defense : marché en déclin structurel' },
+  'Action rapide':           { positive: null,  label: null },
+}
+
+const VISUAL_TIER = {
+  'Pixel Art / Rétro':       { positive: true,  label: 'Pixel Art : coûts accessibles, marché large et réceptif' },
+  'Cell Shading / Cartoon':  { positive: true,  label: 'Cartoon : intemporel, accessible au grand public' },
+  'Aquarelle / Illustré':    { positive: true,  label: 'Style illustré : distinctif, fort potentiel viral' },
+  'Minimaliste / Flat':      { positive: true,  label: 'Style minimaliste : production accessible, lisibilité forte' },
+  'Low Poly 3D':             { positive: true,  label: 'Low Poly : bon ratio qualité/coût pour un indé' },
+  '3D Réaliste':             { positive: false, label: '3D Réaliste : coûts prohibitifs, concurrence AAA directe' },
+}
+
+const PERSPECTIVE_TIER = {
+  'Défilement latéral (2D)': { positive: true,  label: '2D latéral : marché plateforme accessible et établi' },
+  'Vue isométrique':         { positive: true,  label: 'Vue isométrique : niche efficace (RPG, stratégie)' },
+  'Vue du dessus':           { positive: true,  label: 'Vue du dessus : classique, production maîtrisée' },
+  'Point & Click':           { positive: true,  label: 'Point & Click : audience niche très fidèle' },
+  'Première personne (FPS)': { positive: false, label: 'FPS : marché ultra-compétitif, attentes techniques élevées' },
+  'Troisième personne (TPS)':{ positive: false, label: 'TPS : concurrence AAA directe, coûts d\'animation élevés' },
+}
+
+// ---------------------------------------------------------------------------
+// Facteurs clés : tags + production
 // ---------------------------------------------------------------------------
 function getFactors(answers) {
   const factors = []
   const polishLabels = ['Garage', 'Studio Indé', 'AA Indé', 'Polished Gem']
 
-  // Polish
+  // ── Tags : 5 dimensions systématiques ──────────────────────────────────
+  const tagChecks = [
+    [GENRE_TIER,       answers.genre],
+    [UNIVERSE_TIER,    answers.universe],
+    [MECHANICS_TIER,   answers.mechanics?.[0]],
+    [VISUAL_TIER,      answers.visualStyle],
+    [PERSPECTIVE_TIER, answers.perspective],
+  ]
+  for (const [tier, value] of tagChecks) {
+    if (!value) continue
+    const t = tier[value]
+    if (t && t.positive !== null)
+      factors.push({ label: t.label, positive: t.positive })
+  }
+
+  // ── Mode de jeu ────────────────────────────────────────────────────────
+  if (answers.categories?.includes('Workshop / Mods'))
+    factors.push({ label: 'Support moddable : longévité accrue', positive: true })
+  if (answers.categories?.some(c => ['Co-op en ligne', 'PvP compétitif'].includes(c)))
+    factors.push({ label: 'Multijoueur : engagement communautaire fort', positive: true })
+  if (answers.categories?.length === 1 && answers.categories[0] === 'Solo uniquement')
+    factors.push({ label: 'Solo uniquement : pas de multijoueur', positive: false })
+
+  // ── Production ─────────────────────────────────────────────────────────
   if (answers.devLevel >= 2)
     factors.push({ label: `Finition : ${polishLabels[answers.devLevel]}`, positive: true })
   else if (answers.devLevel === 0)
     factors.push({ label: `Finition : ${polishLabels[answers.devLevel]}`, positive: false })
 
-  // Prix
   if (answers.pricing === 0)
     factors.push({ label: 'Gratuit : accessibilité maximale', positive: true })
   else if (answers.pricing != null && answers.pricing <= 14.99)
@@ -1405,31 +1488,12 @@ function getFactors(answers) {
   else if (answers.pricing != null && answers.pricing >= 29.99)
     factors.push({ label: `Prix élevé : ${answers.pricing}€`, positive: false })
 
-  // Langues
   if (answers.languages != null) {
     if (answers.languages >= 10)
       factors.push({ label: `${answers.languages} langues : large audience`, positive: true })
     else if (answers.languages <= 2)
       factors.push({ label: `${answers.languages} langue(s) : audience limitée`, positive: false })
   }
-
-  // Mécaniques tendances vs niches exigeantes
-  const trendingMechanics = ['Roguelike / Roguelite', 'Deckbuilding', 'Metroidvania']
-  const nicheHard = ['Souls-like', 'Tower Defense']
-  const hasTrending = answers.mechanics?.some(m => trendingMechanics.includes(m))
-  const hasNiche = answers.mechanics?.some(m => nicheHard.includes(m))
-  if (hasTrending)
-    factors.push({ label: 'Mécaniques en vogue (roguelike, deckbuilding…)', positive: true })
-  if (hasNiche)
-    factors.push({ label: 'Niche exigeante (souls-like / tower defense)', positive: false })
-
-  // Multijoueur / moddable
-  if (answers.categories?.includes('Workshop / Mods'))
-    factors.push({ label: 'Support moddable : longévité accrue', positive: true })
-  if (answers.categories?.some(c => ['Co-op en ligne', 'PvP compétitif'].includes(c)))
-    factors.push({ label: 'Multijoueur : engagement communautaire', positive: true })
-  if (answers.categories?.length === 1 && answers.categories[0] === 'Solo uniquement')
-    factors.push({ label: 'Solo uniquement : pas de multijoueur', positive: false })
 
   return factors
 }

@@ -124,7 +124,7 @@ export default function SuccesTab({ successPct }) {
                     return n >= 1000 ? `${(n / 1000).toFixed(0)}k` : `${n}`
                   }}
                   tick={{ fontSize: 12, fill: 'var(--wif-gray)' }}
-                  label={{ value: 'Popularité — nombre de jeux portant ce tag (log)', position: 'insideBottom', offset: -20, fontSize: 12, fill: 'var(--wif-gray)' }}
+                  label={{ value: 'Popularité : nombre de jeux portant ce tag (log)', position: 'insideBottom', offset: -20, fontSize: 12, fill: 'var(--wif-gray)' }}
                 />
                 <YAxis
                   type="number"
