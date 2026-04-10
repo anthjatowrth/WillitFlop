@@ -1378,7 +1378,7 @@ function ResultCard({ result, answers, imageUrl, imageLoading, leaderboardAdded,
 
       {/* ── Facteurs clés ─────────────────────────────────────────── */}
       <div className="max-w-3xl mx-auto">
-        <FactorsSection answers={answers} />
+        <FactorsSection answers={answers} isTop={isTop} />
       </div>
     </div>
   )
@@ -1499,45 +1499,85 @@ function getFactors(answers) {
 }
 
 // ---------------------------------------------------------------------------
-// Section facteurs positifs / négatifs
+// Section facteurs positifs / négatifs — tri selon le verdict
 // ---------------------------------------------------------------------------
-function FactorsSection({ answers }) {
+function FactorItem({ f, prominent }) {
+  const color = f.positive ? 'var(--wif-success)' : 'var(--wif-danger)'
+  return (
+    <div
+      className="flex items-center gap-3 rounded-lg px-4 transition-all"
+      style={{
+        paddingTop:    prominent ? '14px' : '9px',
+        paddingBottom: prominent ? '14px' : '9px',
+        background: f.positive
+          ? `color-mix(in srgb, var(--wif-success) ${prominent ? 18 : 8}%, transparent)`
+          : `color-mix(in srgb, var(--wif-danger)  ${prominent ? 18 : 8}%, transparent)`,
+        border: `${prominent ? '1.5px' : '1px'} solid ${f.positive
+          ? `color-mix(in srgb, var(--wif-success) ${prominent ? 50 : 20}%, transparent)`
+          : `color-mix(in srgb, var(--wif-danger)  ${prominent ? 50 : 20}%, transparent)`}`,
+        opacity: prominent ? 1 : 0.65,
+      }}
+    >
+      <span
+        className="shrink-0 leading-none"
+        style={{ color, fontSize: prominent ? '1rem' : '0.75rem' }}
+      >
+        {f.positive ? '▲' : '▼'}
+      </span>
+      <span
+        className={prominent ? 'text-sm font-semibold font-exo' : 'text-xs font-exo'}
+        style={{ color }}
+      >
+        {f.label}
+      </span>
+    </div>
+  )
+}
+
+function FactorsSection({ answers, isTop }) {
   const factors = getFactors(answers)
   if (factors.length === 0) return null
+
+  // Facteurs dominants = ceux qui correspondent au verdict
+  const dominant   = factors.filter(f => f.positive === isTop)
+  const secondary  = factors.filter(f => f.positive !== isTop)
+
+  const dominantColor  = isTop ? 'var(--wif-success)' : 'var(--wif-danger)'
+  const dominantLabel  = isTop ? 'Atouts majeurs' : 'Freins identifiés'
+  const secondaryLabel = isTop ? 'Points d\'attention' : 'Éléments favorables'
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <span className="font-label text-[10px] tracking-[0.3em] uppercase text-muted-foreground block">
         Facteurs clés
       </span>
-      <div className="flex flex-col gap-2">
-        {factors.map((f, i) => (
-          <div
-            key={i}
-            className="flex items-center gap-3 rounded-lg px-4 py-3"
-            style={{
-              background: f.positive
-                ? 'color-mix(in srgb, var(--wif-success) 12%, transparent)'
-                : 'color-mix(in srgb, var(--wif-danger) 12%, transparent)',
-              border: `1px solid ${f.positive
-                ? 'color-mix(in srgb, var(--wif-success) 35%, transparent)'
-                : 'color-mix(in srgb, var(--wif-danger) 35%, transparent)'}`,
-            }}
+
+      {/* Groupe dominant */}
+      {dominant.length > 0 && (
+        <div className="space-y-2">
+          <span
+            className="font-label text-[9px] tracking-[0.25em] uppercase font-bold block"
+            style={{ color: dominantColor }}
           >
-            <span
-              className="shrink-0 text-base leading-none"
-              style={{ color: f.positive ? 'var(--wif-success)' : 'var(--wif-danger)' }}
-            >
-              {f.positive ? '▲' : '▼'}
-            </span>
-            <span
-              className="text-sm font-exo"
-              style={{ color: f.positive ? 'var(--wif-success)' : 'var(--wif-danger)' }}
-            >
-              {f.label}
-            </span>
+            {dominantLabel}
+          </span>
+          <div className="flex flex-col gap-2">
+            {dominant.map((f, i) => <FactorItem key={i} f={f} prominent />)}
           </div>
-        ))}
-      </div>
+        </div>
+      )}
+
+      {/* Groupe secondaire */}
+      {secondary.length > 0 && (
+        <div className="space-y-2">
+          <span className="font-label text-[9px] tracking-[0.25em] uppercase font-bold block text-muted-foreground/60">
+            {secondaryLabel}
+          </span>
+          <div className="flex flex-col gap-1.5">
+            {secondary.map((f, i) => <FactorItem key={i} f={f} prominent={false} />)}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
