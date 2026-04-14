@@ -285,20 +285,22 @@ export default function GameDatabasePage() {
 
             {/* Alphabet picker — only shown in alpha mode */}
             {sortBy === 'alpha' && (
-              <div className="flex flex-wrap gap-0">
-                {['#', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(l => (
-                  <button
-                    key={l}
-                    onClick={() => setLetter(letterFilter === l ? '' : l)}
-                    className={`w-8 h-7 text-[11px] font-label tracking-wider transition-all duration-200 ${
-                      letterFilter === l
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:text-primary'
-                    }`}
-                  >
-                    {l}
-                  </button>
-                ))}
+              <div className="overflow-x-auto w-full md:w-auto">
+                <div className="flex gap-0 min-w-max md:flex-wrap md:min-w-0">
+                  {['#', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(l => (
+                    <button
+                      key={l}
+                      onClick={() => setLetter(letterFilter === l ? '' : l)}
+                      className={`w-8 h-7 text-[11px] font-label tracking-wider transition-all duration-200 flex-shrink-0 ${
+                        letterFilter === l
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-muted-foreground hover:text-primary'
+                      }`}
+                    >
+                      {l}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </div>

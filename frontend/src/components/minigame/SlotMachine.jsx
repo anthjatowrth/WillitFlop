@@ -147,33 +147,40 @@ export default function SlotMachine({ onSelect }) {
   const explanations = currentValues ? explainPrice(currentValues.audience, currentValues.duration, currentValues.positioning) : []
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'row', gap: '24px', alignItems: 'flex-start', justifyContent: 'center' }}>
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+    <div className="slot-outer" style={{ display: 'flex', flexDirection: 'row', gap: '24px', alignItems: 'flex-start', justifyContent: 'center' }}>
+    <div className="slot-main" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
       {/* Reels */}
-      <div style={{
+      <div className="slot-reels-container" style={{
         display: 'flex',
         gap: '12px',
         background: 'var(--wif-bg3)',
         borderRadius: '14px',
         padding: '20px',
         border: '2px solid var(--wif-border)',
+        width: '100%',
+        boxSizing: 'border-box',
       }}>
         {REELS.map((reel, ri) => {
           const isSpinning = phase === 'spinning' && !stoppedMask[ri]
           return (
-            <div key={reel.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-              <span style={{
+            <div key={reel.id} className="slot-reel-col" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', flex: '1 1 0', minWidth: '0' }}>
+              <span className="slot-reel-label" style={{
                 fontSize: '10px',
                 letterSpacing: '0.2em',
                 textTransform: 'uppercase',
                 color: 'var(--wif-ink)',
                 opacity: 0.5,
+                textAlign: 'center',
+                width: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
               }}>
                 {reel.label}
               </span>
-              <div style={reelBoxStyle(ri)}>
+              <div className="slot-reel-box" style={{ ...reelBoxStyle(ri), width: '100%', boxSizing: 'border-box' }}>
                 <span
-                  className="font-orbitron"
+                  className="font-orbitron slot-reel-value"
                   style={{
                     fontSize: '12px',
                     fontWeight: 700,
@@ -229,7 +236,7 @@ export default function SlotMachine({ onSelect }) {
               Prix résultant
             </span>
             <div
-              className="font-orbitron"
+              className="font-orbitron slot-price"
               style={{ fontSize: '52px', fontWeight: 900, color: 'var(--wif-pink)', lineHeight: 1.2 }}
             >
               {effectivePrice === 0 ? 'GRATUIT' : `${effectivePrice}€`}
@@ -285,12 +292,21 @@ export default function SlotMachine({ onSelect }) {
           from { opacity: 0; transform: translateY(8px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        @media (max-width: 767px) {
+          .slot-outer { flex-direction: column !important; gap: 12px !important; align-items: stretch !important; width: 100%; }
+          .slot-main { width: 100% !important; align-items: stretch !important; }
+          .slot-reels-container { padding: 12px !important; gap: 8px !important; }
+          .slot-reel-label { font-size: 8px !important; letter-spacing: 0.1em !important; }
+          .slot-reel-value { font-size: 10px !important; }
+          .slot-price { font-size: 36px !important; }
+          .slot-explanation { min-width: unset !important; max-width: unset !important; width: 100% !important; box-sizing: border-box !important; padding: 14px !important; }
+        }
       `}</style>
     </div>
 
     {/* Panneau explicatif — visible uniquement quand le résultat est tombé */}
     {phase === 'done' && explanations.length > 0 && (
-      <div style={{
+      <div className="slot-explanation" style={{
         minWidth: '260px',
         maxWidth: '300px',
         background: 'var(--wif-bg3)',

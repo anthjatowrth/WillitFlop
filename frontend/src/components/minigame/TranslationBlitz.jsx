@@ -193,10 +193,12 @@ export default function TranslationBlitz({ onComplete }) {
                 height: '100%',
                 opacity: isAnswered ? 0.85 : 1,
                 transition: 'opacity 0.3s',
+                overflow: 'hidden',
+                minWidth: 0,
               }}
             >
               {/* Question header */}
-              <div style={{ textAlign: 'center' }}>
+              <div style={{ textAlign: 'center', overflow: 'hidden' }}>
                 <span className="font-label" style={{
                   fontSize: '9px', letterSpacing: '0.2em',
                   textTransform: 'uppercase', opacity: 0.5,
@@ -204,10 +206,12 @@ export default function TranslationBlitz({ onComplete }) {
                 }}>
                   {q.lang}
                 </span>
-                <div className="font-orbitron" style={{
+                <div className="font-orbitron translation-word" style={{
                   fontSize: '26px', fontWeight: 900,
                   color: 'var(--wif-pink)', margin: '4px 0 2px',
                   lineHeight: 1.1,
+                  overflowWrap: 'break-word',
+                  wordBreak: 'break-word',
                 }}>
                   {q.word}
                 </div>
@@ -271,6 +275,12 @@ export default function TranslationBlitz({ onComplete }) {
           {answeredCount} / {questions.length} répondues
         </span>
       </div>
+
+      <style>{`
+        @media (max-width: 767px) {
+          .translation-word { font-size: clamp(14px, 4vw, 26px) !important; }
+        }
+      `}</style>
     </div>
   )
 }

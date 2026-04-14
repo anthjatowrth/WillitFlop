@@ -766,21 +766,20 @@ export default function MiniGame() {
                   {/* Machine à sous — prix */}
                   {question.type === 'slotmachine' && (
                     <div className="flex flex-col gap-3">
-                      <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
-                        <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="relative w-full h-[360px] md:h-auto" style={{ aspectRatio: '16/9' }}>
+                        <div className="absolute inset-0 flex items-center justify-center overflow-auto">
                           <SlotMachine
                             onSelect={(v) => setAnswers(prev => ({ ...prev, pricing: v }))}
                           />
                         </div>
                       </div>
-                      <div className="h-16" />
                     </div>
                   )}
 
                   {/* Slider de polish dev */}
                   {question.type === 'devslider' && (
                     <div className="flex flex-col gap-3">
-                      <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
+                      <div className="relative w-full h-[300px] md:h-auto" style={{ aspectRatio: '16/9' }}>
                         <div className="absolute inset-0">
                           <DevSlider
                             value={answers.devLevel}
@@ -788,21 +787,19 @@ export default function MiniGame() {
                           />
                         </div>
                       </div>
-                      <div className="h-16" />
                     </div>
                   )}
 
                   {/* Quiz des langues */}
                   {question.type === 'languagequiz' && (
                     <div className="flex flex-col gap-3">
-                      <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
+                      <div className="relative w-full h-[340px] md:h-auto" style={{ aspectRatio: '16/9' }}>
                         <div className="absolute inset-0">
                           <TranslationBlitz
                             onComplete={(_score, languageCount) => setAnswers(prev => ({ ...prev, languages: languageCount }))}
                           />
                         </div>
                       </div>
-                      <div className="h-16" />
                     </div>
                   )}
                 </div>

@@ -19,7 +19,7 @@ export default function Layout() {
       </main>
 
       {/* ── Footer ────────────────────────────────────────────────── */}
-      <footer className="bg-surface-container-low grid grid-cols-1 md:grid-cols-4 gap-24 w-full px-8 py-12 mt-auto border-t border-border/20">
+      <footer className="bg-surface-container-low grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-24 w-full px-8 py-12 mt-auto border-t border-border/20">
 
         {/* Col 1 — Brand */}
         <div className="md:col-span-1">

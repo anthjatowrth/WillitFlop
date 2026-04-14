@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import {
   Area,
   BarChart, Bar,
@@ -11,6 +12,14 @@ import InsightBox from './InsightBox'
 const fmt = n => typeof n === 'number' ? n.toLocaleString('fr-FR') : n
 
 export default function ApercuTab({ data }) {
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
+  useEffect(() => {
+    const handler = () => setWindowWidth(window.innerWidth)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  const isMobile = windowWidth < 768
+
   return (
     <div className="space-y-6">
 
@@ -259,7 +268,7 @@ export default function ApercuTab({ data }) {
               <BarChart
                 data={data.twitchByGenre}
                 layout="vertical"
-                margin={{ top: 0, right: 60, left: 8, bottom: 0 }}
+                margin={{ top: 0, right: isMobile ? 30 : 60, left: 8, bottom: 0 }}
               >
                 <defs>
                   <linearGradient id="gradTwitch" x1="0" y1="0" x2="1" y2="0">
@@ -276,8 +285,8 @@ export default function ApercuTab({ data }) {
                 <YAxis
                   type="category"
                   dataKey="name"
-                  width={110}
-                  tick={{ fontSize: 12, fill: 'var(--wif-gray)' }}
+                  width={isMobile ? 80 : 110}
+                  tick={{ fontSize: isMobile ? 10 : 12, fill: 'var(--wif-gray)' }}
                 />
                 <Tooltip
                   cursor={{ fill: 'var(--wif-border)', fillOpacity: 0.15 }}

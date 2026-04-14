@@ -16,7 +16,7 @@ export default function GameDetailPanel({ game, side, visible, variant = 'succes
 
   return (
     <div
-      className="absolute z-50 pointer-events-none transition-all duration-200 ease-out"
+      className="hidden md:block absolute z-50 pointer-events-none transition-all duration-200 ease-out"
       style={{
         ...positionStyle,
         width:       '420px',

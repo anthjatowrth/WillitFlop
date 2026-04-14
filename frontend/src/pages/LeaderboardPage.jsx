@@ -40,7 +40,10 @@ export default function LeaderboardPage() {
 
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
             <div>
-              <h1 className="font-headline font-black tracking-tighter text-7xl text-foreground leading-none">
+              <h1
+                className="font-headline font-black tracking-tighter text-foreground leading-none"
+                style={{ fontSize: 'clamp(2rem, 7vw, 4.5rem)' }}
+              >
                 CLASSEMENT{' '}
                 <span style={{ color: 'var(--primary)' }}>DE VOS CRÉATIONS</span>
               </h1>

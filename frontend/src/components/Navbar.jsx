@@ -53,9 +53,10 @@ export default function Navbar() {
 
           <NavLink
             to="/minigame"
-            className="px-5 py-2 bg-primary text-primary-foreground font-bold text-sm rounded-sm shadow-lg hover:bg-primary/90 active:scale-95 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="px-3 sm:px-5 py-2 bg-primary text-primary-foreground font-bold text-xs sm:text-sm rounded-sm shadow-lg hover:bg-primary/90 active:scale-95 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 whitespace-nowrap"
           >
-            À vous de jouer !
+            <span className="hidden sm:inline">À vous de jouer !</span>
+            <span className="sm:hidden">Jouer !</span>
           </NavLink>
 
           <button
